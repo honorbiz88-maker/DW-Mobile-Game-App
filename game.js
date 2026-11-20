@@ -380,3 +380,189 @@ function getTutorialCoaching(job) {
   }
   return { stepLabel: 'TRAINING 6/6', text: `Torque lugs in star order (1→3→5→2→4). Tap Lug #${STAR_ORDER[job.torqueIdx]} next!` };
 }
+function showAlert(title, msg) {
+  SoundFX.error();
+  document.getElementById('diag-alert-title').textContent = title;
+  document.getElementById('diag-alert-msg').textContent = msg;
+  document.getElementById('diag-alert').classList.remove('hidden');
+}
+
+function dismissAlert() {
+  document.getElementById('diag-alert').classList.add('hidden');
+}
+
+function getTireSpritePath(job) {
+  const prefix = job.veh.heavy ? 'assets/bay-hd-tire-' : 'assets/bay-tire-';
+  const suffix = job.fixed ? 'good.png' : `${job.dmg.fileKey}.png`;
+  return prefix + suffix;
+}
+
+function renderBay() {
+  const job = state.activeJob;
+  document.getElementById('bay-empty').classList.toggle('hidden', !!job);
+  document.getElementById('bay-active').classList.toggle('hidden', !job);
+  if (!job) return;
+
+  let tutEl = document.getElementById('tut-coach-box');
+  if (!tutEl) {
+    tutEl = document.createElement('div');
+    tutEl.id = 'tut-coach-box';
+    const bayActive = document.getElementById('bay-active');
+    bayActive.insertBefore(tutEl, bayActive.firstChild);
+  }
+  if (job.isTutorial) {
+    const coach = getTutorialCoaching(job);
+    tutEl.className = 'tut-banner';
+    tutEl.innerHTML = `
+      <div class="tut-banner-top">
+        <span class="badge">${coach.stepLabel} · REWARD: +25 ⚡</span>
+        <button class="ghost-btn" style="padding:3px 8px;font-size:11px;" onclick="skipTutorial()">Skip</button>
+      </div>
+      <p>${coach.text}</p>`;
+  } else {
+    tutEl.className = 'hidden';
+  }
+
+  document.getElementById('bay-veh-tag').textContent = job.veh.label;
+  document.getElementById('bay-job-title').textContent = job.title;
+  const finalPay = job.pay * (state.surgeJobs > 0 ? 2 : 1);
+  document.getElementById('bay-payout').textContent = `$${finalPay}`;
+
+  const stage = document.getElementById('bay-stage');
+  if (!document.getElementById('mag-tray')) {
+    const tray = document.createElement('div');
+    tray.id = 'mag-tray';
+    tray.className = 'mag-tray';
+    tray.textContent = 'MAG TRAY';
+    stage.appendChild(tray);
+  }
+  const jackBox = document.getElementById('stage-jack');
+  if (!jackBox.querySelector('.jack-saddle')) {
+    const saddle = document.createElement('div');
+    saddle.className = 'jack-saddle';
+    jackBox.insertBefore(saddle, jackBox.firstChild);
+  }
+
+  const vehImg = document.getElementById('stage-veh-img');
+  const vehFb = document.getElementById('stage-veh-fallback');
+  vehImg.style.display = 'block';
+  vehFb.style.display = 'none';
+  vehFb.innerHTML = renderVehicleSVG(job.veh);
+  vehImg.src = job.veh.img;
+
+  const tireImg = document.getElementById('stage-tire-img');
+  const tireFb = document.getElementById('stage-tire-fallback');
+  tireImg.style.display = 'block';
+  tireFb.style.display = 'none';
+  tireFb.innerHTML = renderTireSVG(job, 132);
+  tireImg.src = getTireSpritePath(job);
+
+  const liftPx = Math.round((job.liftPct / 100) * 26);
+  const wheelLiftPx = Math.round((job.liftPct / 100) * 16);
+  document.getElementById('stage-chock').classList.toggle('set', job.chocked);
+  document.getElementById('jack-arm').style.height = `${12 + Math.round((job.liftPct / 100) * 44)}px`;
+  document.getElementById('stage-chassis').style.transform = `translateX(-50%) translateY(-${liftPx}px)`;
+  document.getElementById('stage-wheel-wrap').style.transform = `translateX(-50%) translateY(-${wheelLiftPx}px)`;
+  document.getElementById('scan-beam').classList.toggle('hidden', !(job.step === 3 && !job.scanned));
+
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById(`sp-${i}`);
+    el.className = 'sp' + (job.step === i ? ' active' : job.step > i ? ' done' : '');
+  }
+
+  const lugRing = document.getElementById('lug-ring');
+  lugRing.innerHTML = LUG_COORDS.map((l) => {
+    const isRemoved = job.lugsRemoved.includes(l.id) && job.step < 5;
+    const isTorqued = job.step === 5 && STAR_ORDER.slice(0, job.torqueIdx).includes(l.id);
+    const isSpinning = job.lastSpunLug === l.id;
+    const pulseLug = job.isTutorial && (
+      (job.step === 2 && !isRemoved) ||
+      (job.step === 5 && STAR_ORDER[job.torqueIdx] === l.id)
+    );
+    return `<button class="lug-btn ${isRemoved ? 'removed' : ''} ${isTorqued ? 'torqued' : ''} ${isSpinning ? 'spinning' : ''} ${pulseLug ? 'tut-pulse' : ''}"
+      style="left:${l.x}%;top:${l.y}%;"
+      onclick="tapLug(${l.id})">${l.id}</button>`;
+  }).join('');
+
+  const svg = document.getElementById('star-lines-svg');
+  if (job.step === 5 && job.torqueIdx > 1) {
+    const pts = STAR_ORDER.slice(0, job.torqueIdx).map((id) => {
+      const c = LUG_COORDS.find((x) => x.id === id);
+      return `${(c.x / 100) * 120},${(c.y / 100) * 120}`;
+    }).join(' ');
+    svg.innerHTML = `<polyline points="${pts}" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" />`;
+  } else {
+    svg.innerHTML = '';
+  }
+
+  const ctrl = document.getElementById('bay-controls');
+  if (job.step === 1) {
+    ctrl.innerHTML = `
+      <strong>Step 1: Secure & Raise Vehicle (${job.liftPct}%)</strong>
+      <div class="ctrl-grid-2">
+        <button class="secondary-btn ${job.isTutorial && !job.chocked ? 'tut-pulse' : ''}" onclick="setChocks()">
+          ${job.chocked ? '✓ CHOCKS SET' : '1. SET WHEEL CHOCKS'}
+        </button>
+        <button class="primary-btn ${job.isTutorial && job.chocked ? 'tut-pulse' : ''}" onclick="pumpJack()">
+          2. PUMP FLOOR JACK
+        </button>
+      </div>`;
+  } else if (job.step === 2) {
+    ctrl.innerHTML = `
+      <strong>Step 2: Spin Off All 5 Lug Nuts (${job.lugsRemoved.length}/5)</strong>
+      <p style="font-size:12px;color:var(--muted);">Tap each lug nut to spin it off into the magnetic tray.</p>
+      <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="removeNextLug()">IMPACT NEXT LUG NUT</button>`;
+  } else if (job.step === 3) {
+    if (!job.scanned) {
+      ctrl.innerHTML = `
+        <strong>Step 3: Inspect Tire Damage</strong>
+        <p style="font-size:12px;color:var(--muted);">Run diagnostic laser scan to reveal correlated tire damage visual.</p>
+        <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="runScan()">SCAN TIRE TREAD & SIDEWALL</button>`;
+    } else {
+      const tireSprite = getTireSpritePath(job);
+      ctrl.innerHTML = `
+        <div class="diag-scan-card">
+          <div class="diag-tire-preview">
+            <img src="${tireSprite}" alt="${job.dmg.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
+            <div style="display:none;">${renderTireSVG(job, 72)}</div>
+          </div>
+          <div>
+            <span class="badge">${job.dmg.verdict}</span>
+            <strong style="color:var(--text);font-size:13px;display:block;margin-top:4px;">${job.dmg.title}</strong>
+            <p style="font-size:11px;color:var(--muted);margin-top:2px;">${job.dmg.desc}</p>
+          </div>
+        </div>
+        <div class="ctrl-grid-2">
+          <button class="secondary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="performRepair('plug')">PLUG PUNCTURE (${state.plugs})</button>
+          <button class="primary-btn" onclick="performRepair('swap')">SWAP NEW TIRE (${state.tires})</button>
+        </div>
+        <button class="ghost-btn" onclick="droneDrop()">🚁 Drone Tire Drop (3 ⚡)</button>`;
+    }
+  } else if (job.step === 4) {
+    const t = job.veh.targetPsi;
+    const inSpec = Math.abs(job.psi - t) <= 2;
+    const fillPct = Math.min(100, Math.round((job.psi / (t + 20)) * 100));
+    const bandLeft = Math.round(((t - 2) / (t + 20)) * 100);
+    const bandWidth = Math.max(8, Math.round((4 / (t + 20)) * 100));
+    ctrl.innerHTML = `
+      <strong>Step 4: Calibrate Air Pressure (Target: ${t - 2}–${t + 2} PSI)</strong>
+      <div class="psi-meter">
+        <div class="psi-val">${job.psi} PSI</div>
+        <div class="psi-bar-track">
+          <div class="psi-target-band" style="left:${bandLeft}%;width:${bandWidth}%;"></div>
+          <div class="psi-fill" style="width:${fillPct}%;"></div>
+        </div>
+      </div>
+      <div class="ctrl-grid-2">
+        <button class="secondary-btn" onclick="adjustPsi(-3)">BLEED AIR (-3)</button>
+        <button class="primary-btn ${job.isTutorial && !inSpec ? 'tut-pulse' : ''}" onclick="adjustPsi(6)">INFLATE (+6 PSI)</button>
+      </div>
+      <button class="primary-btn ${job.isTutorial && inSpec ? 'tut-pulse' : ''}" onclick="lockPsi()">LOCK PRESSURE & CONTINUE</button>`;
+  } else if (job.step === 5) {
+    const nextLug = STAR_ORDER[job.torqueIdx];
+    ctrl.innerHTML = `
+      <strong>Step 5: Star-Pattern Torque (${job.torqueIdx}/5) — Next: Lug #${nextLug}</strong>
+      <p style="font-size:12px;color:var(--muted);">Sequence: 1 → 3 → 5 → 2 → 4. Tap Lug #${nextLug} on the wheel or press Torque.</p>
+      <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="tapLug(${nextLug})">TORQUE LUG #${nextLug} TO SPEC</button>`;
+  }
+}
