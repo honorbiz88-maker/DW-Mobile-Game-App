@@ -566,3 +566,439 @@ function renderBay() {
       <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="tapLug(${nextLug})">TORQUE LUG #${nextLug} TO SPEC</button>`;
   }
 }
+function setChocks() {
+  const job = state.activeJob;
+  if (!job || job.chocked) return;
+  job.chocked = true;
+  dismissAlert();
+  SoundFX.chock();
+  renderBay();
+}
+
+function pumpJack() {
+  const job = state.activeJob;
+  if (!job) return;
+  if (!job.chocked) {
+    showAlert('SAFETY ALERT', 'Set rubber wheel chocks before raising the hydraulic floor jack!');
+    return;
+  }
+  dismissAlert();
+  SoundFX.jack();
+  const boost = 25 + state.tools.jack.level * 4;
+  job.liftPct = Math.min(100, job.liftPct + boost);
+  if (job.liftPct >= 100) job.step = 2;
+  renderBay();
+}
+
+function removeNextLug() {
+  const job = state.activeJob;
+  if (!job || job.step !== 2) return;
+  const rem = [1, 2, 3, 4, 5].find((id) => !job.lugsRemoved.includes(id));
+  if (rem) tapLug(rem);
+}
+
+function tapLug(id) {
+  const job = state.activeJob;
+  if (!job) return;
+  if (job.step === 2) {
+    if (!job.lugsRemoved.includes(id)) {
+      job.lugsRemoved.push(id);
+      job.lastSpunLug = id;
+      SoundFX.impact();
+      if (job.lugsRemoved.length >= 5) job.step = 3;
+      renderBay();
+    }
+  } else if (job.step === 5) {
+    const expected = STAR_ORDER[job.torqueIdx];
+    if (id !== expected) {
+      if (!job.isTutorial) job.penalties += 10;
+      showAlert('STAR-PATTERN SEQUENCE ERROR', `Follow crisscross torque order: tap Lug #${expected} next!`);
+      return;
+    }
+    dismissAlert();
+    SoundFX.torqueClick();
+    job.lastSpunLug = id;
+    job.torqueIdx++;
+    if (job.torqueIdx >= 5) completeJob();
+    else renderBay();
+  }
+}
+
+function runScan() {
+  const job = state.activeJob;
+  if (!job) return;
+  SoundFX.scan();
+  job.scanned = true;
+  renderBay();
+}
+
+function performRepair(choice) {
+  const job = state.activeJob;
+  if (!job) return;
+
+  if (job.dmg.action === 'plug' && choice !== 'plug') {
+    if (!job.isTutorial) job.penalties += 15;
+    showAlert(
+      'UNNECESSARY TIRE SWAP',
+      'Center-tread nail punctures are ALWAYS Plug Only. Do not waste a new tire!'
+    );
+    return;
+  }
+  if (job.dmg.action === 'swap' && choice !== 'swap') {
+    if (!job.isTutorial) job.penalties += 25;
+    showAlert(
+      'UNSAFE REPAIR REJECTED',
+      `${job.dmg.title} cannot be plugged safely. You MUST perform a full Tire Swap!`
+    );
+    return;
+  }
+
+  if (choice === 'plug') {
+    if (!job.isTutorial && state.plugs <= 0) {
+      showAlert('OUT OF PLUGS', 'Restock vulcanized tire plugs from Dispatch or watch a 30s Supply Drop Ad.');
+      return;
+    }
+    if (!job.isTutorial) state.plugs--;
+    SoundFX.impact();
+  } else {
+    if (!job.isTutorial && state.tires <= 0) {
+      showAlert('OUT OF REPLACEMENT TIRES', 'Use Drone Tire Drop (3 ⚡) below or restock tires.');
+      return;
+    }
+    if (!job.isTutorial) state.tires--;
+    SoundFX.impact();
+    const wrap = document.getElementById('stage-wheel-wrap');
+    wrap.classList.add('swapping');
+    setTimeout(() => wrap.classList.remove('swapping'), 320);
+  }
+
+  dismissAlert();
+  job.fixed = true;
+  job.step = 4;
+  updateHUD();
+  renderBay();
+}
+
+function droneDrop() {
+  if (state.tokens < 3) {
+    goPage('shop');
+    return;
+  }
+  state.tokens -= 3;
+  state.tires += 1;
+  SoundFX.success();
+  updateHUD();
+  renderBay();
+}
+
+function adjustPsi(delta) {
+  const job = state.activeJob;
+  if (!job) return;
+  SoundFX.air();
+  job.psi = Math.max(0, Math.min(130, job.psi + delta));
+  renderBay();
+}
+
+function lockPsi() {
+  const job = state.activeJob;
+  if (!job) return;
+  const t = job.veh.targetPsi;
+  if (Math.abs(job.psi - t) > 2) {
+    showAlert('PSI OUT OF SPEC', `Calibrate pressure between ${t - 2} and ${t + 2} PSI before torquing lugs.`);
+    return;
+  }
+  dismissAlert();
+  SoundFX.torqueClick();
+  job.step = 5;
+  renderBay();
+}
+
+function completeJob() {
+  const job = state.activeJob;
+  SoundFX.success();
+
+  if (job.isTutorial) {
+    const firstTime = !state.tutorialDone;
+    state.tutorialDone = true;
+    if (firstTime) state.tokens += 25;
+    state.activeJob = null;
+    saveState();
+    updateHUD();
+    openModal(`
+      <span class="badge">TRAINING COMPLETE</span>
+      <h3>Certified DelWin Technician!</h3>
+      <p style="font-size:13px;color:var(--muted);">
+        You mastered wheel chocking, lug removal, center-nail plug diagnostics, PSI calibration, and star-pattern torquing.
+      </p>
+      <div style="background:#090c12;padding:12px;border-radius:10px;text-align:center;color:var(--amber);font-weight:900;">
+        ${firstTime ? '+25 DISPATCH TOKENS (⚡) CREDITED!' : 'TRAINING PRACTICE COMPLETE'}
+      </div>
+      <button class="primary-btn" onclick="closeModal(); goPage('dispatch');">ENTER LIVE DISPATCH</button>
+    `);
+    return;
+  }
+
+  const mult = state.surgeJobs > 0 ? 2 : 1;
+  if (state.surgeJobs > 0) state.surgeJobs--;
+  const gross = job.pay * mult;
+  const net = Math.max(25, gross - job.penalties);
+  const repGain = Math.round(35 * getZone().mult);
+  const gotPart = Math.random() < 0.35;
+
+  state.cash += net;
+  state.rep += repGain;
+  if (gotPart) state.parts += 1;
+  state.ratings.push(job.penalties === 0 ? 5.0 : 4.2);
+  if (state.ratings.length > 20) state.ratings.shift();
+  state.activeJob = null;
+
+  if (state.jobs.length < 2) refreshJobs();
+  saveState();
+  updateHUD();
+
+  openModal(`
+    <span class="badge">DIGITAL CUSTOMER INVOICE</span>
+    <h3>${job.title}</h3>
+    <div style="background:#090c12;padding:12px;border-radius:10px;font-size:13px;display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;justify-content:space-between;"><span>Service Payout:</span><strong style="color:var(--green);">+$${gross}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Protocol Deductions:</span><strong style="color:var(--red);">-$${job.penalties}</strong></div>
+      <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;"><span>Net Collected:</span><strong style="color:var(--green);">$${net}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Corridor Reputation:</span><strong style="color:var(--amber);">+${repGain} REP</strong></div>
+      ${gotPart ? `<div style="color:var(--amber);font-weight:800;">+1 Gold Tool Part Found (⚙️)</div>` : ''}
+    </div>
+    <button class="primary-btn" onclick="closeModal(); goPage('dispatch');">RETURN TO DISPATCH</button>
+  `);
+}
+
+function buyStock(type) {
+  if (type === 'plug' && state.cash >= 20) {
+    state.cash -= 20;
+    state.plugs += 3;
+    SoundFX.torqueClick();
+  } else if (type === 'tire' && state.cash >= 45) {
+    state.cash -= 45;
+    state.tires += 1;
+    SoundFX.torqueClick();
+  }
+  saveState();
+  updateHUD();
+}
+
+function stepRigPreview(delta) {
+  const current = previewRigTier || getRigTier();
+  previewRigTier = Math.max(1, Math.min(6, current + delta));
+  SoundFX.torqueClick();
+  renderGarage();
+}
+
+function stepToolPreview(key, delta) {
+  const tool = state.tools[key];
+  const ownedTier = Math.min(6, Math.floor((tool.level - 1) / 4) + 1);
+  const current = previewToolTiers[key] || ownedTier;
+  previewToolTiers[key] = Math.max(1, Math.min(6, current + delta));
+  SoundFX.torqueClick();
+  renderGarage();
+}
+
+function renderGarage() {
+  const ownedRigTier = getRigTier();
+  if (!previewRigTier) previewRigTier = ownedRigTier;
+  const rig = RIG_TIERS[previewRigTier - 1];
+  const isOwned = previewRigTier <= ownedRigTier;
+
+  const heroTop = document.querySelector('.rig-hero-top');
+  heroTop.innerHTML = `
+    <div>
+      <span class="badge">${isOwned ? 'UNLOCKED SERVICE RIG' : `LOCKED · ${rig.req.toUpperCase()}`}</span>
+      <h3 style="font-size:15px;margin-top:4px;">${rig.name}</h3>
+    </div>
+    <div class="carousel-nav">
+      <button class="arrow-btn" ${previewRigTier <= 1 ? 'disabled' : ''} onclick="stepRigPreview(-1)">◀</button>
+      <span class="tier-pill">T${previewRigTier}/6</span>
+      <button class="arrow-btn" ${previewRigTier >= 6 ? 'disabled' : ''} onclick="stepRigPreview(1)">▶</button>
+    </div>`;
+
+  const rigImg = document.getElementById('rig-img');
+  const rigFb = document.getElementById('rig-fallback');
+  rigImg.style.display = 'block';
+  rigFb.style.display = 'none';
+  rigFb.innerHTML = renderRigSVG(rig);
+  rigImg.src = rig.img;
+  document.getElementById('rig-perk').textContent = `${rig.perk} (${rig.req})`;
+
+  const list = document.getElementById('tool-list');
+  list.innerHTML = Object.entries(state.tools).map(([key, tool]) => {
+    const ownedTier = Math.min(6, Math.floor((tool.level - 1) / 4) + 1);
+    const viewTier = previewToolTiers[key] || ownedTier;
+    const viewTierLabel = TIER_NAMES[viewTier - 1];
+    const isMax = tool.level >= 24;
+    const needsPart = !isMax && tool.level % 4 === 0;
+    const cost = Math.round(tool.baseCost * Math.pow(1.22, tool.level - 1));
+    const imgPath = `assets/${tool.prefix}-t${viewTier}.png`;
+    const isPreviewingFuture = viewTier > ownedTier;
+
+    return `
+      <div class="item-card">
+        <div class="tool-row">
+          <div class="tool-thumb">
+            <img src="${imgPath}" alt="${tool.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
+            <span style="display:none;">${tool.icon}</span>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <span class="badge">
+              ${isPreviewingFuture ? `PREVIEW T${viewTier}: ${viewTierLabel.toUpperCase()}` : `OWNED LVL ${tool.level}/24 · ${TIER_NAMES[ownedTier - 1].toUpperCase()}`}
+            </span>
+            <h3 style="font-size:14px;margin-top:4px;">${tool.name}</h3>
+          </div>
+          <div class="carousel-nav">
+            <button class="arrow-btn" ${viewTier <= 1 ? 'disabled' : ''} onclick="stepToolPreview('${key}', -1)">◀</button>
+            <button class="arrow-btn" ${viewTier >= 6 ? 'disabled' : ''} onclick="stepToolPreview('${key}', 1)">▶</button>
+          </div>
+        </div>
+        <button class="primary-btn" ${isMax ? 'disabled' : ''} onclick="upgradeTool('${key}')">
+          ${isMax ? 'MAXED OUT (LVL 24)' : `UPGRADE TO LVL ${tool.level + 1} ($${cost}${needsPart ? ' + 1 ⚙️' : ''})`}
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function upgradeTool(key) {
+  const tool = state.tools[key];
+  if (!tool || tool.level >= 24) return;
+  const needsPart = tool.level % 4 === 0;
+  const cost = Math.round(tool.baseCost * Math.pow(1.22, tool.level - 1));
+  if (state.cash < cost) return;
+  if (needsPart && state.parts < 1) return;
+  state.cash -= cost;
+  if (needsPart) state.parts -= 1;
+  tool.level += 1;
+  const newOwnedTier = Math.min(6, Math.floor((tool.level - 1) / 4) + 1);
+  previewToolTiers[key] = newOwnedTier;
+  previewRigTier = getRigTier();
+  SoundFX.success();
+  saveState();
+  updateHUD();
+  renderGarage();
+}
+
+function renderLeague() {
+  document.getElementById('league-rep').textContent = state.rep;
+  const rivals = [
+    { name: 'ApexTow_ATL', rep: 1450 },
+    { name: 'NightShift_Mike', rep: 920 },
+    { name: 'I285_RoadKing', rep: 540 },
+    { name: 'PeachState_Duals', rep: 280 },
+    { name: 'Southside_Rescue', rep: 110 },
+    { name: 'YOU (DelWin Mobile)', rep: state.rep, isYou: true }
+  ].sort((a, b) => b.rep - a.rep);
+
+  const myRank = rivals.findIndex((r) => r.isYou) + 1;
+  document.getElementById('league-rank').textContent = `#${myRank}`;
+  document.getElementById('leaderboard-list').innerHTML = rivals.map((r, idx) => `
+    <div class="item-card" style="${r.isYou ? 'border-color:var(--amber);' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>#${idx + 1} ${r.name}</strong>
+        <span style="color:var(--amber);font-weight:800;">${r.rep} REP</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderZones() {
+  let currentHub = '';
+  let html = '';
+  ZONES.forEach((z, idx) => {
+    if (z.hub !== currentHub) {
+      currentHub = z.hub;
+      html += `<div class="hub-group-title">${currentHub}</div>`;
+    }
+    const unlocked = state.rep >= z.unlockRep;
+    const active = state.zoneId === z.id;
+    html += `
+      <div class="item-card" style="${active ? 'border-color:var(--amber);' : !unlocked ? 'opacity:0.78;' : ''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <span class="badge">ZONE ${idx + 1}/24 · ${z.mult}x PAYOUT</span>
+            <h3 style="font-size:15px;margin-top:4px;">${z.name}</h3>
+          </div>
+          <strong style="color:${unlocked ? 'var(--green)' : 'var(--muted)'};">
+            ${unlocked ? (active ? 'ACTIVE' : 'OPEN') : `🔒 ${z.unlockRep} REP`}
+          </strong>
+        </div>
+        <p style="font-size:12px;color:var(--muted);">${z.desc}</p>
+        <button class="primary-btn" ${!unlocked || active ? 'disabled' : ''} onclick="selectZone('${z.id}')">
+          ${active ? 'DEPLOYED HERE' : unlocked ? 'DEPLOY TO ZONE' : `UNLOCKS AT ${z.unlockRep} REP (YOU: ${state.rep})`}
+        </button>
+      </div>`;
+  });
+  document.getElementById('zone-list').innerHTML = html;
+}
+
+function selectZone(id) {
+  state.zoneId = id;
+  SoundFX.torqueClick();
+  saveState();
+  updateHUD();
+  refreshJobs();
+  goPage('dispatch');
+}
+
+function watchRewardedAd(type) {
+  openModal(`
+    <span class="badge">SPONSORED TRANSMISSION</span>
+    <h3>30s Roadside Partner Ad</h3>
+    <p style="font-size:13px;color:var(--muted);">Simulating 30-second rewarded sponsor video...</p>
+    <div id="ad-timer" style="font-size:28px;font-weight:900;color:var(--amber);text-align:center;">3</div>
+  `);
+  let sec = 3;
+  const iv = setInterval(() => {
+    sec--;
+    const el = document.getElementById('ad-timer');
+    if (el) el.textContent = sec;
+    if (sec <= 0) {
+      clearInterval(iv);
+      if (type === 'surge') state.surgeJobs += 3;
+      if (type === 'tokens') state.tokens += 8;
+      if (type === 'restock') { state.plugs += 4; state.tires += 2; }
+      SoundFX.success();
+      saveState();
+      updateHUD();
+      closeModal();
+      goPage('dispatch');
+    }
+  }, 800);
+}
+
+function buyTokenPack(amount, price, parts = 0) {
+  state.tokens += amount;
+  state.parts += parts;
+  SoundFX.success();
+  saveState();
+  updateHUD();
+  openModal(`
+    <span class="badge">DISPATCH CREDIT APPLIED</span>
+    <h3>+${amount} Dispatch Tokens (⚡)</h3>
+    <p style="font-size:13px;color:var(--muted);">Demo pack (${price}) credited to your DelWin Mobile account.</p>
+    <button class="primary-btn" onclick="closeModal()">CONTINUE</button>
+  `);
+}
+
+function openModal(html) {
+  document.getElementById('modal-card').innerHTML = html;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+function resetSave() {
+  localStorage.removeItem('delwin_v4_save');
+  location.reload();
+}
+
+loadState();
+if (!state.jobs || state.jobs.length === 0) refreshJobs();
+else renderJobs();
+updateHUD();
+if (!state.tutorialDone) startTutorial();
