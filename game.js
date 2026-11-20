@@ -1,3 +1,7 @@
+window.onerror = function(msg, url, line) {
+  alert('JS Error on line ' + line + ': ' + msg);
+};
+
  const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
 
 const RIG_TIERS = [
