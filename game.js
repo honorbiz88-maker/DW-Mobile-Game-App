@@ -1,58 +1,47 @@
-window.onerror = function(msg, url, line) {
-  alert('JS Error on line ' + line + ': ' + msg);
-};
-
- const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
+const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
 
 const RIG_TIERS = [
-  { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', req: 'Starting Rig', perk: 'Standard highway response rig (+0% Payout Bonus).' },
-  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', req: 'All 4 Tools Lvl 5+', perk: '+12% Base Payouts & Twin Amber Strobes.' },
-  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', color: '#f59e0b', req: 'All 4 Tools Lvl 9+', perk: '+24% Base Payouts & Exterior Spare Tire Rack.' },
-  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', color: '#a855f7', req: 'All 4 Tools Lvl 13+', perk: '+36% Base Payouts & Dual-Wheel Hydraulic Lift.' },
-  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', color: '#ef4444', req: 'All 4 Tools Lvl 17+', perk: '+48% Base Payouts & Commercial Fleet Priority.' },
-  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', req: 'All 4 Tools Lvl 21+', perk: '+65% Base Payouts & Maximum Corridor Prestige.' }
+  { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', req: 'Starting Rig', mult: 1.00, perk: 'Standard highway response rig (1.00x Payouts).' },
+  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', req: 'All 4 Tools Lvl 5+', mult: 1.15, perk: '1.15x Base Payouts & Twin Amber Strobes.' },
+  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', color: '#f59e0b', req: 'All 4 Tools Lvl 9+', mult: 1.32, perk: '1.32x Base Payouts & Exterior Spare Tire Rack.' },
+  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', color: '#a855f7', req: 'All 4 Tools Lvl 13+', mult: 1.52, perk: '1.52x Base Payouts & Dual-Wheel Hydraulic Lift.' },
+  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', color: '#ef4444', req: 'All 4 Tools Lvl 17+', mult: 1.75, perk: '1.75x Base Payouts & Commercial Fleet Priority.' },
+  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', req: 'All 4 Tools Lvl 21+', mult: 2.00, perk: '2.00x Base Payouts & Maximum Corridor Prestige.' }
 ];
 
-// ALL 6 REGIONAL HUBS & ALL 24 HIGHWAY ZONES
 const ZONES = [
-  // HUB 1: ATLANTA METRO
-  { id: 'z1', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 North Perimeter', mult: 1.0, unlockRep: 0, desc: 'Steady commuter flats and shoulder punctures.' },
-  { id: 'z2', hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.08, unlockRep: 60, desc: 'High-density commuter & SUV roadside calls.' },
-  { id: 'z3', hub: 'HUB 1 · ATLANTA METRO', name: 'GA-400 Buckhead Express', mult: 1.15, unlockRep: 130, desc: 'Luxury sedans and evening rush-hour flats.' },
-  { id: 'z4', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 Airport South Loop', mult: 1.22, unlockRep: 210, desc: 'Shuttle vans, pickups, and cargo sprinters.' },
-  // HUB 2: GEORGIA FREIGHT
-  { id: 'z5', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-20 West Freight Corridor', mult: 1.3, unlockRep: 300, desc: 'Commercial box trucks and highway blowouts.' },
-  { id: 'z6', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-85 Gwinnett Logistics', mult: 1.38, unlockRep: 410, desc: 'Distribution hub semi-trailers & duals.' },
-  { id: 'z7', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-75 Macon Bypass', mult: 1.46, unlockRep: 540, desc: 'Long-haul freight and heavy pickup rescues.' },
-  { id: 'z8', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-16 Central Freightway', mult: 1.55, unlockRep: 680, desc: 'High-speed interstate retread delaminations.' },
-  // HUB 3: COASTAL PORTS
-  { id: 'z9', hub: 'HUB 3 · COASTAL PORTS', name: 'Savannah Port Gate 1', mult: 1.65, unlockRep: 850, desc: '18-wheeler port containers and dock gashes.' },
-  { id: 'z10', hub: 'HUB 3 · COASTAL PORTS', name: 'Talmadge Bridge Approach', mult: 1.75, unlockRep: 1040, desc: 'Heavy container tractor-trailers.' },
-  { id: 'z11', hub: 'HUB 3 · COASTAL PORTS', name: 'Brunswick Auto Terminal', mult: 1.85, unlockRep: 1250, desc: 'Fleet carriers and multi-axle haulers.' },
-  { id: 'z12', hub: 'HUB 3 · COASTAL PORTS', name: 'Pooler Logistics Park', mult: 1.95, unlockRep: 1480, desc: '24/7 commercial warehouse dispatch grid.' },
-  // HUB 4: SOUTHEAST EXPRESS
-  { id: 'z13', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-95 Coastal Freightway', mult: 2.05, unlockRep: 1750, desc: 'Interstate night-shift emergency fleet calls.' },
-  { id: 'z14', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-26 Charleston Spur', mult: 2.15, unlockRep: 2050, desc: 'Port-to-inland heavy commercial rigs.' },
-  { id: 'z15', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-77 Charlotte Corridor', mult: 2.25, unlockRep: 2380, desc: 'High-speed regional freight & VIP calls.' },
-  { id: 'z16', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-40 Piedmont Ridge', mult: 2.35, unlockRep: 2740, desc: 'Steep-grade heavy truck tire blowouts.' },
-  // HUB 5: GULF CORRIDOR
-  { id: 'z17', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Jacksonville Interchange', mult: 2.45, unlockRep: 3150, desc: 'Cross-country 18-wheeler hub.' },
-  { id: 'z18', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-65 Mobile Bayway', mult: 2.55, unlockRep: 3600, desc: 'Coastal bridge heavy-duty rescue.' },
-  { id: 'z19', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Baton Rouge Refinery', mult: 2.68, unlockRep: 4100, desc: 'Industrial tanker & commercial fleet calls.' },
-  { id: 'z20', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-45 Houston Ship Channel', mult: 2.8, unlockRep: 4650, desc: 'Maximum-volume freight tire emergencies.' },
-  // HUB 6: APEX SYNDICATE
-  { id: 'z21', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Night-Shift Sector A', mult: 2.95, unlockRep: 5300, desc: 'Executive fleet & high-priority contracts.' },
-  { id: 'z22', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Heavy Convoy Lane', mult: 3.1, unlockRep: 6000, desc: 'Multi-rig commercial rescue operations.' },
-  { id: 'z23', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Interstate Command', mult: 3.3, unlockRep: 6800, desc: 'Elite zero-margin-for-error dispatches.' },
-  { id: 'z24', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Pinnacle Terminal', mult: 3.5, unlockRep: 7700, desc: 'Top-tier syndicate payouts across all classes.' }
+  { id: 'z1', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 North Perimeter', mult: 1.00, unlockRep: 0, desc: 'Steady commuter flats and shoulder punctures.' },
+  { id: 'z2', hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.10, unlockRep: 75, desc: 'High-density commuter & SUV roadside calls.' },
+  { id: 'z3', hub: 'HUB 1 · ATLANTA METRO', name: 'GA-400 Buckhead Express', mult: 1.20, unlockRep: 160, desc: 'Luxury sedans and evening rush-hour flats.' },
+  { id: 'z4', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 Airport South Loop', mult: 1.30, unlockRep: 260, desc: 'Shuttle vans, pickups, and cargo sprinters.' },
+  { id: 'z5', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-20 West Freight Corridor', mult: 1.42, unlockRep: 380, desc: 'Commercial box trucks and highway blowouts.' },
+  { id: 'z6', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-85 Gwinnett Logistics', mult: 1.54, unlockRep: 520, desc: 'Distribution hub semi-trailers & duals.' },
+  { id: 'z7', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-75 Macon Bypass', mult: 1.66, unlockRep: 680, desc: 'Long-haul freight and heavy pickup rescues.' },
+  { id: 'z8', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-16 Central Freightway', mult: 1.78, unlockRep: 860, desc: 'High-speed interstate retread delaminations.' },
+  { id: 'z9', hub: 'HUB 3 · COASTAL PORTS', name: 'Savannah Port Gate 1', mult: 1.92, unlockRep: 1060, desc: '18-wheeler port containers and dock gashes.' },
+  { id: 'z10', hub: 'HUB 3 · COASTAL PORTS', name: 'Talmadge Bridge Approach', mult: 2.06, unlockRep: 1280, desc: 'Heavy container tractor-trailers.' },
+  { id: 'z11', hub: 'HUB 3 · COASTAL PORTS', name: 'Brunswick Auto Terminal', mult: 2.20, unlockRep: 1520, desc: 'Fleet carriers and multi-axle haulers.' },
+  { id: 'z12', hub: 'HUB 3 · COASTAL PORTS', name: 'Pooler Logistics Park', mult: 2.35, unlockRep: 1780, desc: '24/7 commercial warehouse dispatch grid.' },
+  { id: 'z13', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-95 Coastal Freightway', mult: 2.50, unlockRep: 2080, desc: 'Interstate night-shift emergency fleet calls.' },
+  { id: 'z14', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-26 Charleston Spur', mult: 2.65, unlockRep: 2400, desc: 'Port-to-inland heavy commercial rigs.' },
+  { id: 'z15', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-77 Charlotte Corridor', mult: 2.80, unlockRep: 2750, desc: 'High-speed regional freight & VIP calls.' },
+  { id: 'z16', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-40 Piedmont Ridge', mult: 2.95, unlockRep: 3120, desc: 'Steep-grade heavy truck tire blowouts.' },
+  { id: 'z17', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Jacksonville Interchange', mult: 3.12, unlockRep: 3550, desc: 'Cross-country 18-wheeler hub.' },
+  { id: 'z18', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-65 Mobile Bayway', mult: 3.30, unlockRep: 4000, desc: 'Coastal bridge heavy-duty rescue.' },
+  { id: 'z19', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Baton Rouge Refinery', mult: 3.48, unlockRep: 4500, desc: 'Industrial tanker & commercial fleet calls.' },
+  { id: 'z20', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-45 Houston Ship Channel', mult: 3.68, unlockRep: 5050, desc: 'Maximum-volume freight tire emergencies.' },
+  { id: 'z21', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Night-Shift Sector A', mult: 3.90, unlockRep: 5700, desc: 'Executive fleet & high-priority contracts.' },
+  { id: 'z22', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Heavy Convoy Lane', mult: 4.15, unlockRep: 6400, desc: 'Multi-rig commercial rescue operations.' },
+  { id: 'z23', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Interstate Command', mult: 4.40, unlockRep: 7200, desc: 'Elite zero-margin-for-error dispatches.' },
+  { id: 'z24', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Pinnacle Terminal', mult: 4.75, unlockRep: 8100, desc: 'Top-tier syndicate payouts across all classes.' }
 ];
 
 const VEHICLES = [
-  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, targetPsi: 35, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
-  { id: 'suv', label: 'FAMILY SUV', heavy: false, targetPsi: 36, bodyColor: '#475569', img: 'assets/veh-suv.png' },
-  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, targetPsi: 40, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
-  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, targetPsi: 95, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
-  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, targetPsi: 105, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
+  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, basePay: 75, targetPsi: 35, timeSec: 95, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
+  { id: 'suv', label: 'FAMILY SUV', heavy: false, basePay: 85, targetPsi: 36, timeSec: 90, bodyColor: '#475569', img: 'assets/veh-suv.png' },
+  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, basePay: 95, targetPsi: 40, timeSec: 85, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
+  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, basePay: 140, targetPsi: 95, timeSec: 110, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
+  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, basePay: 175, targetPsi: 105, timeSec: 120, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
 ];
 
 const DAMAGES = [
@@ -98,6 +87,14 @@ const DAMAGES = [
   }
 ];
 
+const CONTRACT_POOL = [
+  { id: 'c_clean3', title: 'Zero-Penalty Streak', desc: 'Complete 3 calls with $0 protocol penalties.', type: 'clean_streak', target: 3, rewardCash: 160, rewardTokens: 6, rewardRep: 65 },
+  { id: 'c_plug3', title: 'Crown Plug Specialist', desc: 'Properly plug 3 center-tread punctures.', type: 'plugs', target: 3, rewardCash: 140, rewardTokens: 5, rewardRep: 55 },
+  { id: 'c_swap3', title: 'Heavy Casing Replacement', desc: 'Complete 3 full tire swaps on unrepairable casings.', type: 'swaps', target: 3, rewardCash: 185, rewardTokens: 7, rewardRep: 75 },
+  { id: 'c_fast2', title: 'Rapid Highway Response', desc: 'Finish 2 jobs with ≥45% SLA timer left.', type: 'fast', target: 2, rewardCash: 175, rewardTokens: 8, rewardRep: 80 },
+  { id: 'c_heavy2', title: 'Commercial Fleet Rescue', desc: 'Service 2 Box Trucks or 18-Wheelers.', type: 'heavy', target: 2, rewardCash: 240, rewardTokens: 10, rewardRep: 110 }
+];
+
 const LUG_COORDS = [
   { id: 1, x: 50, y: 24 },
   { id: 2, x: 75, y: 42 },
@@ -112,17 +109,30 @@ let state = {
   tokens: 15,
   parts: 0,
   rep: 0,
+  streak: 0,
+  jobsCompleted: 0,
   zoneId: 'z1',
   surgeJobs: 0,
   plugs: 4,
   tires: 2,
-  ratings: [5, 5, 5, 5, 5],
+  ratings: [5.0, 5.0, 5.0, 5.0, 5.0],
   tutorialDone: false,
+  contract: {
+    id: 'c_clean3',
+    title: 'Zero-Penalty Streak',
+    desc: 'Complete 3 calls with $0 protocol penalties.',
+    type: 'clean_streak',
+    target: 3,
+    progress: 0,
+    rewardCash: 160,
+    rewardTokens: 6,
+    rewardRep: 65
+  },
   tools: {
-    impact: { name: 'Pneumatic Impact Wrench', level: 1, baseCost: 60, prefix: 'tool-impact', icon: '🔫' },
-    jack: { name: 'Hydraulic Floor Jack', level: 1, baseCost: 55, prefix: 'tool-jack', icon: '🏗️' },
-    comp: { name: 'Portable Air Compressor', level: 1, baseCost: 65, prefix: 'tool-comp', icon: '💨' },
-    radar: { name: 'Dispatch GPS Radar', level: 1, baseCost: 75, prefix: 'tool-radar', icon: '📡' }
+    impact: { name: 'Pneumatic Impact Wrench', level: 1, baseCost: 65, prefix: 'tool-impact', icon: '🔫' },
+    jack: { name: 'Hydraulic Floor Jack', level: 1, baseCost: 60, prefix: 'tool-jack', icon: '🏗️' },
+    comp: { name: 'Portable Air Compressor', level: 1, baseCost: 70, prefix: 'tool-comp', icon: '💨' },
+    radar: { name: 'Dispatch GPS Radar', level: 1, baseCost: 80, prefix: 'tool-radar', icon: '📡' }
   },
   jobs: [],
   activeJob: null
@@ -130,12 +140,15 @@ let state = {
 
 let previewRigTier = null;
 let previewToolTiers = {};
+let bayTimerInterval = null;
+let spinClearTimeout = null;
 
 function loadState() {
   try {
     const raw = localStorage.getItem('delwin_v4_save');
     if (raw) Object.assign(state, JSON.parse(raw));
     if (!ZONES.some((z) => z.id === state.zoneId)) state.zoneId = 'z1';
+    if (!state.contract) rollNewContract();
   } catch (e) {}
 }
 
@@ -150,6 +163,76 @@ function getRigTier() {
 
 function getZone() {
   return ZONES.find((z) => z.id === state.zoneId) || ZONES[0];
+}
+
+function getRatingAvg() {
+  return state.ratings.reduce((a, b) => a + b, 0) / state.ratings.length;
+}
+
+function rollNewContract() {
+  const currentId = state.contract ? state.contract.id : '';
+  const options = CONTRACT_POOL.filter((c) => c.id !== currentId);
+  const pick = options[Math.floor(Math.random() * options.length)];
+  state.contract = { ...pick, progress: 0 };
+}
+
+function claimContract() {
+  const c = state.contract;
+  if (!c || c.progress < c.target) return;
+  SoundFX.success();
+  const zMult = getZone().mult;
+  const cashWon = Math.round(c.rewardCash * zMult);
+  const repWon = Math.round(c.rewardRep * zMult);
+  state.cash += cashWon;
+  state.tokens += c.rewardTokens;
+  state.rep += repWon;
+  rollNewContract();
+  saveState();
+  updateHUD();
+  renderContractBanner();
+  openModal(`
+    <span class="badge">DELWIN MOBILE CONTRACT CLEARED</span>
+    <h3>${c.title}</h3>
+    <div style="background:#090c12;padding:12px;border-radius:10px;font-size:13px;display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;justify-content:space-between;"><span>Contract Cash Bonus:</span><strong style="color:var(--green);">+$${cashWon}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Dispatch Tokens:</span><strong style="color:var(--amber);">+${c.rewardTokens} ⚡</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Corridor Reputation:</span><strong style="color:var(--blue);">+${repWon} REP</strong></div>
+    </div>
+    <button class="primary-btn" onclick="closeModal()">NEXT CONTRACT ASSIGNED</button>
+  `);
+}
+
+function renderContractBanner() {
+  const dispatchPage = document.getElementById('page-dispatch');
+  if (!dispatchPage) return;
+  let box = document.getElementById('delwin-contract-card');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'delwin-contract-card';
+    box.className = 'item-card';
+    box.style.borderColor = 'var(--amber)';
+    const jobList = document.getElementById('job-list');
+    dispatchPage.insertBefore(box, jobList);
+  }
+  const c = state.contract;
+  const ready = c.progress >= c.target;
+  const pct = Math.min(100, Math.round((c.progress / c.target) * 100));
+  const zMult = getZone().mult;
+  box.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span class="badge">📋 DELWIN MOBILE CONTRACT</span>
+      <strong style="font-size:12px;color:var(--amber);">$${Math.round(c.rewardCash * zMult)} + ${c.rewardTokens}⚡</strong>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+      <strong style="font-size:14px;">${c.title}</strong>
+      <span style="font-size:12px;font-weight:800;color:${ready ? 'var(--green)' : 'var(--muted)'};">${c.progress}/${c.target}</span>
+    </div>
+    <p style="font-size:12px;color:var(--muted);">${c.desc}</p>
+    <div style="height:6px;background:#090c12;border-radius:99px;overflow:hidden;">
+      <div style="height:100%;width:${pct}%;background:${ready ? 'var(--green)' : 'var(--amber)'};"></div>
+    </div>
+    ${ready ? `<button class="primary-btn" onclick="claimContract()">CLAIM CONTRACT REWARD</button>` : ''}
+  `;
 }
 
 function renderRigSVG(tierObj) {
@@ -210,11 +293,12 @@ function renderTireSVG(job, size = 130) {
       ${dmgLayer}
     </svg>`;
 }
+
 function updateHUD() {
   document.getElementById('hud-cash').textContent = state.cash;
   document.getElementById('hud-tokens').textContent = state.tokens;
   document.getElementById('drawer-parts').textContent = `${state.parts} ⚙️`;
-  const avg = (state.ratings.reduce((a, b) => a + b, 0) / state.ratings.length).toFixed(1);
+  const avg = getRatingAvg().toFixed(1);
   document.getElementById('drawer-rating').textContent = `${avg} ★`;
   const z = getZone();
   document.getElementById('drawer-zone').textContent = z.name;
@@ -223,6 +307,7 @@ function updateHUD() {
     state.surgeJobs > 0 ? `2X SURGE ACTIVE (${state.surgeJobs} LEFT)` : 'ACTIVATE 2X SURGE';
   document.getElementById('stock-plugs').textContent = state.plugs;
   document.getElementById('stock-tires').textContent = state.tires;
+  renderContractBanner();
 }
 
 function goPage(pageId) {
@@ -231,6 +316,7 @@ function goPage(pageId) {
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
   const nav = document.getElementById(`nav-${pageId}`);
   if (nav) nav.classList.add('active');
+  if (pageId === 'dispatch') renderContractBanner();
   if (pageId === 'garage') {
     previewRigTier = getRigTier();
     renderGarage();
@@ -256,14 +342,18 @@ function generateJob(vip = false) {
   const veh = pool[Math.floor(Math.random() * pool.length)];
   const dmg = DAMAGES[Math.floor(Math.random() * DAMAGES.length)];
   const mile = Math.floor(Math.random() * 65) + 4;
-  const rigBonus = 1 + (getRigTier() - 1) * 0.12;
-  const basePay = Math.round((veh.heavy ? 135 : 75) * z.mult * rigBonus * (vip ? 1.5 : 1));
+  const rig = RIG_TIERS[getRigTier() - 1];
+  const ratingBonus = getRatingAvg() >= 4.7 ? 1.1 : 1.0;
+  const basePay = Math.round(veh.basePay * z.mult * rig.mult * ratingBonus * (vip ? 1.5 : 1));
+  const radarBonusSec = (state.tools.radar.level - 1) * 2;
+  const timeLimit = veh.timeSec + radarBonusSec;
   return {
     id: 'job_' + Math.random().toString(36).slice(2, 8),
     title: `${z.name.split(' ')[0]} Mile ${mile} — Stranded ${veh.label.split(' ')[1]}`,
     veh,
     dmg,
     pay: basePay,
+    timeLimit,
     vip,
     snipeCost: vip ? 2 : 0
   };
@@ -287,13 +377,29 @@ function renderJobs() {
       </div>
       <div class="job-meta">
         <span>Target: ${j.veh.targetPsi} PSI</span>
-        <span>${j.veh.heavy ? 'Heavy-Duty Commercial' : 'Passenger Bay'}</span>
+        <span>⏱️ SLA Timer: ${j.timeLimit}s</span>
       </div>
       <button class="primary-btn" onclick="acceptJob('${j.id}')">
         ${j.vip ? `SNIPE DISPATCH (${j.snipeCost} ⚡)` : 'ACCEPT & ROLL RIG'}
       </button>
     </div>
   `).join('');
+}
+
+function startBayTimer() {
+  if (bayTimerInterval) clearInterval(bayTimerInterval);
+  bayTimerInterval = setInterval(() => {
+    const job = state.activeJob;
+    if (!job || job.isTutorial) return;
+    if (job.timeLeft > 0) {
+      job.timeLeft -= 1;
+      const timerEl = document.getElementById('bay-timer-badge');
+      if (timerEl) {
+        timerEl.textContent = `⏱️ ${job.timeLeft}s`;
+        timerEl.style.color = job.timeLeft <= 20 ? '#ef4444' : '#f59e0b';
+      }
+    }
+  }, 1000);
 }
 
 function acceptJob(jobId) {
@@ -313,6 +419,7 @@ function acceptJob(jobId) {
   state.jobs = state.jobs.filter((j) => j.id !== jobId);
   state.activeJob = {
     ...job,
+    timeLeft: job.timeLimit,
     step: 1,
     chocked: false,
     liftPct: 0,
@@ -322,11 +429,13 @@ function acceptJob(jobId) {
     fixed: false,
     psi: 12,
     torqueIdx: 0,
-    penalties: 0
+    penalties: 0,
+    penaltyLog: []
   };
   saveState();
   updateHUD();
   renderJobs();
+  startBayTimer();
   goPage('bay');
 }
 
@@ -338,6 +447,8 @@ function startTutorial() {
     veh: VEHICLES[0],
     dmg: DAMAGES[0],
     pay: 80,
+    timeLimit: 120,
+    timeLeft: 120,
     vip: false,
     snipeCost: 0,
     step: 1,
@@ -349,7 +460,8 @@ function startTutorial() {
     fixed: false,
     psi: 14,
     torqueIdx: 0,
-    penalties: 0
+    penalties: 0,
+    penaltyLog: []
   };
   dismissAlert();
   goPage('bay');
@@ -371,19 +483,27 @@ function getTutorialCoaching(job) {
     return { stepLabel: 'TRAINING 2/6', text: 'Tap PUMP FLOOR JACK to raise the hydraulic lift arm and vehicle body.' };
   }
   if (job.step === 2) {
-    return { stepLabel: 'TRAINING 3/6', text: 'Tap each lug nut on the wheel (or IMPACT NEXT LUG) to spin all 5 into the magnetic tray.' };
+    return { stepLabel: 'TRAINING 3/6', text: 'Tap each of the 5 glowing lug nuts directly on the wheel hub to spin them off.' };
   }
   if (job.step === 3 && !job.scanned) {
-    return { stepLabel: 'TRAINING 4/6', text: 'Tap SCAN TIRE TREAD & SIDEWALL to reveal the correlated tire diagnosis.' };
+    return { stepLabel: 'TRAINING 4/6', text: 'Tap SCAN TIRE TREAD & SIDEWALL to inspect the damage.' };
   }
   if (job.step === 3 && job.scanned) {
     return { stepLabel: 'TRAINING 4/6', text: 'Center-tread nail detected! Tap PLUG PUNCTURE (never swap a center nail).' };
   }
   if (job.step === 4) {
-    return { stepLabel: 'TRAINING 5/6', text: 'Inflate air into the green 33–37 PSI target zone, then tap LOCK PRESSURE.' };
+    return { stepLabel: 'TRAINING 5/6', text: 'Inflate air into the green 33–37 PSI target band, then tap LOCK PRESSURE.' };
   }
-  return { stepLabel: 'TRAINING 6/6', text: `Torque lugs in star order (1→3→5→2→4). Tap Lug #${STAR_ORDER[job.torqueIdx]} next!` };
+  return { stepLabel: 'TRAINING 6/6', text: `Tap Lug #${STAR_ORDER[job.torqueIdx]} directly on the wheel hub (Star Order: 1→3→5→2→4).` };
 }
+
+function addBayPenalty(job, amount, reason) {
+  if (!job || job.isTutorial) return;
+  job.penalties += amount;
+  if (!job.penaltyLog) job.penaltyLog = [];
+  job.penaltyLog.push({ reason, amount });
+}
+
 function showAlert(title, msg) {
   SoundFX.error();
   document.getElementById('diag-alert-title').textContent = title;
@@ -430,7 +550,12 @@ function renderBay() {
   document.getElementById('bay-veh-tag').textContent = job.veh.label;
   document.getElementById('bay-job-title').textContent = job.title;
   const finalPay = job.pay * (state.surgeJobs > 0 ? 2 : 1);
-  document.getElementById('bay-payout').textContent = `$${finalPay}`;
+  const payoutBox = document.getElementById('bay-payout');
+  payoutBox.innerHTML = `
+    <div>$${finalPay}${job.penalties > 0 ? ` <span style="font-size:11px;color:var(--red);">(-$${job.penalties})</span>` : ''}</div>
+    <div id="bay-timer-badge" style="font-size:12px;font-weight:800;color:${job.isTutorial ? '#38bdf8' : job.timeLeft <= 20 ? '#ef4444' : '#f59e0b'};">
+      ${job.isTutorial ? 'TRAINING' : `⏱️ ${job.timeLeft}s`}
+    </div>`;
 
   const stage = document.getElementById('bay-stage');
   if (!document.getElementById('mag-tray')) {
@@ -474,11 +599,12 @@ function renderBay() {
     el.className = 'sp' + (job.step === i ? ' active' : job.step > i ? ' done' : '');
   }
 
+  const canSpin = job.step === 2 || job.step === 5;
   const lugRing = document.getElementById('lug-ring');
   lugRing.innerHTML = LUG_COORDS.map((l) => {
     const isRemoved = job.lugsRemoved.includes(l.id) && job.step < 5;
     const isTorqued = job.step === 5 && STAR_ORDER.slice(0, job.torqueIdx).includes(l.id);
-    const isSpinning = job.lastSpunLug === l.id;
+    const isSpinning = canSpin && job.lastSpunLug === l.id;
     const pulseLug = job.isTutorial && (
       (job.step === 2 && !isRemoved) ||
       (job.step === 5 && STAR_ORDER[job.torqueIdx] === l.id)
@@ -513,9 +639,8 @@ function renderBay() {
       </div>`;
   } else if (job.step === 2) {
     ctrl.innerHTML = `
-      <strong>Step 2: Spin Off All 5 Lug Nuts (${job.lugsRemoved.length}/5)</strong>
-      <p style="font-size:12px;color:var(--muted);">Tap each lug nut to spin it off into the magnetic tray.</p>
-      <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="removeNextLug()">IMPACT NEXT LUG NUT</button>`;
+      <strong>Step 2: Unbolt All 5 Lugs on Wheel (${job.lugsRemoved.length}/5)</strong>
+      <p style="font-size:12px;color:var(--muted);">Tap each lug nut directly on the wheel hub to spin it off into the magnetic tray.</p>`;
   } else if (job.step === 3) {
     if (!job.scanned) {
       ctrl.innerHTML = `
@@ -548,6 +673,7 @@ function renderBay() {
     const fillPct = Math.min(100, Math.round((job.psi / (t + 20)) * 100));
     const bandLeft = Math.round(((t - 2) / (t + 20)) * 100);
     const bandWidth = Math.max(8, Math.round((4 / (t + 20)) * 100));
+    const psiStep = 4 + Math.floor((state.tools.comp.level - 1) / 3);
     ctrl.innerHTML = `
       <strong>Step 4: Calibrate Air Pressure (Target: ${t - 2}–${t + 2} PSI)</strong>
       <div class="psi-meter">
@@ -559,21 +685,21 @@ function renderBay() {
       </div>
       <div class="ctrl-grid-2">
         <button class="secondary-btn" onclick="adjustPsi(-3)">BLEED AIR (-3)</button>
-        <button class="primary-btn ${job.isTutorial && !inSpec ? 'tut-pulse' : ''}" onclick="adjustPsi(6)">INFLATE (+6 PSI)</button>
+        <button class="primary-btn ${job.isTutorial && !inSpec ? 'tut-pulse' : ''}" onclick="adjustPsi(${psiStep})">INFLATE (+${psiStep} PSI)</button>
       </div>
       <button class="primary-btn ${job.isTutorial && inSpec ? 'tut-pulse' : ''}" onclick="lockPsi()">LOCK PRESSURE & CONTINUE</button>`;
   } else if (job.step === 5) {
-    const nextLug = STAR_ORDER[job.torqueIdx];
     ctrl.innerHTML = `
-      <strong>Step 5: Star-Pattern Torque (${job.torqueIdx}/5) — Next: Lug #${nextLug}</strong>
-      <p style="font-size:12px;color:var(--muted);">Sequence: 1 → 3 → 5 → 2 → 4. Tap Lug #${nextLug} on the wheel or press Torque.</p>
-      <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="tapLug(${nextLug})">TORQUE LUG #${nextLug} TO SPEC</button>`;
+      <strong>Step 5: Star-Pattern Torque (${job.torqueIdx}/5)</strong>
+      <p style="font-size:12px;color:var(--muted);">Tap the lugs directly on the wheel in crisscross star order: <strong>1 → 3 → 5 → 2 → 4</strong>.</p>`;
   }
 }
+
 function setChocks() {
   const job = state.activeJob;
   if (!job || job.chocked) return;
   job.chocked = true;
+  job.lastSpunLug = null;
   dismissAlert();
   SoundFX.chock();
   renderBay();
@@ -583,7 +709,9 @@ function pumpJack() {
   const job = state.activeJob;
   if (!job) return;
   if (!job.chocked) {
-    showAlert('SAFETY ALERT', 'Set rubber wheel chocks before raising the hydraulic floor jack!');
+    addBayPenalty(job, 15, 'OSHA Safety Violation: Lifted without wheel chocks');
+    showAlert('OSHA SAFETY VIOLATION (-$15)', 'You tried to raise the floor jack without setting wheel chocks first!');
+    renderBay();
     return;
   }
   dismissAlert();
@@ -594,34 +722,45 @@ function pumpJack() {
   renderBay();
 }
 
-function removeNextLug() {
-  const job = state.activeJob;
-  if (!job || job.step !== 2) return;
-  const rem = [1, 2, 3, 4, 5].find((id) => !job.lugsRemoved.includes(id));
-  if (rem) tapLug(rem);
+function triggerLugSpin(job, id) {
+  job.lastSpunLug = id;
+  if (spinClearTimeout) clearTimeout(spinClearTimeout);
+  spinClearTimeout = setTimeout(() => {
+    if (state.activeJob) state.activeJob.lastSpunLug = null;
+  }, 460);
 }
 
 function tapLug(id) {
   const job = state.activeJob;
   if (!job) return;
+  if (job.step === 1) {
+    addBayPenalty(job, 10, 'Protocol Error: Impacted lugs before vehicle was lifted');
+    showAlert('LIFT VEHICLE FIRST (-$10)', 'Secure wheel chocks and pump the hydraulic jack to 100% before unbolting lugs.');
+    renderBay();
+    return;
+  }
   if (job.step === 2) {
     if (!job.lugsRemoved.includes(id)) {
       job.lugsRemoved.push(id);
-      job.lastSpunLug = id;
+      triggerLugSpin(job, id);
       SoundFX.impact();
-      if (job.lugsRemoved.length >= 5) job.step = 3;
+      if (job.lugsRemoved.length >= 5) {
+        job.lastSpunLug = null;
+        job.step = 3;
+      }
       renderBay();
     }
   } else if (job.step === 5) {
     const expected = STAR_ORDER[job.torqueIdx];
     if (id !== expected) {
-      if (!job.isTutorial) job.penalties += 10;
-      showAlert('STAR-PATTERN SEQUENCE ERROR', `Follow crisscross torque order: tap Lug #${expected} next!`);
+      addBayPenalty(job, 12, 'Torque Sequence Error: Out-of-order lug torquing');
+      showAlert('STAR-PATTERN SEQUENCE ERROR (-$12)', 'Wrong lug! Follow crisscross star torque sequence (1 → 3 → 5 → 2 → 4).');
+      renderBay();
       return;
     }
     dismissAlert();
     SoundFX.torqueClick();
-    job.lastSpunLug = id;
+    triggerLugSpin(job, id);
     job.torqueIdx++;
     if (job.torqueIdx >= 5) completeJob();
     else renderBay();
@@ -631,6 +770,7 @@ function tapLug(id) {
 function runScan() {
   const job = state.activeJob;
   if (!job) return;
+  job.lastSpunLug = null;
   SoundFX.scan();
   job.scanned = true;
   renderBay();
@@ -639,21 +779,24 @@ function runScan() {
 function performRepair(choice) {
   const job = state.activeJob;
   if (!job) return;
+  job.lastSpunLug = null;
 
   if (job.dmg.action === 'plug' && choice !== 'plug') {
-    if (!job.isTutorial) job.penalties += 15;
+    addBayPenalty(job, 20, 'Diagnostic Error: Swapped repairable center-nail tire');
     showAlert(
-      'UNNECESSARY TIRE SWAP',
+      'UNNECESSARY TIRE SWAP (-$20)',
       'Center-tread nail punctures are ALWAYS Plug Only. Do not waste a new tire!'
     );
+    renderBay();
     return;
   }
   if (job.dmg.action === 'swap' && choice !== 'swap') {
-    if (!job.isTutorial) job.penalties += 25;
+    addBayPenalty(job, 30, 'Safety Violation: Attempted to plug unrepairable casing');
     showAlert(
-      'UNSAFE REPAIR REJECTED',
+      'UNSAFE REPAIR REJECTED (-$30)',
       `${job.dmg.title} cannot be plugged safely. You MUST perform a full Tire Swap!`
     );
+    renderBay();
     return;
   }
 
@@ -698,17 +841,25 @@ function droneDrop() {
 function adjustPsi(delta) {
   const job = state.activeJob;
   if (!job) return;
+  job.lastSpunLug = null;
   SoundFX.air();
   job.psi = Math.max(0, Math.min(130, job.psi + delta));
+  if (job.psi > job.veh.targetPsi + 10) {
+    addBayPenalty(job, 15, 'Over-Inflation Hazard: Exceeded safe PSI threshold');
+    showAlert('OVER-INFLATION HAZARD (-$15)', `Pressure spiked above ${job.veh.targetPsi + 10} PSI! Bleed air immediately.`);
+  }
   renderBay();
 }
 
 function lockPsi() {
   const job = state.activeJob;
   if (!job) return;
+  job.lastSpunLug = null;
   const t = job.veh.targetPsi;
   if (Math.abs(job.psi - t) > 2) {
-    showAlert('PSI OUT OF SPEC', `Calibrate pressure between ${t - 2} and ${t + 2} PSI before torquing lugs.`);
+    addBayPenalty(job, 12, 'PSI Calibration Error: Locked pressure out of spec');
+    showAlert('PSI OUT OF SPEC (-$12)', `Calibrate pressure between ${t - 2} and ${t + 2} PSI before torquing lugs.`);
+    renderBay();
     return;
   }
   dismissAlert();
@@ -745,14 +896,35 @@ function completeJob() {
   const mult = state.surgeJobs > 0 ? 2 : 1;
   if (state.surgeJobs > 0) state.surgeJobs--;
   const gross = job.pay * mult;
-  const net = Math.max(25, gross - job.penalties);
-  const repGain = Math.round(35 * getZone().mult);
+  const isFast = job.timeLeft >= Math.round(job.timeLimit * 0.45);
+  const speedBonus = isFast ? Math.round(job.pay * 0.2) : 0;
+  if (job.timeLeft <= 0) {
+    addBayPenalty(job, 25, 'SLA Response Timeout: Exceeded dispatch window');
+  }
+  const totalDeductions = job.penalties;
+  const net = Math.max(25, gross + speedBonus - totalDeductions);
+  const repGain = Math.round((35 + (isFast ? 15 : 0)) * getZone().mult);
   const gotPart = Math.random() < 0.35;
 
   state.cash += net;
   state.rep += repGain;
+  state.jobsCompleted = (state.jobsCompleted || 0) + 1;
+  if (totalDeductions === 0) state.streak = (state.streak || 0) + 1;
+  else state.streak = 0;
   if (gotPart) state.parts += 1;
-  state.ratings.push(job.penalties === 0 ? 5.0 : 4.2);
+
+  // Update active DelWin Mobile Contract progress
+  if (state.contract && state.contract.progress < state.contract.target) {
+    const ct = state.contract.type;
+    if (ct === 'clean_streak' && totalDeductions === 0) state.contract.progress += 1;
+    if (ct === 'plugs' && job.dmg.action === 'plug') state.contract.progress += 1;
+    if (ct === 'swaps' && job.dmg.action === 'swap') state.contract.progress += 1;
+    if (ct === 'fast' && isFast) state.contract.progress += 1;
+    if (ct === 'heavy' && job.veh.heavy) state.contract.progress += 1;
+  }
+
+  const jobRating = totalDeductions === 0 ? 5.0 : Math.max(3.5, 4.8 - totalDeductions * 0.02);
+  state.ratings.push(jobRating);
   if (state.ratings.length > 20) state.ratings.shift();
   state.activeJob = null;
 
@@ -760,12 +932,18 @@ function completeJob() {
   saveState();
   updateHUD();
 
+  const logHtml = (job.penaltyLog || []).map((p) =>
+    `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--red);"><span>• ${p.reason}</span><span>-$${p.amount}</span></div>`
+  ).join('');
+
   openModal(`
     <span class="badge">DIGITAL CUSTOMER INVOICE</span>
     <h3>${job.title}</h3>
     <div style="background:#090c12;padding:12px;border-radius:10px;font-size:13px;display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;justify-content:space-between;"><span>Service Payout:</span><strong style="color:var(--green);">+$${gross}</strong></div>
-      <div style="display:flex;justify-content:space-between;"><span>Protocol Deductions:</span><strong style="color:var(--red);">-$${job.penalties}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Base Service Payout:</span><strong style="color:var(--green);">+$${gross}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Fast-Response Bonus:</span><strong style="color:var(--blue);">+$${speedBonus}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Bay & SLA Deductions:</span><strong style="color:var(--red);">-$${totalDeductions}</strong></div>
+      ${logHtml}
       <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;"><span>Net Collected:</span><strong style="color:var(--green);">$${net}</strong></div>
       <div style="display:flex;justify-content:space-between;"><span>Corridor Reputation:</span><strong style="color:var(--amber);">+${repGain} REP</strong></div>
       ${gotPart ? `<div style="color:var(--amber);font-weight:800;">+1 Gold Tool Part Found (⚙️)</div>` : ''}
@@ -837,7 +1015,7 @@ function renderGarage() {
     const viewTierLabel = TIER_NAMES[viewTier - 1];
     const isMax = tool.level >= 24;
     const needsPart = !isMax && tool.level % 4 === 0;
-    const cost = Math.round(tool.baseCost * Math.pow(1.22, tool.level - 1));
+    const cost = Math.round(tool.baseCost * Math.pow(1.24, tool.level - 1));
     const imgPath = `assets/${tool.prefix}-t${viewTier}.png`;
     const isPreviewingFuture = viewTier > ownedTier;
 
@@ -870,7 +1048,7 @@ function upgradeTool(key) {
   const tool = state.tools[key];
   if (!tool || tool.level >= 24) return;
   const needsPart = tool.level % 4 === 0;
-  const cost = Math.round(tool.baseCost * Math.pow(1.22, tool.level - 1));
+  const cost = Math.round(tool.baseCost * Math.pow(1.24, tool.level - 1));
   if (state.cash < cost) return;
   if (needsPart && state.parts < 1) return;
   state.cash -= cost;
@@ -1005,4 +1183,5 @@ loadState();
 if (!state.jobs || state.jobs.length === 0) refreshJobs();
 else renderJobs();
 updateHUD();
+if (state.activeJob && !state.activeJob.isTutorial) startBayTimer();
 if (!state.tutorialDone) startTutorial();
