@@ -206,3 +206,177 @@ function renderTireSVG(job, size = 130) {
       ${dmgLayer}
     </svg>`;
 }
+function updateHUD() {
+  document.getElementById('hud-cash').textContent = state.cash;
+  document.getElementById('hud-tokens').textContent = state.tokens;
+  document.getElementById('drawer-parts').textContent = `${state.parts} ⚙️`;
+  const avg = (state.ratings.reduce((a, b) => a + b, 0) / state.ratings.length).toFixed(1);
+  document.getElementById('drawer-rating').textContent = `${avg} ★`;
+  const z = getZone();
+  document.getElementById('drawer-zone').textContent = z.name;
+  document.getElementById('dispatch-zone-label').textContent = `${z.name.toUpperCase()} (${z.mult}x)`;
+  document.getElementById('dispatch-boost-label').textContent =
+    state.surgeJobs > 0 ? `2X SURGE ACTIVE (${state.surgeJobs} LEFT)` : 'ACTIVATE 2X SURGE';
+  document.getElementById('stock-plugs').textContent = state.plugs;
+  document.getElementById('stock-tires').textContent = state.tires;
+}
+
+function goPage(pageId) {
+  document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
+  document.getElementById(`page-${pageId}`).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
+  const nav = document.getElementById(`nav-${pageId}`);
+  if (nav) nav.classList.add('active');
+  if (pageId === 'garage') {
+    previewRigTier = getRigTier();
+    renderGarage();
+  }
+  if (pageId === 'league') renderLeague();
+  if (pageId === 'zones') renderZones();
+  if (pageId === 'bay') renderBay();
+}
+
+function toggleDrawer(open) {
+  document.getElementById('drawer-backdrop').classList.toggle('hidden', !open);
+  document.getElementById('menu-drawer').classList.toggle('hidden', !open);
+}
+
+function toggleSound() {
+  const on = SoundFX.toggle();
+  document.getElementById('sound-toggle-btn').textContent = `🔊 Mechanical Audio: ${on ? 'ON' : 'OFF'}`;
+}
+
+function generateJob(vip = false) {
+  const z = getZone();
+  const pool = z.id === 'z1' ? VEHICLES.slice(0, 3) : VEHICLES;
+  const veh = pool[Math.floor(Math.random() * pool.length)];
+  const dmg = DAMAGES[Math.floor(Math.random() * DAMAGES.length)];
+  const mile = Math.floor(Math.random() * 65) + 4;
+  const rigBonus = 1 + (getRigTier() - 1) * 0.12;
+  const basePay = Math.round((veh.heavy ? 135 : 75) * z.mult * rigBonus * (vip ? 1.5 : 1));
+  return {
+    id: 'job_' + Math.random().toString(36).slice(2, 8),
+    title: `${z.name.split(' ')[0]} Mile ${mile} — Stranded ${veh.label.split(' ')[1]}`,
+    veh,
+    dmg,
+    pay: basePay,
+    vip,
+    snipeCost: vip ? 2 : 0
+  };
+}
+
+function refreshJobs() {
+  state.jobs = [generateJob(false), generateJob(false), generateJob(false), generateJob(true)];
+  renderJobs();
+}
+
+function renderJobs() {
+  const wrap = document.getElementById('job-list');
+  wrap.innerHTML = state.jobs.map((j) => `
+    <div class="job-card ${j.vip ? 'vip' : ''}">
+      <div class="job-top">
+        <div>
+          <span class="badge">${j.vip ? '⚡ VIP COMMERCIAL SNIPE' : j.veh.label}</span>
+          <h3 style="font-size:14px;margin-top:5px;">${j.title}</h3>
+        </div>
+        <div class="job-pay">$${j.pay}${state.surgeJobs > 0 ? ' (2x)' : ''}</div>
+      </div>
+      <div class="job-meta">
+        <span>Target: ${j.veh.targetPsi} PSI</span>
+        <span>${j.veh.heavy ? 'Heavy-Duty Commercial' : 'Passenger Bay'}</span>
+      </div>
+      <button class="primary-btn" onclick="acceptJob('${j.id}')">
+        ${j.vip ? `SNIPE DISPATCH (${j.snipeCost} ⚡)` : 'ACCEPT & ROLL RIG'}
+      </button>
+    </div>
+  `).join('');
+}
+
+function acceptJob(jobId) {
+  if (state.activeJob) {
+    goPage('bay');
+    return;
+  }
+  const job = state.jobs.find((j) => j.id === jobId);
+  if (!job) return;
+  if (job.vip) {
+    if (state.tokens < job.snipeCost) {
+      goPage('shop');
+      return;
+    }
+    state.tokens -= job.snipeCost;
+  }
+  state.jobs = state.jobs.filter((j) => j.id !== jobId);
+  state.activeJob = {
+    ...job,
+    step: 1,
+    chocked: false,
+    liftPct: 0,
+    lugsRemoved: [],
+    lastSpunLug: null,
+    scanned: false,
+    fixed: false,
+    psi: 12,
+    torqueIdx: 0,
+    penalties: 0
+  };
+  saveState();
+  updateHUD();
+  renderJobs();
+  goPage('bay');
+}
+
+function startTutorial() {
+  state.activeJob = {
+    id: 'tut_call',
+    isTutorial: true,
+    title: 'I-285 Mile 14 — Guided Training Call',
+    veh: VEHICLES[0],
+    dmg: DAMAGES[0],
+    pay: 80,
+    vip: false,
+    snipeCost: 0,
+    step: 1,
+    chocked: false,
+    liftPct: 0,
+    lugsRemoved: [],
+    lastSpunLug: null,
+    scanned: false,
+    fixed: false,
+    psi: 14,
+    torqueIdx: 0,
+    penalties: 0
+  };
+  dismissAlert();
+  goPage('bay');
+}
+
+function skipTutorial() {
+  state.tutorialDone = true;
+  state.activeJob = null;
+  saveState();
+  updateHUD();
+  goPage('dispatch');
+}
+
+function getTutorialCoaching(job) {
+  if (job.step === 1 && !job.chocked) {
+    return { stepLabel: 'TRAINING 1/6', text: 'Tap SET WHEEL CHOCKS first to lock the tires before lifting.' };
+  }
+  if (job.step === 1 && job.chocked) {
+    return { stepLabel: 'TRAINING 2/6', text: 'Tap PUMP FLOOR JACK to raise the hydraulic lift arm and vehicle body.' };
+  }
+  if (job.step === 2) {
+    return { stepLabel: 'TRAINING 3/6', text: 'Tap each lug nut on the wheel (or IMPACT NEXT LUG) to spin all 5 into the magnetic tray.' };
+  }
+  if (job.step === 3 && !job.scanned) {
+    return { stepLabel: 'TRAINING 4/6', text: 'Tap SCAN TIRE TREAD & SIDEWALL to reveal the correlated tire diagnosis.' };
+  }
+  if (job.step === 3 && job.scanned) {
+    return { stepLabel: 'TRAINING 4/6', text: 'Center-tread nail detected! Tap PLUG PUNCTURE (never swap a center nail).' };
+  }
+  if (job.step === 4) {
+    return { stepLabel: 'TRAINING 5/6', text: 'Inflate air into the green 33–37 PSI target zone, then tap LOCK PRESSURE.' };
+  }
+  return { stepLabel: 'TRAINING 6/6', text: `Torque lugs in star order (1→3→5→2→4). Tap Lug #${STAR_ORDER[job.torqueIdx]} next!` };
+}
