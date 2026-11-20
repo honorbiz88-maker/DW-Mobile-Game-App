@@ -1,27 +1,31 @@
 const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
 
 const RIG_TIERS = [
-  { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', perk: 'Standard highway response rig.' },
-  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', perk: '+10% Base Payouts & Twin Strobes.' },
-  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', perk: '+20% Payouts & Onboard Tire Rack.' },
-  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', perk: '+30% Payouts & Dual-Wheel Lift.' },
-  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', perk: '+45% Payouts & Fleet Priority.' },
-  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', perk: '+65% Payouts & Maximum Corridor Prestige.' }
+  { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', perk: 'Standard highway response rig.' },
+  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', perk: '+12% Base Payouts & Twin Strobes.' },
+  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', color: '#f59e0b', perk: '+24% Payouts & Onboard Tire Rack.' },
+  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', color: '#a855f7', perk: '+36% Payouts & Dual-Wheel Lift.' },
+  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', color: '#ef4444', perk: '+48% Payouts & Fleet Priority.' },
+  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', perk: '+65% Payouts & Maximum Corridor Prestige.' }
 ];
 
 const ZONES = [
-  { id: 'i285', name: 'I-285 North Perimeter', mult: 1.0, unlockRep: 0, desc: 'Steady commuter flats and shoulder punctures.' },
-  { id: 'i75', name: 'I-75 Downtown Connector', mult: 1.25, unlockRep: 150, desc: 'High-traffic SUV and commercial van calls.' },
-  { id: 'i20', name: 'I-20 Freight Corridor', mult: 1.5, unlockRep: 400, desc: 'Box trucks and heavy-duty highway blowouts.' },
-  { id: 'sav', name: 'Savannah Port Terminal', mult: 1.85, unlockRep: 850, desc: '18-wheeler duals and VIP fleet contracts.' }
+  { id: 'i285', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 North Perimeter', mult: 1.0, unlockRep: 0, desc: 'Steady commuter flats and shoulder punctures.' },
+  { id: 'i75', hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.15, unlockRep: 120, desc: 'High-traffic SUV and commercial van calls.' },
+  { id: 'i20', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-20 West Freight Corridor', mult: 1.35, unlockRep: 300, desc: 'Box trucks and heavy-duty highway blowouts.' },
+  { id: 'i85', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-85 Gwinnett Logistics', mult: 1.5, unlockRep: 550, desc: 'Distribution hub semi-trailers & duals.' },
+  { id: 'sav', hub: 'HUB 3 · COASTAL PORTS', name: 'Savannah Port Terminal', mult: 1.75, unlockRep: 900, desc: '18-wheeler port containers and VIP contracts.' },
+  { id: 'i95', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-95 Coastal Freightway', mult: 2.0, unlockRep: 1400, desc: 'Long-haul interstate emergency fleet rescues.' },
+  { id: 'i10', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Heavy Haul Turnpike', mult: 2.3, unlockRep: 2000, desc: 'High-payout commercial multi-axle dispatches.' },
+  { id: 'apex', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Night-Shift Priority Grid', mult: 2.75, unlockRep: 3000, desc: 'Elite executive & heavy fleet rescue network.' }
 ];
 
 const VEHICLES = [
-  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, targetPsi: 35, img: 'assets/veh-sedan.png' },
-  { id: 'suv', label: 'FAMILY SUV', heavy: false, targetPsi: 36, img: 'assets/veh-suv.png' },
-  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, targetPsi: 40, img: 'assets/veh-pickup.png' },
-  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, targetPsi: 95, img: 'assets/veh-boxtruck.png' },
-  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, targetPsi: 105, img: 'assets/veh-semi.png' }
+  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, targetPsi: 35, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
+  { id: 'suv', label: 'FAMILY SUV', heavy: false, targetPsi: 36, bodyColor: '#475569', img: 'assets/veh-suv.png' },
+  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, targetPsi: 40, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
+  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, targetPsi: 95, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
+  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, targetPsi: 105, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
 ];
 
 // STRICT CORE RULE: center_nail => Plug Only; all other damage => Tire Swap Only
@@ -81,6 +85,65 @@ function getRigTier() {
 
 function getZone() {
   return ZONES.find((z) => z.id === state.zoneId) || ZONES[0];
+}
+
+function renderRigSVG(tierObj) {
+  return `
+    <svg viewBox="0 0 260 95" width="240" height="88">
+      <ellipse cx="130" cy="86" rx="108" ry="6" fill="rgba(0,0,0,0.6)"/>
+      <rect x="32" y="26" width="136" height="44" rx="8" fill="#1e293b" stroke="${tierObj.color}" stroke-width="2.5"/>
+      <path d="M168 34 L212 34 L228 52 L228 70 L168 70 Z" fill="#0f172a" stroke="${tierObj.color}" stroke-width="2.5"/>
+      <polygon points="174,38 206,38 218,51 174,51" fill="#38bdf8" opacity="0.45"/>
+      <rect x="85" y="18" width="38" height="7" rx="3" fill="#f59e0b"/>
+      <text x="52" y="53" fill="#f59e0b" font-size="13" font-weight="900" font-family="sans-serif">DELWIN T${tierObj.tier}</text>
+      <circle cx="68" cy="73" r="14" fill="#090c12" stroke="#94a3b8" stroke-width="3"/>
+      <circle cx="68" cy="73" r="6" fill="${tierObj.color}"/>
+      <circle cx="196" cy="73" r="14" fill="#090c12" stroke="#94a3b8" stroke-width="3"/>
+      <circle cx="196" cy="73" r="6" fill="${tierObj.color}"/>
+    </svg>`;
+}
+
+function renderVehicleSVG(veh) {
+  return `
+    <svg viewBox="0 0 280 90" width="265" height="86">
+      <path d="M24 68 L24 44 L66 40 L98 18 L194 18 L224 40 L256 46 L256 68 Z" fill="${veh.bodyColor}" stroke="#94a3b8" stroke-width="2"/>
+      <polygon points="102,23 188,23 210,39 82,39" fill="#0f172a" opacity="0.85"/>
+      <path d="M106 68 A34 34 0 0 1 174 68 Z" fill="#090c12" stroke="#f59e0b" stroke-width="2"/>
+    </svg>`;
+}
+
+function renderTireSVG(job) {
+  const dmg = job.dmg.key;
+  let dmgLayer = '';
+  if (!job.fixed) {
+    if (dmg === 'center_nail') {
+      dmgLayer = `
+        <circle cx="65" cy="14" r="11" fill="rgba(239,68,68,0.28)" stroke="#ef4444" stroke-width="2"/>
+        <line x1="65" y1="3" x2="65" y2="18" stroke="#e2e8f0" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="60" y1="3" x2="70" y2="3" stroke="#f8fafc" stroke-width="3"/>`;
+    } else if (dmg === 'bulge') {
+      dmgLayer = `
+        <ellipse cx="18" cy="72" rx="12" ry="18" fill="#334155" stroke="#ef4444" stroke-width="2.5"/>
+        <text x="18" y="75" text-anchor="middle" fill="#fecaca" font-size="9" font-weight="900">!</text>`;
+    } else if (dmg === 'blowout') {
+      dmgLayer = `
+        <polygon points="12,56 26,64 16,74 28,84 10,88 6,70" fill="#ef4444" stroke="#fecaca" stroke-width="1.5"/>`;
+    } else if (dmg === 'gash') {
+      dmgLayer = `
+        <line x1="22" y1="24" x2="40" y2="42" stroke="#ef4444" stroke-width="4.5" stroke-linecap="round"/>`;
+    } else if (dmg === 'shredded') {
+      dmgLayer = `
+        <path d="M22 22 L12 12 M44 10 L40 2 M86 10 L92 2 M108 24 L118 16" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round"/>`;
+    }
+  }
+  return `
+    <svg viewBox="0 0 130 130" width="130" height="130">
+      <circle cx="65" cy="65" r="56" fill="#111827" stroke="${job.fixed ? '#10b981' : '#334155'}" stroke-width="6"/>
+      <circle cx="65" cy="65" r="46" fill="none" stroke="#1f2937" stroke-width="6" stroke-dasharray="8 6"/>
+      <circle cx="65" cy="65" r="32" fill="#1e293b" stroke="#94a3b8" stroke-width="2.5"/>
+      <circle cx="65" cy="65" r="11" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+      ${dmgLayer}
+    </svg>`;
 }
 
 function updateHUD() {
@@ -157,7 +220,7 @@ function renderJobs() {
       </div>
       <div class="job-meta">
         <span>Target: ${j.veh.targetPsi} PSI</span>
-        <span>${j.veh.heavy ? 'Heavy-Duty 10-Lug' : 'Passenger 5-Lug'}</span>
+        <span>${j.veh.heavy ? 'Heavy-Duty Commercial' : 'Passenger Bay'}</span>
       </div>
       <button class="primary-btn" onclick="acceptJob('${j.id}')">
         ${j.vip ? `SNIPE DISPATCH (${j.snipeCost} ⚡)` : 'ACCEPT & ROLL RIG'}
@@ -199,6 +262,61 @@ function acceptJob(jobId) {
   goPage('bay');
 }
 
+// INTERACTIVE 6-STEP PLAYABLE TUTORIAL CALL
+function startTutorial() {
+  state.activeJob = {
+    id: 'tut_call',
+    isTutorial: true,
+    title: 'I-285 Mile 14 — Guided Training Call',
+    veh: VEHICLES[0],
+    dmg: DAMAGES[0], // Center-Tread Nail => Plug Only
+    pay: 80,
+    vip: false,
+    snipeCost: 0,
+    step: 1,
+    chocked: false,
+    liftPct: 0,
+    lugsRemoved: [],
+    scanned: false,
+    fixed: false,
+    psi: 14,
+    torqueIdx: 0,
+    penalties: 0
+  };
+  dismissAlert();
+  goPage('bay');
+}
+
+function skipTutorial() {
+  state.tutorialDone = true;
+  state.activeJob = null;
+  saveState();
+  updateHUD();
+  goPage('dispatch');
+}
+
+function getTutorialCoaching(job) {
+  if (job.step === 1 && !job.chocked) {
+    return { stepLabel: 'TRAINING 1/6', text: 'First, tap SET WHEEL CHOCKS so the vehicle cannot roll while lifted.' };
+  }
+  if (job.step === 1 && job.chocked) {
+    return { stepLabel: 'TRAINING 2/6', text: 'Chocks locked! Now tap PUMP FLOOR JACK until the wheel lifts to 100%.' };
+  }
+  if (job.step === 2) {
+    return { stepLabel: 'TRAINING 3/6', text: 'Tap the glowing lug nuts on the wheel (or IMPACT NEXT LUG) to spin all 5 off.' };
+  }
+  if (job.step === 3 && !job.scanned) {
+    return { stepLabel: 'TRAINING 4/6', text: 'Tap SCAN TIRE TREAD & SIDEWALL to inspect the damage.' };
+  }
+  if (job.step === 3 && job.scanned) {
+    return { stepLabel: 'TRAINING 4/6', text: 'Nail is dead-center in the tread! Tap PLUG PUNCTURE (never swap a center nail).' };
+  }
+  if (job.step === 4) {
+    return { stepLabel: 'TRAINING 5/6', text: 'Pump air into the green 33–37 PSI target band, then tap LOCK PRESSURE.' };
+  }
+  return { stepLabel: 'TRAINING 6/6', text: `Torque lugs in star order (1→3→5→2→4). Tap Lug #${STAR_ORDER[job.torqueIdx]} next!` };
+}
+
 function showAlert(title, msg) {
   SoundFX.error();
   document.getElementById('diag-alert-title').textContent = title;
@@ -222,25 +340,46 @@ function renderBay() {
   document.getElementById('bay-active').classList.toggle('hidden', !job);
   if (!job) return;
 
+  // Tutorial Banner
+  let tutEl = document.getElementById('tut-coach-box');
+  if (!tutEl) {
+    tutEl = document.createElement('div');
+    tutEl.id = 'tut-coach-box';
+    const bayActive = document.getElementById('bay-active');
+    bayActive.insertBefore(tutEl, bayActive.firstChild);
+  }
+  if (job.isTutorial) {
+    const coach = getTutorialCoaching(job);
+    tutEl.className = 'tut-banner';
+    tutEl.innerHTML = `
+      <div class="tut-banner-top">
+        <span class="badge">${coach.stepLabel} · REWARD: +25 ⚡</span>
+        <button class="ghost-btn" style="padding:3px 8px;font-size:11px;" onclick="skipTutorial()">Skip</button>
+      </div>
+      <p>${coach.text}</p>`;
+  } else {
+    tutEl.className = 'hidden';
+  }
+
   document.getElementById('bay-veh-tag').textContent = job.veh.label;
   document.getElementById('bay-job-title').textContent = job.title;
   const finalPay = job.pay * (state.surgeJobs > 0 ? 2 : 1);
   document.getElementById('bay-payout').textContent = `$${finalPay}`;
 
-  // Vehicle & Tire Visual Layers
+  // Vehicle & Tire Visual Layers (PNG with custom SVG fallback)
   const vehImg = document.getElementById('stage-veh-img');
+  const vehFb = document.getElementById('stage-veh-fallback');
   vehImg.style.display = 'block';
-  document.getElementById('stage-veh-fallback').style.display = 'none';
+  vehFb.style.display = 'none';
+  vehFb.innerHTML = renderVehicleSVG(job.veh);
   vehImg.src = job.veh.img;
-  document.getElementById('stage-veh-name').textContent = `${job.veh.label} WHEEL WELL`;
 
   const tireImg = document.getElementById('stage-tire-img');
+  const tireFb = document.getElementById('stage-tire-fallback');
   tireImg.style.display = 'block';
-  document.getElementById('stage-tire-fallback').style.display = 'none';
+  tireFb.style.display = 'none';
+  tireFb.innerHTML = renderTireSVG(job);
   tireImg.src = getTireSpritePath(job);
-
-  const marker = document.getElementById('damage-marker');
-  marker.className = 'damage-marker' + (job.fixed ? ' healthy' : job.dmg.action === 'swap' ? ' sidewall' : '');
 
   // Chock & Lift State
   document.getElementById('stage-chock').classList.toggle('set', job.chocked);
@@ -261,7 +400,11 @@ function renderBay() {
   lugRing.innerHTML = LUG_COORDS.map((l) => {
     const isRemoved = job.lugsRemoved.includes(l.id) && job.step < 5;
     const isTorqued = job.step === 5 && STAR_ORDER.slice(0, job.torqueIdx).includes(l.id);
-    return `<button class="lug-btn ${isRemoved ? 'removed' : ''} ${isTorqued ? 'torqued' : ''}"
+    const pulseLug = job.isTutorial && (
+      (job.step === 2 && !isRemoved) ||
+      (job.step === 5 && STAR_ORDER[job.torqueIdx] === l.id)
+    );
+    return `<button class="lug-btn ${isRemoved ? 'removed' : ''} ${isTorqued ? 'torqued' : ''} ${pulseLug ? 'tut-pulse' : ''}"
       style="left:${l.x}%;top:${l.y}%;"
       onclick="tapLug(${l.id})">${l.id}</button>`;
   }).join('');
@@ -283,20 +426,24 @@ function renderBay() {
     ctrl.innerHTML = `
       <strong>Step 1: Secure & Raise Vehicle (${job.liftPct}%)</strong>
       <div class="ctrl-grid-2">
-        <button class="secondary-btn" onclick="setChocks()">${job.chocked ? '✓ CHOCKS SET' : '1. SET WHEEL CHOCKS'}</button>
-        <button class="primary-btn" onclick="pumpJack()">2. PUMP FLOOR JACK</button>
+        <button class="secondary-btn ${job.isTutorial && !job.chocked ? 'tut-pulse' : ''}" onclick="setChocks()">
+          ${job.chocked ? '✓ CHOCKS SET' : '1. SET WHEEL CHOCKS'}
+        </button>
+        <button class="primary-btn ${job.isTutorial && job.chocked ? 'tut-pulse' : ''}" onclick="pumpJack()">
+          2. PUMP FLOOR JACK
+        </button>
       </div>`;
   } else if (job.step === 2) {
     ctrl.innerHTML = `
       <strong>Step 2: Spin Off All 5 Lug Nuts (${job.lugsRemoved.length}/5)</strong>
       <p style="font-size:12px;color:var(--muted);">Tap each lug nut on the wheel hub or use auto-impact.</p>
-      <button class="primary-btn" onclick="removeNextLug()">IMPACT NEXT LUG NUT</button>`;
+      <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="removeNextLug()">IMPACT NEXT LUG NUT</button>`;
   } else if (job.step === 3) {
     if (!job.scanned) {
       ctrl.innerHTML = `
         <strong>Step 3: Inspect Tire Damage</strong>
         <p style="font-size:12px;color:var(--muted);">Run diagnostic laser scan before choosing Plug or Swap.</p>
-        <button class="primary-btn" onclick="runScan()">SCAN TIRE TREAD & SIDEWALL</button>`;
+        <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="runScan()">SCAN TIRE TREAD & SIDEWALL</button>`;
     } else {
       ctrl.innerHTML = `
         <div style="background:#090c12;padding:10px;border-radius:10px;border:1px solid var(--border);">
@@ -304,27 +451,37 @@ function renderBay() {
           <p style="font-size:12px;color:var(--muted);margin-top:3px;">${job.dmg.desc}</p>
         </div>
         <div class="ctrl-grid-2">
-          <button class="secondary-btn" onclick="performRepair('plug')">PLUG PUNCTURE (${state.plugs})</button>
+          <button class="secondary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="performRepair('plug')">PLUG PUNCTURE (${state.plugs})</button>
           <button class="primary-btn" onclick="performRepair('swap')">SWAP NEW TIRE (${state.tires})</button>
         </div>
         <button class="ghost-btn" onclick="droneDrop()">🚁 Drone Tire Drop (3 ⚡)</button>`;
     }
   } else if (job.step === 4) {
     const t = job.veh.targetPsi;
+    const inSpec = Math.abs(job.psi - t) <= 2;
+    const fillPct = Math.min(100, Math.round((job.psi / (t + 20)) * 100));
+    const bandLeft = Math.round(((t - 2) / (t + 20)) * 100);
+    const bandWidth = Math.max(8, Math.round((4 / (t + 20)) * 100));
     ctrl.innerHTML = `
       <strong>Step 4: Calibrate Air Pressure (Target: ${t - 2}–${t + 2} PSI)</strong>
-      <div class="psi-meter"><div class="psi-val">${job.psi} PSI</div></div>
+      <div class="psi-meter">
+        <div class="psi-val">${job.psi} PSI</div>
+        <div class="psi-bar-track">
+          <div class="psi-target-band" style="left:${bandLeft}%;width:${bandWidth}%;"></div>
+          <div class="psi-fill" style="width:${fillPct}%;"></div>
+        </div>
+      </div>
       <div class="ctrl-grid-2">
         <button class="secondary-btn" onclick="adjustPsi(-3)">BLEED AIR (-3)</button>
-        <button class="primary-btn" onclick="adjustPsi(6)">INFLATE (+6 PSI)</button>
+        <button class="primary-btn ${job.isTutorial && !inSpec ? 'tut-pulse' : ''}" onclick="adjustPsi(6)">INFLATE (+6 PSI)</button>
       </div>
-      <button class="primary-btn" onclick="lockPsi()">LOCK PRESSURE & CONTINUE</button>`;
+      <button class="primary-btn ${job.isTutorial && inSpec ? 'tut-pulse' : ''}" onclick="lockPsi()">LOCK PRESSURE & CONTINUE</button>`;
   } else if (job.step === 5) {
     const nextLug = STAR_ORDER[job.torqueIdx];
     ctrl.innerHTML = `
       <strong>Step 5: Star-Pattern Torque (${job.torqueIdx}/5) — Next: Lug #${nextLug}</strong>
       <p style="font-size:12px;color:var(--muted);">Sequence: 1 → 3 → 5 → 2 → 4. Tap Lug #${nextLug} on the wheel or press Torque.</p>
-      <button class="primary-btn" onclick="tapLug(${nextLug})">TORQUE LUG #${nextLug} TO SPEC</button>`;
+      <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="tapLug(${nextLug})">TORQUE LUG #${nextLug} TO SPEC</button>`;
   }
 }
 
@@ -332,6 +489,7 @@ function setChocks() {
   const job = state.activeJob;
   if (!job || job.chocked) return;
   job.chocked = true;
+  dismissAlert();
   SoundFX.chock();
   renderBay();
 }
@@ -371,7 +529,7 @@ function tapLug(id) {
   } else if (job.step === 5) {
     const expected = STAR_ORDER[job.torqueIdx];
     if (id !== expected) {
-      job.penalties += 10;
+      if (!job.isTutorial) job.penalties += 10;
       showAlert('STAR-PATTERN SEQUENCE ERROR', `Follow crisscross torque order: tap Lug #${expected} next!`);
       return;
     }
@@ -395,9 +553,8 @@ function performRepair(choice) {
   const job = state.activeJob;
   if (!job) return;
 
-  // STRICT RULE ENFORCEMENT
   if (job.dmg.action === 'plug' && choice !== 'plug') {
-    job.penalties += 15;
+    if (!job.isTutorial) job.penalties += 15;
     showAlert(
       'UNNECESSARY TIRE SWAP',
       'Center-tread nail punctures are ALWAYS Plug Only. Do not waste a new tire!'
@@ -405,7 +562,7 @@ function performRepair(choice) {
     return;
   }
   if (job.dmg.action === 'swap' && choice !== 'swap') {
-    job.penalties += 25;
+    if (!job.isTutorial) job.penalties += 25;
     showAlert(
       'UNSAFE REPAIR REJECTED',
       `${job.dmg.title} cannot be plugged safely. You MUST perform a full Tire Swap!`
@@ -414,18 +571,18 @@ function performRepair(choice) {
   }
 
   if (choice === 'plug') {
-    if (state.plugs <= 0) {
+    if (!job.isTutorial && state.plugs <= 0) {
       showAlert('OUT OF PLUGS', 'Restock vulcanized tire plugs from Dispatch or watch a 30s Supply Drop Ad.');
       return;
     }
-    state.plugs--;
+    if (!job.isTutorial) state.plugs--;
     SoundFX.impact();
   } else {
-    if (state.tires <= 0) {
+    if (!job.isTutorial && state.tires <= 0) {
       showAlert('OUT OF REPLACEMENT TIRES', 'Use Drone Tire Drop (3 ⚡) below or restock tires.');
       return;
     }
-    state.tires--;
+    if (!job.isTutorial) state.tires--;
     SoundFX.impact();
     const wrap = document.getElementById('stage-wheel-wrap');
     wrap.classList.add('swapping');
@@ -476,6 +633,28 @@ function lockPsi() {
 function completeJob() {
   const job = state.activeJob;
   SoundFX.success();
+
+  if (job.isTutorial) {
+    const firstTime = !state.tutorialDone;
+    state.tutorialDone = true;
+    if (firstTime) state.tokens += 25;
+    state.activeJob = null;
+    saveState();
+    updateHUD();
+    openModal(`
+      <span class="badge">TRAINING COMPLETE</span>
+      <h3>Certified DelWin Technician!</h3>
+      <p style="font-size:13px;color:var(--muted);">
+        You mastered wheel chocking, lug removal, center-nail plug diagnostics, PSI calibration, and star-pattern torquing.
+      </p>
+      <div style="background:#090c12;padding:12px;border-radius:10px;text-align:center;color:var(--amber);font-weight:900;">
+        ${firstTime ? '+25 DISPATCH TOKENS (⚡) CREDITED!' : 'TRAINING PRACTICE COMPLETE'}
+      </div>
+      <button class="primary-btn" onclick="closeModal(); goPage('dispatch');">ENTER LIVE DISPATCH</button>
+    `);
+    return;
+  }
+
   const mult = state.surgeJobs > 0 ? 2 : 1;
   if (state.surgeJobs > 0) state.surgeJobs--;
   const gross = job.pay * mult;
@@ -528,8 +707,10 @@ function renderGarage() {
   document.getElementById('rig-name').textContent = rig.name;
   document.getElementById('rig-tier-badge').textContent = `TIER ${rigTier} / 6`;
   const rigImg = document.getElementById('rig-img');
+  const rigFb = document.getElementById('rig-fallback');
   rigImg.style.display = 'block';
-  document.getElementById('rig-fallback').style.display = 'none';
+  rigFb.style.display = 'none';
+  rigFb.innerHTML = renderRigSVG(rig);
   rigImg.src = rig.img;
   document.getElementById('rig-perk').textContent = rig.perk;
 
@@ -579,10 +760,10 @@ function upgradeTool(key) {
 function renderLeague() {
   document.getElementById('league-rep').textContent = state.rep;
   const rivals = [
-    { name: 'ApexTow_ATL', rep: 1120 },
-    { name: 'NightShift_Mike', rep: 780 },
-    { name: 'I285_RoadKing', rep: 490 },
-    { name: 'PeachState_Duals', rep: 260 },
+    { name: 'ApexTow_ATL', rep: 1450 },
+    { name: 'NightShift_Mike', rep: 920 },
+    { name: 'I285_RoadKing', rep: 540 },
+    { name: 'PeachState_Duals', rep: 280 },
     { name: 'Southside_Rescue', rep: 110 },
     { name: 'YOU (DelWin Mobile)', rep: state.rep, isYou: true }
   ].sort((a, b) => b.rep - a.rep);
@@ -607,7 +788,7 @@ function renderZones() {
       <div class="item-card" style="${active ? 'border-color:var(--amber);' : ''}">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div>
-            <span class="badge">${z.mult}x PAYOUT MULTIPLIER</span>
+            <span class="badge">${z.hub} · ${z.mult}x</span>
             <h3 style="font-size:15px;margin-top:4px;">${z.name}</h3>
           </div>
           <strong>${unlocked ? (active ? 'ACTIVE' : 'OPEN') : `${z.unlockRep} REP`}</strong>
@@ -669,31 +850,6 @@ function buyTokenPack(amount, price, parts = 0) {
   `);
 }
 
-function startTutorial() {
-  openModal(`
-    <span class="badge">QUICK FIELD BRIEFING (+25 ⚡)</span>
-    <h3>DelWin Mobile Field Rules</h3>
-    <p style="font-size:13px;color:var(--muted);line-height:1.45;">
-      1. <strong>Chock & Lift</strong> before removing lugs.<br/>
-      2. <strong>Center-Tread Nail = Plug Only.</strong><br/>
-      3. <strong>Bulge, Blowout, Gash, or Shredded = Tire Swap Only.</strong><br/>
-      4. <strong>Calibrate PSI</strong> and torque lugs in star order (<strong>1→3→5→2→4</strong>).
-    </p>
-    <button class="primary-btn" onclick="finishTutorial()">CLAIM +25 ⚡ & START SHIFT</button>
-  `);
-}
-
-function finishTutorial() {
-  if (!state.tutorialDone) {
-    state.tutorialDone = true;
-    state.tokens += 25;
-    saveState();
-    updateHUD();
-  }
-  SoundFX.success();
-  closeModal();
-}
-
 function openModal(html) {
   document.getElementById('modal-card').innerHTML = html;
   document.getElementById('modal-overlay').classList.remove('hidden');
@@ -714,4 +870,3 @@ if (!state.jobs || state.jobs.length === 0) refreshJobs();
 else renderJobs();
 updateHUD();
 if (!state.tutorialDone) startTutorial();
-
