@@ -1,4 +1,4 @@
-const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
+ const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
 
 const RIG_TIERS = [
   { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', req: 'Starting Rig', perk: 'Standard highway response rig (+0% Payout Bonus).' },
@@ -44,4 +44,165 @@ const ZONES = [
 ];
 
 const VEHICLES = [
-  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, targetPsi: 35, bodyColor: '#64
+  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, targetPsi: 35, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
+  { id: 'suv', label: 'FAMILY SUV', heavy: false, targetPsi: 36, bodyColor: '#475569', img: 'assets/veh-suv.png' },
+  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, targetPsi: 40, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
+  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, targetPsi: 95, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
+  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, targetPsi: 105, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
+];
+
+const DAMAGES = [
+  {
+    key: 'center_nail',
+    title: 'Center-Tread Nail Puncture',
+    action: 'plug',
+    fileKey: 'nail',
+    verdict: 'REPAIRABLE · PLUG ONLY',
+    desc: 'Steel nail embedded cleanly in center tread crown. Safe to ream & vulcanize plug.'
+  },
+  {
+    key: 'bulge',
+    title: 'Sidewall Impact Bulge',
+    action: 'swap',
+    fileKey: 'bulge',
+    verdict: 'UNREPAIRABLE · TIRE SWAP ONLY',
+    desc: 'Internal sidewall cords ruptured. Bubble will blow at highway speed—must swap tire.'
+  },
+  {
+    key: 'blowout',
+    title: 'High-Speed Sidewall Blowout',
+    action: 'swap',
+    fileKey: 'blowout',
+    verdict: 'UNREPAIRABLE · TIRE SWAP ONLY',
+    desc: 'Violently ruptured sidewall casing with exposed steel plies. Full tire swap required.'
+  },
+  {
+    key: 'gash',
+    title: 'Outer Shoulder Curb Gash',
+    action: 'swap',
+    fileKey: 'gash',
+    verdict: 'UNREPAIRABLE · TIRE SWAP ONLY',
+    desc: 'Deep structural slash across the non-repairable outer shoulder. Must swap tire.'
+  },
+  {
+    key: 'shredded',
+    title: 'Shredded / Delaminated Tread',
+    action: 'swap',
+    fileKey: 'shredded',
+    verdict: 'UNREPAIRABLE · TIRE SWAP ONLY',
+    desc: 'Separated tread strips and frayed steel belts. Full tire swap required.'
+  }
+];
+
+const LUG_COORDS = [
+  { id: 1, x: 50, y: 24 },
+  { id: 2, x: 75, y: 42 },
+  { id: 3, x: 65, y: 72 },
+  { id: 4, x: 35, y: 72 },
+  { id: 5, x: 25, y: 42 }
+];
+const STAR_ORDER = [1, 3, 5, 2, 4];
+
+let state = {
+  cash: 125,
+  tokens: 15,
+  parts: 0,
+  rep: 0,
+  zoneId: 'z1',
+  surgeJobs: 0,
+  plugs: 4,
+  tires: 2,
+  ratings: [5, 5, 5, 5, 5],
+  tutorialDone: false,
+  tools: {
+    impact: { name: 'Pneumatic Impact Wrench', level: 1, baseCost: 60, prefix: 'tool-impact', icon: '🔫' },
+    jack: { name: 'Hydraulic Floor Jack', level: 1, baseCost: 55, prefix: 'tool-jack', icon: '🏗️' },
+    comp: { name: 'Portable Air Compressor', level: 1, baseCost: 65, prefix: 'tool-comp', icon: '💨' },
+    radar: { name: 'Dispatch GPS Radar', level: 1, baseCost: 75, prefix: 'tool-radar', icon: '📡' }
+  },
+  jobs: [],
+  activeJob: null
+};
+
+let previewRigTier = null;
+let previewToolTiers = {};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('delwin_v4_save');
+    if (raw) Object.assign(state, JSON.parse(raw));
+    if (!ZONES.some((z) => z.id === state.zoneId)) state.zoneId = 'z1';
+  } catch (e) {}
+}
+
+function saveState() {
+  try { localStorage.setItem('delwin_v4_save', JSON.stringify(state)); } catch (e) {}
+}
+
+function getRigTier() {
+  const minLvl = Math.min(...Object.values(state.tools).map((t) => t.level));
+  return Math.min(6, Math.floor((minLvl - 1) / 4) + 1);
+}
+
+function getZone() {
+  return ZONES.find((z) => z.id === state.zoneId) || ZONES[0];
+}
+
+function renderRigSVG(tierObj) {
+  return `
+    <svg viewBox="0 0 260 95" width="240" height="88">
+      <ellipse cx="130" cy="86" rx="108" ry="6" fill="rgba(0,0,0,0.6)"/>
+      <rect x="32" y="26" width="136" height="44" rx="8" fill="#1e293b" stroke="${tierObj.color}" stroke-width="2.5"/>
+      <path d="M168 34 L212 34 L228 52 L228 70 L168 70 Z" fill="#0f172a" stroke="${tierObj.color}" stroke-width="2.5"/>
+      <polygon points="174,38 206,38 218,51 174,51" fill="#38bdf8" opacity="0.45"/>
+      <rect x="85" y="18" width="38" height="7" rx="3" fill="#f59e0b"/>
+      <text x="52" y="53" fill="#f59e0b" font-size="13" font-weight="900" font-family="sans-serif">DELWIN T${tierObj.tier}</text>
+      <circle cx="68" cy="73" r="14" fill="#090c12" stroke="#94a3b8" stroke-width="3"/>
+      <circle cx="68" cy="73" r="6" fill="${tierObj.color}"/>
+      <circle cx="196" cy="73" r="14" fill="#090c12" stroke="#94a3b8" stroke-width="3"/>
+      <circle cx="196" cy="73" r="6" fill="${tierObj.color}"/>
+    </svg>`;
+}
+
+function renderVehicleSVG(veh) {
+  return `
+    <svg viewBox="0 0 280 90" width="275" height="90">
+      <path d="M24 68 L24 44 L66 40 L98 18 L194 18 L224 40 L256 46 L256 68 Z" fill="${veh.bodyColor}" stroke="#94a3b8" stroke-width="2"/>
+      <polygon points="102,23 188,23 210,39 82,39" fill="#0f172a" opacity="0.85"/>
+      <path d="M104 68 A36 36 0 0 1 176 68 Z" fill="#090c12" stroke="#f59e0b" stroke-width="2.2"/>
+    </svg>`;
+}
+
+function renderTireSVG(job, size = 130) {
+  const dmg = job.dmg.key;
+  let dmgLayer = '';
+  if (!job.fixed) {
+    if (dmg === 'center_nail') {
+      dmgLayer = `
+        <circle cx="65" cy="14" r="12" fill="rgba(239,68,68,0.3)" stroke="#ef4444" stroke-width="2"/>
+        <line x1="65" y1="2" x2="65" y2="18" stroke="#f8fafc" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="59" y1="2" x2="71" y2="2" stroke="#f8fafc" stroke-width="3"/>`;
+    } else if (dmg === 'bulge') {
+      dmgLayer = `
+        <ellipse cx="17" cy="70" rx="13" ry="19" fill="#334155" stroke="#ef4444" stroke-width="2.5"/>
+        <text x="17" y="74" text-anchor="middle" fill="#fecaca" font-size="10" font-weight="900">!</text>`;
+    } else if (dmg === 'blowout') {
+      dmgLayer = `
+        <polygon points="12,54 27,63 15,74 28,85 10,89 5,69" fill="#ef4444" stroke="#fecaca" stroke-width="1.5"/>`;
+    } else if (dmg === 'gash') {
+      dmgLayer = `
+        <line x1="20" y1="22" x2="42" y2="44" stroke="#ef4444" stroke-width="5" stroke-linecap="round"/>`;
+    } else if (dmg === 'shredded') {
+      dmgLayer = `
+        <path d="M22 22 L11 11 M44 10 L40 1 M86 10 L92 1 M108 24 L119 15" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>`;
+    }
+  }
+  return `
+    <svg viewBox="0 0 130 130" width="${size}" height="${size}">
+      <circle cx="65" cy="65" r="56" fill="#111827" stroke="${job.fixed ? '#10b981' : '#334155'}" stroke-width="6"/>
+      <circle cx="65" cy="65" r="46" fill="none" stroke="#1f2937" stroke-width="6" stroke-dasharray="8 6"/>
+      <circle cx="65" cy="65" r="32" fill="#1e293b" stroke="#94a3b8" stroke-width="2.5"/>
+      <circle cx="65" cy="65" r="11" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+      ${dmgLayer}
+    </svg>`;
+}
