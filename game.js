@@ -9,39 +9,40 @@ const RIG_TIERS = [
   { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', req: 'All 4 Tools Lvl 21+', mult: 2.00, perk: '2.00x Base Payouts & Maximum Corridor Prestige.' }
 ];
 
+// Tuned 24-Zone / 6-Hub REP curve: ~8-12 clean jobs per early zone, scaling smoothly to 22,500 REP
 const ZONES = [
   { id: 'z1', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 North Perimeter', mult: 1.00, unlockRep: 0, desc: 'Steady commuter flats and shoulder punctures.' },
-  { id: 'z2', hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.10, unlockRep: 75, desc: 'High-density commuter & SUV roadside calls.' },
-  { id: 'z3', hub: 'HUB 1 · ATLANTA METRO', name: 'GA-400 Buckhead Express', mult: 1.20, unlockRep: 160, desc: 'Luxury sedans and evening rush-hour flats.' },
-  { id: 'z4', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 Airport South Loop', mult: 1.30, unlockRep: 260, desc: 'Shuttle vans, pickups, and cargo sprinters.' },
-  { id: 'z5', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-20 West Freight Corridor', mult: 1.42, unlockRep: 380, desc: 'Commercial box trucks and highway blowouts.' },
-  { id: 'z6', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-85 Gwinnett Logistics', mult: 1.54, unlockRep: 520, desc: 'Distribution hub semi-trailers & duals.' },
-  { id: 'z7', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-75 Macon Bypass', mult: 1.66, unlockRep: 680, desc: 'Long-haul freight and heavy pickup rescues.' },
-  { id: 'z8', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-16 Central Freightway', mult: 1.78, unlockRep: 860, desc: 'High-speed interstate retread delaminations.' },
-  { id: 'z9', hub: 'HUB 3 · COASTAL PORTS', name: 'Savannah Port Gate 1', mult: 1.92, unlockRep: 1060, desc: '18-wheeler port containers and dock gashes.' },
-  { id: 'z10', hub: 'HUB 3 · COASTAL PORTS', name: 'Talmadge Bridge Approach', mult: 2.06, unlockRep: 1280, desc: 'Heavy container tractor-trailers.' },
-  { id: 'z11', hub: 'HUB 3 · COASTAL PORTS', name: 'Brunswick Auto Terminal', mult: 2.20, unlockRep: 1520, desc: 'Fleet carriers and multi-axle haulers.' },
-  { id: 'z12', hub: 'HUB 3 · COASTAL PORTS', name: 'Pooler Logistics Park', mult: 2.35, unlockRep: 1780, desc: '24/7 commercial warehouse dispatch grid.' },
-  { id: 'z13', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-95 Coastal Freightway', mult: 2.50, unlockRep: 2080, desc: 'Interstate night-shift emergency fleet calls.' },
-  { id: 'z14', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-26 Charleston Spur', mult: 2.65, unlockRep: 2400, desc: 'Port-to-inland heavy commercial rigs.' },
-  { id: 'z15', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-77 Charlotte Corridor', mult: 2.80, unlockRep: 2750, desc: 'High-speed regional freight & VIP calls.' },
-  { id: 'z16', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-40 Piedmont Ridge', mult: 2.95, unlockRep: 3120, desc: 'Steep-grade heavy truck tire blowouts.' },
-  { id: 'z17', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Jacksonville Interchange', mult: 3.12, unlockRep: 3550, desc: 'Cross-country 18-wheeler hub.' },
-  { id: 'z18', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-65 Mobile Bayway', mult: 3.30, unlockRep: 4000, desc: 'Coastal bridge heavy-duty rescue.' },
-  { id: 'z19', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Baton Rouge Refinery', mult: 3.48, unlockRep: 4500, desc: 'Industrial tanker & commercial fleet calls.' },
-  { id: 'z20', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-45 Houston Ship Channel', mult: 3.68, unlockRep: 5050, desc: 'Maximum-volume freight tire emergencies.' },
-  { id: 'z21', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Night-Shift Sector A', mult: 3.90, unlockRep: 5700, desc: 'Executive fleet & high-priority contracts.' },
-  { id: 'z22', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Heavy Convoy Lane', mult: 4.15, unlockRep: 6400, desc: 'Multi-rig commercial rescue operations.' },
-  { id: 'z23', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Interstate Command', mult: 4.40, unlockRep: 7200, desc: 'Elite zero-margin-for-error dispatches.' },
-  { id: 'z24', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Pinnacle Terminal', mult: 4.75, unlockRep: 8100, desc: 'Top-tier syndicate payouts across all classes.' }
+  { id: 'z2', hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.12, unlockRep: 350, desc: 'High-density commuter & SUV roadside calls.' },
+  { id: 'z3', hub: 'HUB 1 · ATLANTA METRO', name: 'GA-400 Buckhead Express', mult: 1.24, unlockRep: 850, desc: 'Luxury sedans and evening rush-hour flats.' },
+  { id: 'z4', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 Airport South Loop', mult: 1.36, unlockRep: 1500, desc: 'Shuttle vans, pickups, and cargo sprinters.' },
+  { id: 'z5', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-20 West Freight Corridor', mult: 1.50, unlockRep: 2300, desc: 'Commercial box trucks and highway blowouts.' },
+  { id: 'z6', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-85 Gwinnett Logistics', mult: 1.64, unlockRep: 3250, desc: 'Distribution hub semi-trailers & duals.' },
+  { id: 'z7', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-75 Macon Bypass', mult: 1.78, unlockRep: 4350, desc: 'Long-haul freight and heavy pickup rescues.' },
+  { id: 'z8', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-16 Central Freightway', mult: 1.92, unlockRep: 5600, desc: 'High-speed interstate retread delaminations.' },
+  { id: 'z9', hub: 'HUB 3 · COASTAL PORTS', name: 'Savannah Port Gate 1', mult: 2.08, unlockRep: 7000, desc: '18-wheeler port containers and dock gashes.' },
+  { id: 'z10', hub: 'HUB 3 · COASTAL PORTS', name: 'Talmadge Bridge Approach', mult: 2.24, unlockRep: 8550, desc: 'Heavy container tractor-trailers.' },
+  { id: 'z11', hub: 'HUB 3 · COASTAL PORTS', name: 'Brunswick Auto Terminal', mult: 2.40, unlockRep: 10250, desc: 'Fleet carriers and multi-axle haulers.' },
+  { id: 'z12', hub: 'HUB 3 · COASTAL PORTS', name: 'Pooler Logistics Park', mult: 2.58, unlockRep: 12100, desc: '24/7 commercial warehouse dispatch grid.' },
+  { id: 'z13', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-95 Coastal Freightway', mult: 2.76, unlockRep: 14100, desc: 'Interstate night-shift emergency fleet calls.' },
+  { id: 'z14', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-26 Charleston Spur', mult: 2.94, unlockRep: 16250, desc: 'Port-to-inland heavy commercial rigs.' },
+  { id: 'z15', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-77 Charlotte Corridor', mult: 3.12, unlockRep: 18550, desc: 'High-speed regional freight & VIP calls.' },
+  { id: 'z16', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-40 Piedmont Ridge', mult: 3.30, unlockRep: 21000, desc: 'Steep-grade heavy truck tire blowouts.' },
+  { id: 'z17', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Jacksonville Interchange', mult: 3.50, unlockRep: 23650, desc: 'Cross-country 18-wheeler hub.' },
+  { id: 'z18', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-65 Mobile Bayway', mult: 3.70, unlockRep: 26500, desc: 'Coastal bridge heavy-duty rescue.' },
+  { id: 'z19', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Baton Rouge Refinery', mult: 3.90, unlockRep: 29550, desc: 'Industrial tanker & commercial fleet calls.' },
+  { id: 'z20', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-45 Houston Ship Channel', mult: 4.12, unlockRep: 32800, desc: 'Maximum-volume freight tire emergencies.' },
+  { id: 'z21', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Night-Shift Sector A', mult: 4.35, unlockRep: 36300, desc: 'Executive fleet & high-priority contracts.' },
+  { id: 'z22', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Heavy Convoy Lane', mult: 4.60, unlockRep: 40000, desc: 'Multi-rig commercial rescue operations.' },
+  { id: 'z23', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Interstate Command', mult: 4.85, unlockRep: 44000, desc: 'Elite zero-margin-for-error dispatches.' },
+  { id: 'z24', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Pinnacle Terminal', mult: 5.15, unlockRep: 48500, desc: 'Top-tier syndicate payouts across all classes.' }
 ];
 
 const VEHICLES = [
-  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, basePay: 75, targetPsi: 35, timeSec: 95, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
-  { id: 'suv', label: 'FAMILY SUV', heavy: false, basePay: 85, targetPsi: 36, timeSec: 90, bodyColor: '#475569', img: 'assets/veh-suv.png' },
-  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, basePay: 95, targetPsi: 40, timeSec: 85, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
-  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, basePay: 140, targetPsi: 95, timeSec: 110, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
-  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, basePay: 175, targetPsi: 105, timeSec: 120, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
+  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, basePay: 75, targetPsi: 35, timeSec: 85, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
+  { id: 'suv', label: 'FAMILY SUV', heavy: false, basePay: 88, targetPsi: 36, timeSec: 80, bodyColor: '#475569', img: 'assets/veh-suv.png' },
+  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, basePay: 100, targetPsi: 40, timeSec: 75, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
+  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, basePay: 155, targetPsi: 95, timeSec: 95, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
+  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, basePay: 195, targetPsi: 105, timeSec: 105, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
 ];
 
 const DAMAGES = [
@@ -87,12 +88,14 @@ const DAMAGES = [
   }
 ];
 
+// BALANCED DUAL-CURRENCY CONTRACTS:
+// Contracts pay Cash + REP + 1-2 Dispatch Tokens (⚡) or 1 Gold Tool Part (⚙️) on elite contracts.
 const CONTRACT_POOL = [
-  { id: 'c_clean3', title: 'Zero-Penalty Streak', desc: 'Complete 3 calls with $0 protocol penalties.', type: 'clean_streak', target: 3, rewardCash: 160, rewardTokens: 6, rewardRep: 65 },
-  { id: 'c_plug3', title: 'Crown Plug Specialist', desc: 'Properly plug 3 center-tread punctures.', type: 'plugs', target: 3, rewardCash: 140, rewardTokens: 5, rewardRep: 55 },
-  { id: 'c_swap3', title: 'Heavy Casing Replacement', desc: 'Complete 3 full tire swaps on unrepairable casings.', type: 'swaps', target: 3, rewardCash: 185, rewardTokens: 7, rewardRep: 75 },
-  { id: 'c_fast2', title: 'Rapid Highway Response', desc: 'Finish 2 jobs with ≥45% SLA timer left.', type: 'fast', target: 2, rewardCash: 175, rewardTokens: 8, rewardRep: 80 },
-  { id: 'c_heavy2', title: 'Commercial Fleet Rescue', desc: 'Service 2 Box Trucks or 18-Wheelers.', type: 'heavy', target: 2, rewardCash: 240, rewardTokens: 10, rewardRep: 110 }
+  { id: 'c_clean4', title: 'Zero-Penalty Streak', desc: 'Complete 4 calls with $0 protocol or safety penalties.', type: 'clean_streak', target: 4, rewardCash: 185, rewardTokens: 2, rewardPart: 0, rewardRep: 95 },
+  { id: 'c_plug3', title: 'Crown Plug Specialist', desc: 'Properly plug 3 center-tread nail punctures.', type: 'plugs', target: 3, rewardCash: 150, rewardTokens: 1, rewardPart: 0, rewardRep: 80 },
+  { id: 'c_swap3', title: 'Casing Replacement Pro', desc: 'Complete 3 tire swaps (Standard or Heavy-Duty).', type: 'swaps', target: 3, rewardCash: 210, rewardTokens: 2, rewardPart: 0, rewardRep: 105 },
+  { id: 'c_fast3', title: 'Rapid Highway Response', desc: 'Finish 3 calls with ≥45% SLA timer remaining.', type: 'fast', target: 3, rewardCash: 225, rewardTokens: 2, rewardPart: 1, rewardRep: 120 },
+  { id: 'c_heavy2', title: 'Commercial Fleet Rescue', desc: 'Service 2 Box Trucks or 18-Wheelers with HD tires.', type: 'heavy', target: 2, rewardCash: 280, rewardTokens: 3, rewardPart: 1, rewardRep: 145 }
 ];
 
 const LUG_COORDS = [
@@ -104,9 +107,14 @@ const LUG_COORDS = [
 ];
 const STAR_ORDER = [1, 3, 5, 2, 4];
 
+const AVATAR_PRESETS = ['🛞', '🚛', '🔧', '⚡', '🏆', '🔥', '🛡️', '👑'];
+
 let state = {
-  cash: 125,
-  tokens: 15,
+  bizName: 'DelWin Mobile Tire Rescue',
+  avatarEmoji: '🛞',
+  avatarImg: '',
+  cash: 140,
+  tokens: 8,
   parts: 0,
   rep: 0,
   streak: 0,
@@ -114,25 +122,27 @@ let state = {
   zoneId: 'z1',
   surgeJobs: 0,
   plugs: 4,
-  tires: 2,
+  stdTires: 2,
+  hdTires: 1,
   ratings: [5.0, 5.0, 5.0, 5.0, 5.0],
   tutorialDone: false,
   contract: {
-    id: 'c_clean3',
+    id: 'c_clean4',
     title: 'Zero-Penalty Streak',
-    desc: 'Complete 3 calls with $0 protocol penalties.',
+    desc: 'Complete 4 calls with $0 protocol or safety penalties.',
     type: 'clean_streak',
-    target: 3,
+    target: 4,
     progress: 0,
-    rewardCash: 160,
-    rewardTokens: 6,
-    rewardRep: 65
+    rewardCash: 185,
+    rewardTokens: 2,
+    rewardPart: 0,
+    rewardRep: 95
   },
   tools: {
-    impact: { name: 'Pneumatic Impact Wrench', level: 1, baseCost: 65, prefix: 'tool-impact', icon: '🔫' },
-    jack: { name: 'Hydraulic Floor Jack', level: 1, baseCost: 60, prefix: 'tool-jack', icon: '🏗️' },
-    comp: { name: 'Portable Air Compressor', level: 1, baseCost: 70, prefix: 'tool-comp', icon: '💨' },
-    radar: { name: 'Dispatch GPS Radar', level: 1, baseCost: 80, prefix: 'tool-radar', icon: '📡' }
+    impact: { name: 'Pneumatic Impact Wrench', level: 1, baseCost: 75, prefix: 'tool-impact', icon: '🔫' },
+    jack: { name: 'Hydraulic Floor Jack', level: 1, baseCost: 70, prefix: 'tool-jack', icon: '🏗️' },
+    comp: { name: 'Portable Air Compressor', level: 1, baseCost: 80, prefix: 'tool-comp', icon: '💨' },
+    radar: { name: 'Dispatch GPS Radar', level: 1, baseCost: 90, prefix: 'tool-radar', icon: '📡' }
   },
   jobs: [],
   activeJob: null
@@ -146,9 +156,18 @@ let spinClearTimeout = null;
 function loadState() {
   try {
     const raw = localStorage.getItem('delwin_v4_save');
-    if (raw) Object.assign(state, JSON.parse(raw));
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Migrate legacy single `tires` inventory to `stdTires` cleanly
+      if (typeof parsed.tires === 'number' && typeof parsed.stdTires !== 'number') {
+        parsed.stdTires = parsed.tires;
+      }
+      Object.assign(state, parsed);
+    }
     if (!ZONES.some((z) => z.id === state.zoneId)) state.zoneId = 'z1';
     if (!state.contract) rollNewContract();
+    if (!state.bizName) state.bizName = 'DelWin Mobile Tire Rescue';
+    if (!state.avatarEmoji) state.avatarEmoji = '🛞';
   } catch (e) {}
 }
 
@@ -169,6 +188,134 @@ function getRatingAvg() {
   return state.ratings.reduce((a, b) => a + b, 0) / state.ratings.length;
 }
 
+function injectCustomStyles() {
+  if (document.getElementById('delwin-v42-styles')) return;
+  const st = document.createElement('style');
+  st.id = 'delwin-v42-styles';
+  st.textContent = `
+    .stage-cones {
+      position: absolute; bottom: 28px; right: 16px;
+      display: flex; gap: 6px; z-index: 6;
+      opacity: 0.25; transition: all 0.25s ease;
+    }
+    .stage-cones.set { opacity: 1; transform: scale(1.06); }
+    .cone-item {
+      width: 12px; height: 18px;
+      background: linear-gradient(180deg, #f97316 0%, #f97316 42%, #f8fafc 42%, #f8fafc 64%, #f97316 64%);
+      clip-path: polygon(35% 0%, 65% 0%, 95% 100%, 5% 100%);
+      border-bottom: 2px solid #090c12;
+    }
+    .stage-cones.set .cone-item { box-shadow: 0 0 8px rgba(249, 115, 22, 0.7); }
+    .ctrl-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .profile-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: #0f172a; border: 1px solid var(--border);
+      padding: 8px 10px; border-radius: 10px; margin-bottom: 8px;
+    }
+    .profile-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #1e293b; border: 1.5px solid var(--amber);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; overflow: hidden; flex-shrink: 0;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }
+    .emoji-opt {
+      padding: 8px; font-size: 20px; border-radius: 8px;
+      background: #0f172a; border: 1px solid var(--border); cursor: pointer;
+    }
+    .emoji-opt.active { border-color: var(--amber); background: #1e293b; }
+  `;
+  document.head.appendChild(st);
+}
+
+// --- PLAYER PROFILE & BUSINESS NAME EDITOR ---
+function renderProfileCard() {
+  const drawer = document.getElementById('menu-drawer');
+  if (!drawer) return;
+  let card = document.getElementById('biz-profile-card');
+  if (!card) {
+    card = document.createElement('div');
+    card.id = 'biz-profile-card';
+    const header = drawer.querySelector('.drawer-header');
+    if (header && header.nextSibling) drawer.insertBefore(card, header.nextSibling);
+    else drawer.prepend(card);
+  }
+  const avatarHtml = state.avatarImg
+    ? `<img src="${state.avatarImg}" alt="Logo" />`
+    : `<span>${state.avatarEmoji}</span>`;
+  card.innerHTML = `
+    <div class="profile-pill">
+      <div class="profile-avatar">${avatarHtml}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${state.bizName}</div>
+        <div style="font-size:11px;color:var(--amber);">Tier ${getRigTier()} Operator · ${state.rep} REP</div>
+      </div>
+      <button class="ghost-btn" style="padding:4px 8px;font-size:11px;" onclick="toggleDrawer(false); openProfileEditor();">Edit</button>
+    </div>`;
+}
+
+function openProfileEditor() {
+  const presetBtns = AVATAR_PRESETS.map((em) =>
+    `<button type="button" class="emoji-opt ${!state.avatarImg && state.avatarEmoji === em ? 'active' : ''}" onclick="selectAvatarEmoji('${em}')">${em}</button>`
+  ).join('');
+  openModal(`
+    <span class="badge">COMPANY IDENTITY</span>
+    <h3>Edit Business Name & Logo</h3>
+    <label style="font-size:12px;color:var(--muted);">Business / Fleet Name</label>
+    <input id="edit-biz-input" type="text" maxlength="28" value="${state.bizName.replace(/"/g, '&quot;')}"
+      style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#090c12;color:var(--text);font-weight:700;" />
+    <label style="font-size:12px;color:var(--muted);margin-top:4px;">Choose Fleet Badge</label>
+    <div class="emoji-grid">${presetBtns}</div>
+    <label style="font-size:12px;color:var(--muted);">Or Upload Custom Logo / Photo</label>
+    <input type="file" accept="image/*" onchange="handleAvatarUpload(event)" style="font-size:12px;color:var(--muted);" />
+    <div class="ctrl-grid-2" style="margin-top:6px;">
+      <button class="secondary-btn" onclick="closeModal()">CANCEL</button>
+      <button class="primary-btn" onclick="saveProfileEdits()">SAVE PROFILE</button>
+    </div>
+  `);
+}
+
+function selectAvatarEmoji(em) {
+  state.avatarEmoji = em;
+  state.avatarImg = '';
+  openProfileEditor();
+}
+
+function handleAvatarUpload(e) {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function (ev) {
+    const img = new Image();
+    img.onload = function () {
+      const canvas = document.createElement('canvas');
+      canvas.width = 96;
+      canvas.height = 96;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, 96, 96);
+      state.avatarImg = canvas.toDataURL('image/jpeg', 0.8);
+      saveState();
+      renderProfileCard();
+      if (document.getElementById('page-league').classList.contains('active')) renderLeague();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveProfileEdits() {
+  const inp = document.getElementById('edit-biz-input');
+  if (inp && inp.value.trim()) {
+    state.bizName = inp.value.trim();
+  }
+  saveState();
+  updateHUD();
+  if (document.getElementById('page-league').classList.contains('active')) renderLeague();
+  closeModal();
+}
+
+// --- CONTRACTS ---
 function rollNewContract() {
   const currentId = state.contract ? state.contract.id : '';
   const options = CONTRACT_POOL.filter((c) => c.id !== currentId);
@@ -185,6 +332,7 @@ function claimContract() {
   const repWon = Math.round(c.rewardRep * zMult);
   state.cash += cashWon;
   state.tokens += c.rewardTokens;
+  state.parts += c.rewardPart || 0;
   state.rep += repWon;
   rollNewContract();
   saveState();
@@ -196,6 +344,7 @@ function claimContract() {
     <div style="background:#090c12;padding:12px;border-radius:10px;font-size:13px;display:flex;flex-direction:column;gap:6px;">
       <div style="display:flex;justify-content:space-between;"><span>Contract Cash Bonus:</span><strong style="color:var(--green);">+$${cashWon}</strong></div>
       <div style="display:flex;justify-content:space-between;"><span>Dispatch Tokens:</span><strong style="color:var(--amber);">+${c.rewardTokens} ⚡</strong></div>
+      ${c.rewardPart ? `<div style="display:flex;justify-content:space-between;"><span>Gold Tool Part:</span><strong style="color:var(--amber);">+${c.rewardPart} ⚙️</strong></div>` : ''}
       <div style="display:flex;justify-content:space-between;"><span>Corridor Reputation:</span><strong style="color:var(--blue);">+${repWon} REP</strong></div>
     </div>
     <button class="primary-btn" onclick="closeModal()">NEXT CONTRACT ASSIGNED</button>
@@ -220,8 +369,10 @@ function renderContractBanner() {
   const zMult = getZone().mult;
   box.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;">
-      <span class="badge">📋 DELWIN MOBILE CONTRACT</span>
-      <strong style="font-size:12px;color:var(--amber);">$${Math.round(c.rewardCash * zMult)} + ${c.rewardTokens}⚡</strong>
+      <span class="badge">📋 CONTRACT</span>
+      <strong style="font-size:12px;color:var(--amber);">
+        $${Math.round(c.rewardCash * zMult)} + ${c.rewardTokens}⚡${c.rewardPart ? ` + ${c.rewardPart}⚙️` : ''}
+      </strong>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
       <strong style="font-size:14px;">${c.title}</strong>
@@ -235,6 +386,7 @@ function renderContractBanner() {
   `;
 }
 
+// --- SVG FALLBACKS ---
 function renderRigSVG(tierObj) {
   return `
     <svg viewBox="0 0 260 95" width="240" height="88">
@@ -294,6 +446,26 @@ function renderTireSVG(job, size = 130) {
     </svg>`;
 }
 
+// --- INVENTORY & HUD (Standard + Heavy-Duty Tires) ---
+function renderStockBar() {
+  const bar = document.querySelector('.stock-bar');
+  if (!bar) return;
+  bar.className = 'stock-bar ctrl-grid-3';
+  bar.style.display = 'grid';
+  bar.style.gridTemplateColumns = '1fr 1fr 1fr';
+  bar.style.gap = '6px';
+  bar.innerHTML = `
+    <button class="stock-btn" onclick="buyStock('plug')" style="font-size:11px;padding:8px 4px;">
+      Plugs: <strong>${state.plugs}</strong><br><span style="color:var(--amber);">+3 ($20)</span>
+    </button>
+    <button class="stock-btn" onclick="buyStock('std')" style="font-size:11px;padding:8px 4px;">
+      Std Tires: <strong>${state.stdTires}</strong><br><span style="color:var(--amber);">+1 ($45)</span>
+    </button>
+    <button class="stock-btn" onclick="buyStock('hd')" style="font-size:11px;padding:8px 4px;">
+      HD Tires: <strong>${state.hdTires}</strong><br><span style="color:var(--amber);">+1 ($95)</span>
+    </button>`;
+}
+
 function updateHUD() {
   document.getElementById('hud-cash').textContent = state.cash;
   document.getElementById('hud-tokens').textContent = state.tokens;
@@ -305,9 +477,9 @@ function updateHUD() {
   document.getElementById('dispatch-zone-label').textContent = `${z.name.toUpperCase()} (${z.mult}x)`;
   document.getElementById('dispatch-boost-label').textContent =
     state.surgeJobs > 0 ? `2X SURGE ACTIVE (${state.surgeJobs} LEFT)` : 'ACTIVATE 2X SURGE';
-  document.getElementById('stock-plugs').textContent = state.plugs;
-  document.getElementById('stock-tires').textContent = state.tires;
+  renderStockBar();
   renderContractBanner();
+  renderProfileCard();
 }
 
 function goPage(pageId) {
@@ -327,6 +499,7 @@ function goPage(pageId) {
 }
 
 function toggleDrawer(open) {
+  renderProfileCard();
   document.getElementById('drawer-backdrop').classList.toggle('hidden', !open);
   document.getElementById('menu-drawer').classList.toggle('hidden', !open);
 }
@@ -336,6 +509,7 @@ function toggleSound() {
   document.getElementById('sound-toggle-btn').textContent = `🔊 Mechanical Audio: ${on ? 'ON' : 'OFF'}`;
 }
 
+// --- DISPATCH & JOB GENERATION ---
 function generateJob(vip = false) {
   const z = getZone();
   const pool = z.id === 'z1' ? VEHICLES.slice(0, 3) : VEHICLES;
@@ -343,8 +517,9 @@ function generateJob(vip = false) {
   const dmg = DAMAGES[Math.floor(Math.random() * DAMAGES.length)];
   const mile = Math.floor(Math.random() * 65) + 4;
   const rig = RIG_TIERS[getRigTier() - 1];
-  const ratingBonus = getRatingAvg() >= 4.7 ? 1.1 : 1.0;
-  const basePay = Math.round(veh.basePay * z.mult * rig.mult * ratingBonus * (vip ? 1.5 : 1));
+  const ratingBonus = getRatingAvg() >= 4.7 ? 1.08 : 1.0;
+  // Balanced VIP multiplier (1.65x) so spending 4 Dispatch Tokens has clear ROI
+  const basePay = Math.round(veh.basePay * z.mult * rig.mult * ratingBonus * (vip ? 1.65 : 1));
   const radarBonusSec = (state.tools.radar.level - 1) * 2;
   const timeLimit = veh.timeSec + radarBonusSec;
   return {
@@ -355,7 +530,7 @@ function generateJob(vip = false) {
     pay: basePay,
     timeLimit,
     vip,
-    snipeCost: vip ? 2 : 0
+    snipeCost: vip ? 4 : 0
   };
 }
 
@@ -376,8 +551,8 @@ function renderJobs() {
         <div class="job-pay">$${j.pay}${state.surgeJobs > 0 ? ' (2x)' : ''}</div>
       </div>
       <div class="job-meta">
-        <span>Target: ${j.veh.targetPsi} PSI</span>
-        <span>⏱️ SLA Timer: ${j.timeLimit}s</span>
+        <span>${j.veh.heavy ? '🛞 Heavy-Duty Tire' : '🛞 Standard Tire'} · ${j.veh.targetPsi} PSI</span>
+        <span>⏱️ SLA: ${j.timeLimit}s</span>
       </div>
       <button class="primary-btn" onclick="acceptJob('${j.id}')">
         ${j.vip ? `SNIPE DISPATCH (${j.snipeCost} ⚡)` : 'ACCEPT & ROLL RIG'}
@@ -386,17 +561,26 @@ function renderJobs() {
   `).join('');
 }
 
+// --- LIVE COUNTDOWN TIMER (Always initialized & ticking cleanly) ---
 function startBayTimer() {
   if (bayTimerInterval) clearInterval(bayTimerInterval);
   bayTimerInterval = setInterval(() => {
     const job = state.activeJob;
     if (!job || job.isTutorial) return;
+    if (typeof job.timeLeft !== 'number' || isNaN(job.timeLeft)) {
+      job.timeLeft = job.timeLimit || job.veh.timeSec || 85;
+    }
     if (job.timeLeft > 0) {
       job.timeLeft -= 1;
       const timerEl = document.getElementById('bay-timer-badge');
       if (timerEl) {
         timerEl.textContent = `⏱️ ${job.timeLeft}s`;
         timerEl.style.color = job.timeLeft <= 20 ? '#ef4444' : '#f59e0b';
+      }
+      if (job.timeLeft === 0) {
+        addBayPenalty(job, 25, 'SLA Response Timeout: Exceeded dispatch window');
+        showAlert('SLA TIMER EXPIRED (-$25)', 'Dispatch response window expired! Finish the repair immediately to avoid further rating loss.');
+        renderBay();
       }
     }
   }, 1000);
@@ -411,16 +595,20 @@ function acceptJob(jobId) {
   if (!job) return;
   if (job.vip) {
     if (state.tokens < job.snipeCost) {
+      showAlert('INSUFFICIENT TOKENS', `VIP Commercial Snipe requires ${job.snipeCost} ⚡ Dispatch Tokens.`);
       goPage('shop');
       return;
     }
     state.tokens -= job.snipeCost;
   }
   state.jobs = state.jobs.filter((j) => j.id !== jobId);
+  const startSec = job.timeLimit || job.veh.timeSec || 85;
   state.activeJob = {
     ...job,
-    timeLeft: job.timeLimit,
+    timeLimit: startSec,
+    timeLeft: startSec,
     step: 1,
+    conesSet: false,
     chocked: false,
     liftPct: 0,
     lugsRemoved: [],
@@ -452,6 +640,7 @@ function startTutorial() {
     vip: false,
     snipeCost: 0,
     step: 1,
+    conesSet: false,
     chocked: false,
     liftPct: 0,
     lugsRemoved: [],
@@ -476,25 +665,28 @@ function skipTutorial() {
 }
 
 function getTutorialCoaching(job) {
+  if (job.step === 1 && !job.conesSet) {
+    return { stepLabel: 'TRAINING 1/7', text: 'Tap DEPLOY TRAFFIC CONES first to secure your highway work perimeter.' };
+  }
   if (job.step === 1 && !job.chocked) {
-    return { stepLabel: 'TRAINING 1/6', text: 'Tap SET WHEEL CHOCKS first to lock the tires before lifting.' };
+    return { stepLabel: 'TRAINING 2/7', text: 'Tap SET WHEEL CHOCKS next to lock the opposite wheels before jacking.' };
   }
   if (job.step === 1 && job.chocked) {
-    return { stepLabel: 'TRAINING 2/6', text: 'Tap PUMP FLOOR JACK to raise the hydraulic lift arm and vehicle body.' };
+    return { stepLabel: 'TRAINING 3/7', text: 'Tap PUMP FLOOR JACK to raise the hydraulic lift arm and vehicle body.' };
   }
   if (job.step === 2) {
-    return { stepLabel: 'TRAINING 3/6', text: 'Tap each of the 5 glowing lug nuts directly on the wheel hub to spin them off.' };
+    return { stepLabel: 'TRAINING 4/7', text: 'Tap each of the 5 glowing lug nuts directly on the wheel hub to spin them off.' };
   }
   if (job.step === 3 && !job.scanned) {
-    return { stepLabel: 'TRAINING 4/6', text: 'Tap SCAN TIRE TREAD & SIDEWALL to inspect the damage.' };
+    return { stepLabel: 'TRAINING 5/7', text: 'Tap SCAN TIRE TREAD & SIDEWALL to inspect the damage.' };
   }
   if (job.step === 3 && job.scanned) {
-    return { stepLabel: 'TRAINING 4/6', text: 'Center-tread nail detected! Tap PLUG PUNCTURE (never swap a center nail).' };
+    return { stepLabel: 'TRAINING 5/7', text: 'Center-tread nail detected! Tap PLUG PUNCTURE (never swap a center nail).' };
   }
   if (job.step === 4) {
-    return { stepLabel: 'TRAINING 5/6', text: 'Inflate air into the green 33–37 PSI target band, then tap LOCK PRESSURE.' };
+    return { stepLabel: 'TRAINING 6/7', text: 'Inflate air into the green 33–37 PSI target band, then tap LOCK PRESSURE.' };
   }
-  return { stepLabel: 'TRAINING 6/6', text: `Tap Lug #${STAR_ORDER[job.torqueIdx]} directly on the wheel hub (Star Order: 1→3→5→2→4).` };
+  return { stepLabel: 'TRAINING 7/7', text: `Tap Lug #${STAR_ORDER[job.torqueIdx]} directly on the wheel hub (Star Order: 1→3→5→2→4).` };
 }
 
 function addBayPenalty(job, amount, reason) {
@@ -521,11 +713,19 @@ function getTireSpritePath(job) {
   return prefix + suffix;
 }
 
+// --- 5-STEP REPAIR BAY ---
 function renderBay() {
   const job = state.activeJob;
   document.getElementById('bay-empty').classList.toggle('hidden', !!job);
   document.getElementById('bay-active').classList.toggle('hidden', !job);
   if (!job) return;
+
+  // Guard against saved legacy jobs missing timeLeft
+  if (typeof job.timeLeft !== 'number' || isNaN(job.timeLeft)) {
+    job.timeLimit = job.timeLimit || job.veh.timeSec || 85;
+    job.timeLeft = job.timeLimit;
+    if (!job.isTutorial) startBayTimer();
+  }
 
   let tutEl = document.getElementById('tut-coach-box');
   if (!tutEl) {
@@ -539,7 +739,7 @@ function renderBay() {
     tutEl.className = 'tut-banner';
     tutEl.innerHTML = `
       <div class="tut-banner-top">
-        <span class="badge">${coach.stepLabel} · REWARD: +25 ⚡</span>
+        <span class="badge">${coach.stepLabel} · REWARD: +12 ⚡</span>
         <button class="ghost-btn" style="padding:3px 8px;font-size:11px;" onclick="skipTutorial()">Skip</button>
       </div>
       <p>${coach.text}</p>`;
@@ -565,6 +765,15 @@ function renderBay() {
     tray.textContent = 'MAG TRAY';
     stage.appendChild(tray);
   }
+  if (!document.getElementById('stage-cones')) {
+    const cones = document.createElement('div');
+    cones.id = 'stage-cones';
+    cones.className = 'stage-cones';
+    cones.innerHTML = '<div class="cone-item"></div><div class="cone-item"></div><div class="cone-item"></div>';
+    stage.appendChild(cones);
+  }
+  document.getElementById('stage-cones').classList.toggle('set', !!job.conesSet);
+
   const jackBox = document.getElementById('stage-jack');
   if (!jackBox.querySelector('.jack-saddle')) {
     const saddle = document.createElement('div');
@@ -628,13 +837,16 @@ function renderBay() {
   const ctrl = document.getElementById('bay-controls');
   if (job.step === 1) {
     ctrl.innerHTML = `
-      <strong>Step 1: Secure & Raise Vehicle (${job.liftPct}%)</strong>
-      <div class="ctrl-grid-2">
-        <button class="secondary-btn ${job.isTutorial && !job.chocked ? 'tut-pulse' : ''}" onclick="setChocks()">
-          ${job.chocked ? '✓ CHOCKS SET' : '1. SET WHEEL CHOCKS'}
+      <strong>Step 1: Highway Perimeter & Lift (${job.liftPct}%)</strong>
+      <div class="ctrl-grid-3">
+        <button class="secondary-btn ${job.isTutorial && !job.conesSet ? 'tut-pulse' : ''}" onclick="setCones()" style="font-size:11px;padding:9px 4px;">
+          ${job.conesSet ? '✓ CONES SET' : '1. SET CONES'}
         </button>
-        <button class="primary-btn ${job.isTutorial && job.chocked ? 'tut-pulse' : ''}" onclick="pumpJack()">
-          2. PUMP FLOOR JACK
+        <button class="secondary-btn ${job.isTutorial && job.conesSet && !job.chocked ? 'tut-pulse' : ''}" onclick="setChocks()" style="font-size:11px;padding:9px 4px;">
+          ${job.chocked ? '✓ CHOCKED' : '2. CHOCKS'}
+        </button>
+        <button class="primary-btn ${job.isTutorial && job.conesSet && job.chocked ? 'tut-pulse' : ''}" onclick="pumpJack()" style="font-size:11px;padding:9px 4px;">
+          3. PUMP JACK
         </button>
       </div>`;
   } else if (job.step === 2) {
@@ -649,6 +861,9 @@ function renderBay() {
         <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="runScan()">SCAN TIRE TREAD & SIDEWALL</button>`;
     } else {
       const tireSprite = getTireSpritePath(job);
+      const swapLabel = job.veh.heavy
+        ? `SWAP HD TIRE (${state.hdTires})`
+        : `SWAP STD TIRE (${state.stdTires})`;
       ctrl.innerHTML = `
         <div class="diag-scan-card">
           <div class="diag-tire-preview">
@@ -663,9 +878,9 @@ function renderBay() {
         </div>
         <div class="ctrl-grid-2">
           <button class="secondary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="performRepair('plug')">PLUG PUNCTURE (${state.plugs})</button>
-          <button class="primary-btn" onclick="performRepair('swap')">SWAP NEW TIRE (${state.tires})</button>
+          <button class="primary-btn" onclick="performRepair('swap')">${swapLabel}</button>
         </div>
-        <button class="ghost-btn" onclick="droneDrop()">🚁 Drone Tire Drop (3 ⚡)</button>`;
+        <button class="ghost-btn" onclick="droneDrop()">🚁 Drone ${job.veh.heavy ? 'HD' : 'Std'} Tire Drop (${job.veh.heavy ? 5 : 3} ⚡)</button>`;
     }
   } else if (job.step === 4) {
     const t = job.veh.targetPsi;
@@ -695,9 +910,26 @@ function renderBay() {
   }
 }
 
+function setCones() {
+  const job = state.activeJob;
+  if (!job || job.conesSet) return;
+  job.conesSet = true;
+  job.lastSpunLug = null;
+  dismissAlert();
+  SoundFX.chock();
+  renderBay();
+}
+
 function setChocks() {
   const job = state.activeJob;
-  if (!job || job.chocked) return;
+  if (!job) return;
+  if (!job.conesSet) {
+    addBayPenalty(job, 10, 'DOT Safety Violation: Worked shoulder without traffic cones');
+    showAlert('DOT CONE ALERT (-$10)', 'Deploy reflective highway traffic cones before chocking or lifting on the shoulder!');
+    renderBay();
+    return;
+  }
+  if (job.chocked) return;
   job.chocked = true;
   job.lastSpunLug = null;
   dismissAlert();
@@ -708,9 +940,15 @@ function setChocks() {
 function pumpJack() {
   const job = state.activeJob;
   if (!job) return;
+  if (!job.conesSet) {
+    addBayPenalty(job, 10, 'DOT Safety Violation: Lifted without traffic cones');
+    showAlert('DOT CONE ALERT (-$10)', 'Deploy highway traffic cones first to protect your roadside bay!');
+    renderBay();
+    return;
+  }
   if (!job.chocked) {
     addBayPenalty(job, 15, 'OSHA Safety Violation: Lifted without wheel chocks');
-    showAlert('OSHA SAFETY VIOLATION (-$15)', 'You tried to raise the floor jack without setting wheel chocks first!');
+    showAlert('OSHA SAFETY VIOLATION (-$15)', 'Set rubber wheel chocks before raising the hydraulic floor jack!');
     renderBay();
     return;
   }
@@ -735,7 +973,7 @@ function tapLug(id) {
   if (!job) return;
   if (job.step === 1) {
     addBayPenalty(job, 10, 'Protocol Error: Impacted lugs before vehicle was lifted');
-    showAlert('LIFT VEHICLE FIRST (-$10)', 'Secure wheel chocks and pump the hydraulic jack to 100% before unbolting lugs.');
+    showAlert('LIFT VEHICLE FIRST (-$10)', 'Deploy cones, set chocks, and pump the hydraulic jack to 100% before unbolting lugs.');
     renderBay();
     return;
   }
@@ -808,11 +1046,19 @@ function performRepair(choice) {
     if (!job.isTutorial) state.plugs--;
     SoundFX.impact();
   } else {
-    if (!job.isTutorial && state.tires <= 0) {
-      showAlert('OUT OF REPLACEMENT TIRES', 'Use Drone Tire Drop (3 ⚡) below or restock tires.');
-      return;
+    if (job.veh.heavy) {
+      if (!job.isTutorial && state.hdTires <= 0) {
+        showAlert('OUT OF HEAVY-DUTY TIRES', 'Commercial trucks require Heavy-Duty Tires! Use Drone Drop below or restock HD Tires.');
+        return;
+      }
+      if (!job.isTutorial) state.hdTires--;
+    } else {
+      if (!job.isTutorial && state.stdTires <= 0) {
+        showAlert('OUT OF STANDARD TIRES', 'Use Drone Tire Drop below or restock Standard Tires on Dispatch.');
+        return;
+      }
+      if (!job.isTutorial) state.stdTires--;
     }
-    if (!job.isTutorial) state.tires--;
     SoundFX.impact();
     const wrap = document.getElementById('stage-wheel-wrap');
     wrap.classList.add('swapping');
@@ -827,12 +1073,17 @@ function performRepair(choice) {
 }
 
 function droneDrop() {
-  if (state.tokens < 3) {
+  const job = state.activeJob;
+  if (!job) return;
+  const cost = job.veh.heavy ? 5 : 3;
+  if (state.tokens < cost) {
+    showAlert('INSUFFICIENT TOKENS', `Drone ${job.veh.heavy ? 'Heavy-Duty' : 'Standard'} Tire Drop costs ${cost} ⚡.`);
     goPage('shop');
     return;
   }
-  state.tokens -= 3;
-  state.tires += 1;
+  state.tokens -= cost;
+  if (job.veh.heavy) state.hdTires += 1;
+  else state.stdTires += 1;
   SoundFX.success();
   updateHUD();
   renderBay();
@@ -875,7 +1126,7 @@ function completeJob() {
   if (job.isTutorial) {
     const firstTime = !state.tutorialDone;
     state.tutorialDone = true;
-    if (firstTime) state.tokens += 25;
+    if (firstTime) state.tokens += 12;
     state.activeJob = null;
     saveState();
     updateHUD();
@@ -883,10 +1134,10 @@ function completeJob() {
       <span class="badge">TRAINING COMPLETE</span>
       <h3>Certified DelWin Technician!</h3>
       <p style="font-size:13px;color:var(--muted);">
-        You mastered wheel chocking, lug removal, center-nail plug diagnostics, PSI calibration, and star-pattern torquing.
+        You mastered traffic cones, wheel chocks, lug removal, center-nail plug diagnostics, PSI calibration, and star-pattern torquing.
       </p>
       <div style="background:#090c12;padding:12px;border-radius:10px;text-align:center;color:var(--amber);font-weight:900;">
-        ${firstTime ? '+25 DISPATCH TOKENS (⚡) CREDITED!' : 'TRAINING PRACTICE COMPLETE'}
+        ${firstTime ? '+12 DISPATCH TOKENS (⚡) CREDITED!' : 'TRAINING PRACTICE COMPLETE'}
       </div>
       <button class="primary-btn" onclick="closeModal(); goPage('dispatch');">ENTER LIVE DISPATCH</button>
     `);
@@ -898,13 +1149,12 @@ function completeJob() {
   const gross = job.pay * mult;
   const isFast = job.timeLeft >= Math.round(job.timeLimit * 0.45);
   const speedBonus = isFast ? Math.round(job.pay * 0.2) : 0;
-  if (job.timeLeft <= 0) {
-    addBayPenalty(job, 25, 'SLA Response Timeout: Exceeded dispatch window');
-  }
   const totalDeductions = job.penalties;
   const net = Math.max(25, gross + speedBonus - totalDeductions);
-  const repGain = Math.round((35 + (isFast ? 15 : 0)) * getZone().mult);
-  const gotPart = Math.random() < 0.35;
+  // Balanced REP pacing: ~32-45 REP per job in Zone 1 so unlocking Zone 2 (350 REP) takes ~9-11 calls
+  const repGain = Math.round((30 + (isFast ? 12 : 0)) * getZone().mult);
+  // Gold Tool Parts drop at 25% rate on clean jobs (or via Elite Contracts / Shop)
+  const gotPart = totalDeductions === 0 && Math.random() < 0.25;
 
   state.cash += net;
   state.rep += repGain;
@@ -913,7 +1163,6 @@ function completeJob() {
   else state.streak = 0;
   if (gotPart) state.parts += 1;
 
-  // Update active DelWin Mobile Contract progress
   if (state.contract && state.contract.progress < state.contract.target) {
     const ct = state.contract.type;
     if (ct === 'clean_streak' && totalDeductions === 0) state.contract.progress += 1;
@@ -957,15 +1206,23 @@ function buyStock(type) {
     state.cash -= 20;
     state.plugs += 3;
     SoundFX.torqueClick();
-  } else if (type === 'tire' && state.cash >= 45) {
+  } else if (type === 'std' && state.cash >= 45) {
     state.cash -= 45;
-    state.tires += 1;
+    state.stdTires += 1;
     SoundFX.torqueClick();
+  } else if (type === 'hd' && state.cash >= 95) {
+    state.cash -= 95;
+    state.hdTires += 1;
+    SoundFX.torqueClick();
+  } else {
+    showAlert('INSUFFICIENT CASH', 'Complete a dispatch call to earn cash for restocking supplies.');
+    return;
   }
   saveState();
   updateHUD();
 }
 
+// --- GARAGE & TOOL UPGRADES ---
 function stepRigPreview(delta) {
   const current = previewRigTier || getRigTier();
   previewRigTier = Math.max(1, Math.min(6, current + delta));
@@ -1015,7 +1272,7 @@ function renderGarage() {
     const viewTierLabel = TIER_NAMES[viewTier - 1];
     const isMax = tool.level >= 24;
     const needsPart = !isMax && tool.level % 4 === 0;
-    const cost = Math.round(tool.baseCost * Math.pow(1.24, tool.level - 1));
+    const cost = Math.round(tool.baseCost * Math.pow(1.26, tool.level - 1));
     const imgPath = `assets/${tool.prefix}-t${viewTier}.png`;
     const isPreviewingFuture = viewTier > ownedTier;
 
@@ -1048,9 +1305,15 @@ function upgradeTool(key) {
   const tool = state.tools[key];
   if (!tool || tool.level >= 24) return;
   const needsPart = tool.level % 4 === 0;
-  const cost = Math.round(tool.baseCost * Math.pow(1.24, tool.level - 1));
-  if (state.cash < cost) return;
-  if (needsPart && state.parts < 1) return;
+  const cost = Math.round(tool.baseCost * Math.pow(1.26, tool.level - 1));
+  if (state.cash < cost) {
+    showAlert('INSUFFICIENT CASH', `Need $${cost} to upgrade ${tool.name}.`);
+    return;
+  }
+  if (needsPart && state.parts < 1) {
+    showAlert('GOLD TOOL PART REQUIRED', 'Tier breakthrough upgrades (Lvl 4→5, 8→9, etc.) require 1 ⚙️ Gold Tool Part from clean jobs, Elite Contracts, or the Shop.');
+    return;
+  }
   state.cash -= cost;
   if (needsPart) state.parts -= 1;
   tool.level += 1;
@@ -1063,29 +1326,61 @@ function upgradeTool(key) {
   renderGarage();
 }
 
+// --- TUNED LEADERBOARD MATH (Dynamic Division Scaling Across 0 to 50,000+ REP) ---
 function renderLeague() {
   document.getElementById('league-rep').textContent = state.rep;
+
+  const divisionIndex = Math.min(5, Math.floor(state.rep / 3000));
+  const divisionNames = [
+    'BRONZE ROADSIDE DIVISION',
+    'SILVER METRO DIVISION',
+    'GOLD FREIGHT DIVISION',
+    'PLATINUM PORT DIVISION',
+    'DIAMOND EXPRESS DIVISION',
+    'APEX SYNDICATE DIVISION'
+  ];
+
+  // Rivals scale dynamically around the player's current REP tier so climbing feels competitive and fair
+  const anchor = Math.max(0, divisionIndex * 3000);
   const rivals = [
-    { name: 'ApexTow_ATL', rep: 1450 },
-    { name: 'NightShift_Mike', rep: 920 },
-    { name: 'I285_RoadKing', rep: 540 },
-    { name: 'PeachState_Duals', rep: 280 },
-    { name: 'Southside_Rescue', rep: 110 },
-    { name: 'YOU (DelWin Mobile)', rep: state.rep, isYou: true }
+    { name: 'Southside_Rescue', avatar: '🔧', rep: anchor + 180 },
+    { name: 'PeachState_Duals', avatar: '🛞', rep: anchor + 540 },
+    { name: 'I285_RoadKing', avatar: '🚛', rep: anchor + 1150 },
+    { name: 'NightShift_Mike', avatar: '⚡', rep: anchor + 1950 },
+    { name: 'ApexTow_ATL', avatar: '👑', rep: anchor + 2850 },
+    {
+      name: `${state.bizName} (YOU)`,
+      avatar: state.avatarEmoji,
+      avatarImg: state.avatarImg,
+      rep: state.rep,
+      isYou: true
+    }
   ].sort((a, b) => b.rep - a.rep);
 
   const myRank = rivals.findIndex((r) => r.isYou) + 1;
   document.getElementById('league-rank').textContent = `#${myRank}`;
-  document.getElementById('leaderboard-list').innerHTML = rivals.map((r, idx) => `
-    <div class="item-card" style="${r.isYou ? 'border-color:var(--amber);' : ''}">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <strong>#${idx + 1} ${r.name}</strong>
-        <span style="color:var(--amber);font-weight:800;">${r.rep} REP</span>
-      </div>
-    </div>
-  `).join('');
+
+  const headerBanner = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span class="badge">${divisionNames[divisionIndex]}</span>
+      <button class="ghost-btn" style="padding:4px 8px;font-size:11px;" onclick="openProfileEditor()">Edit Name/Logo</button>
+    </div>`;
+
+  document.getElementById('leaderboard-list').innerHTML = headerBanner + rivals.map((r, idx) => {
+    const iconHtml = r.avatarImg
+      ? `<img src="${r.avatarImg}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;" />`
+      : `<span style="margin-right:6px;">${r.avatar}</span>`;
+    return `
+      <div class="item-card" style="${r.isYou ? 'border-color:var(--amber);background:#172033;' : ''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong>#${idx + 1} ${iconHtml}${r.name}</strong>
+          <span style="color:var(--amber);font-weight:800;">${r.rep.toLocaleString()} REP</span>
+        </div>
+      </div>`;
+  }).join('');
 }
 
+// --- 24 ZONES / 6 HUBS ---
 function renderZones() {
   let currentHub = '';
   let html = '';
@@ -1100,16 +1395,16 @@ function renderZones() {
       <div class="item-card" style="${active ? 'border-color:var(--amber);' : !unlocked ? 'opacity:0.78;' : ''}">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div>
-            <span class="badge">ZONE ${idx + 1}/24 · ${z.mult}x PAYOUT</span>
+            <span class="badge">ZONE ${idx + 1}/24 · ${z.mult.toFixed(2)}x PAYOUT</span>
             <h3 style="font-size:15px;margin-top:4px;">${z.name}</h3>
           </div>
           <strong style="color:${unlocked ? 'var(--green)' : 'var(--muted)'};">
-            ${unlocked ? (active ? 'ACTIVE' : 'OPEN') : `🔒 ${z.unlockRep} REP`}
+            ${unlocked ? (active ? 'ACTIVE' : 'OPEN') : `🔒 ${z.unlockRep.toLocaleString()} REP`}
           </strong>
         </div>
         <p style="font-size:12px;color:var(--muted);">${z.desc}</p>
         <button class="primary-btn" ${!unlocked || active ? 'disabled' : ''} onclick="selectZone('${z.id}')">
-          ${active ? 'DEPLOYED HERE' : unlocked ? 'DEPLOY TO ZONE' : `UNLOCKS AT ${z.unlockRep} REP (YOU: ${state.rep})`}
+          ${active ? 'DEPLOYED HERE' : unlocked ? 'DEPLOY TO ZONE' : `UNLOCKS AT ${z.unlockRep.toLocaleString()} REP (YOU: ${state.rep.toLocaleString()})`}
         </button>
       </div>`;
   });
@@ -1125,6 +1420,7 @@ function selectZone(id) {
   goPage('dispatch');
 }
 
+// --- REWARDED ADS & DUAL-CURRENCY SHOP (Clear Separation: ⚡ Tactical Tokens vs ⚙️ Gold Tool Parts) ---
 function watchRewardedAd(type) {
   openModal(`
     <span class="badge">SPONSORED TRANSMISSION</span>
@@ -1140,8 +1436,8 @@ function watchRewardedAd(type) {
     if (sec <= 0) {
       clearInterval(iv);
       if (type === 'surge') state.surgeJobs += 3;
-      if (type === 'tokens') state.tokens += 8;
-      if (type === 'restock') { state.plugs += 4; state.tires += 2; }
+      if (type === 'tokens') state.tokens += 5;
+      if (type === 'restock') { state.plugs += 4; state.stdTires += 2; state.hdTires += 1; }
       SoundFX.success();
       saveState();
       updateHUD();
@@ -1159,8 +1455,8 @@ function buyTokenPack(amount, price, parts = 0) {
   updateHUD();
   openModal(`
     <span class="badge">DISPATCH CREDIT APPLIED</span>
-    <h3>+${amount} Dispatch Tokens (⚡)</h3>
-    <p style="font-size:13px;color:var(--muted);">Demo pack (${price}) credited to your DelWin Mobile account.</p>
+    <h3>+${amount} Dispatch Tokens (⚡)${parts > 0 ? ` & +${parts} Gold Part (⚙️)` : ''}</h3>
+    <p style="font-size:13px;color:var(--muted);">Demo pack (${price}) credited to ${state.bizName}.</p>
     <button class="primary-btn" onclick="closeModal()">CONTINUE</button>
   `);
 }
@@ -1179,6 +1475,7 @@ function resetSave() {
   location.reload();
 }
 
+injectCustomStyles();
 loadState();
 if (!state.jobs || state.jobs.length === 0) refreshJobs();
 else renderJobs();
