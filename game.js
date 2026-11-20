@@ -1,15 +1,15 @@
 const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
 
+// Rig Tiers: Require BOTH minimum Tool Level AND an explicit Rig Unlock Purchase (Cash + Gold Parts + Tokens)
 const RIG_TIERS = [
-  { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', req: 'Starting Rig', mult: 1.00, perk: 'Standard highway response rig (1.00x Payouts).' },
-  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', req: 'All 4 Tools Lvl 5+', mult: 1.15, perk: '1.15x Base Payouts & Twin Amber Strobes.' },
-  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', color: '#f59e0b', req: 'All 4 Tools Lvl 9+', mult: 1.32, perk: '1.32x Base Payouts & Exterior Spare Tire Rack.' },
-  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', color: '#a855f7', req: 'All 4 Tools Lvl 13+', mult: 1.52, perk: '1.52x Base Payouts & Dual-Wheel Hydraulic Lift.' },
-  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', color: '#ef4444', req: 'All 4 Tools Lvl 17+', mult: 1.75, perk: '1.75x Base Payouts & Commercial Fleet Priority.' },
-  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', req: 'All 4 Tools Lvl 21+', mult: 2.00, perk: '2.00x Base Payouts & Maximum Corridor Prestige.' }
+  { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', reqLvl: 1, req: 'Starting Rig', cashCost: 0, partCost: 0, tokenCost: 0, mult: 1.00, perk: 'Standard highway response rig (1.00x Payouts).' },
+  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', reqLvl: 5, req: 'All Tools Lvl 5+', cashCost: 650, partCost: 2, tokenCost: 10, mult: 1.18, perk: '1.18x Base Payouts & Twin Amber Strobes.' },
+  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', color: '#f59e0b', reqLvl: 9, req: 'All Tools Lvl 9+', cashCost: 1650, partCost: 4, tokenCost: 20, mult: 1.38, perk: '1.38x Base Payouts & Exterior Spare Tire Rack.' },
+  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', color: '#a855f7', reqLvl: 13, req: 'All Tools Lvl 13+', cashCost: 3800, partCost: 7, tokenCost: 35, mult: 1.60, perk: '1.60x Base Payouts & Dual-Wheel Hydraulic Lift.' },
+  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', color: '#ef4444', reqLvl: 17, req: 'All Tools Lvl 17+', cashCost: 8200, partCost: 11, tokenCost: 55, mult: 1.85, perk: '1.85x Base Payouts & Commercial Fleet Priority.' },
+  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', reqLvl: 21, req: 'All Tools Lvl 21+', cashCost: 16500, partCost: 16, tokenCost: 80, mult: 2.15, perk: '2.15x Base Payouts & Maximum Corridor Prestige.' }
 ];
 
-// Tuned 24-Zone / 6-Hub REP curve: ~8-12 clean jobs per early zone, scaling smoothly to 22,500 REP
 const ZONES = [
   { id: 'z1', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 North Perimeter', mult: 1.00, unlockRep: 0, desc: 'Steady commuter flats and shoulder punctures.' },
   { id: 'z2', hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.12, unlockRep: 350, desc: 'High-density commuter & SUV roadside calls.' },
@@ -88,8 +88,6 @@ const DAMAGES = [
   }
 ];
 
-// BALANCED DUAL-CURRENCY CONTRACTS:
-// Contracts pay Cash + REP + 1-2 Dispatch Tokens (⚡) or 1 Gold Tool Part (⚙️) on elite contracts.
 const CONTRACT_POOL = [
   { id: 'c_clean4', title: 'Zero-Penalty Streak', desc: 'Complete 4 calls with $0 protocol or safety penalties.', type: 'clean_streak', target: 4, rewardCash: 185, rewardTokens: 2, rewardPart: 0, rewardRep: 95 },
   { id: 'c_plug3', title: 'Crown Plug Specialist', desc: 'Properly plug 3 center-tread nail punctures.', type: 'plugs', target: 3, rewardCash: 150, rewardTokens: 1, rewardPart: 0, rewardRep: 80 },
@@ -106,7 +104,6 @@ const LUG_COORDS = [
   { id: 5, x: 25, y: 42 }
 ];
 const STAR_ORDER = [1, 3, 5, 2, 4];
-
 const AVATAR_PRESETS = ['🛞', '🚛', '🔧', '⚡', '🏆', '🔥', '🛡️', '👑'];
 
 let state = {
@@ -117,6 +114,7 @@ let state = {
   tokens: 8,
   parts: 0,
   rep: 0,
+  unlockedRigTier: 1,
   streak: 0,
   jobsCompleted: 0,
   zoneId: 'z1',
@@ -158,7 +156,6 @@ function loadState() {
     const raw = localStorage.getItem('delwin_v4_save');
     if (raw) {
       const parsed = JSON.parse(raw);
-      // Migrate legacy single `tires` inventory to `stdTires` cleanly
       if (typeof parsed.tires === 'number' && typeof parsed.stdTires !== 'number') {
         parsed.stdTires = parsed.tires;
       }
@@ -168,6 +165,7 @@ function loadState() {
     if (!state.contract) rollNewContract();
     if (!state.bizName) state.bizName = 'DelWin Mobile Tire Rescue';
     if (!state.avatarEmoji) state.avatarEmoji = '🛞';
+    if (!state.unlockedRigTier) state.unlockedRigTier = 1;
   } catch (e) {}
 }
 
@@ -175,9 +173,14 @@ function saveState() {
   try { localStorage.setItem('delwin_v4_save', JSON.stringify(state)); } catch (e) {}
 }
 
+// Active Rig Tier is gated by BOTH Tool Level Milestone AND Rig Purchase
 function getRigTier() {
-  const minLvl = Math.min(...Object.values(state.tools).map((t) => t.level));
-  return Math.min(6, Math.floor((minLvl - 1) / 4) + 1);
+  const maxByTools = Math.min(6, Math.floor((getMinToolLevel() - 1) / 4) + 1);
+  return Math.min(state.unlockedRigTier || 1, maxByTools);
+}
+
+function getMinToolLevel() {
+  return Math.min(...Object.values(state.tools).map((t) => t.level));
 }
 
 function getZone() {
@@ -188,10 +191,19 @@ function getRatingAvg() {
   return state.ratings.reduce((a, b) => a + b, 0) / state.ratings.length;
 }
 
+// Star Rating Tier Mechanics: directly drives Payout Multiplier, VIP Spawn Rate & Tip Bonus
+function getRatingTierInfo() {
+  const avg = getRatingAvg();
+  if (avg >= 4.8) return { label: 'ELITE 5-STAR', mult: 1.15, bonusPct: '+15%', vipChance: 0.45, color: '#10b981' };
+  if (avg >= 4.4) return { label: 'TRUSTED PRO', mult: 1.08, bonusPct: '+8%', vipChance: 0.30, color: '#38bdf8' };
+  if (avg >= 4.0) return { label: 'STANDARD', mult: 1.00, bonusPct: '0%', vipChance: 0.15, color: '#cbd5e1' };
+  return { label: 'PROBATION', mult: 0.85, bonusPct: '-15%', vipChance: 0.0, color: '#ef4444' };
+}
+
 function injectCustomStyles() {
-  if (document.getElementById('delwin-v42-styles')) return;
+  if (document.getElementById('delwin-v43-styles')) return;
   const st = document.createElement('style');
-  st.id = 'delwin-v42-styles';
+  st.id = 'delwin-v43-styles';
   st.textContent = `
     .stage-cones {
       position: absolute; bottom: 28px; right: 16px;
@@ -249,7 +261,7 @@ function renderProfileCard() {
       <div class="profile-avatar">${avatarHtml}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${state.bizName}</div>
-        <div style="font-size:11px;color:var(--amber);">Tier ${getRigTier()} Operator · ${state.rep} REP</div>
+        <div style="font-size:11px;color:var(--amber);">Tier ${getRigTier()} Rig · ${state.rep.toLocaleString()} REP</div>
       </div>
       <button class="ghost-btn" style="padding:4px 8px;font-size:11px;" onclick="toggleDrawer(false); openProfileEditor();">Edit</button>
     </div>`;
@@ -446,24 +458,54 @@ function renderTireSVG(job, size = 130) {
     </svg>`;
 }
 
-// --- INVENTORY & HUD (Standard + Heavy-Duty Tires) ---
+// --- INVENTORY & HUD (Explicitly Separated Standard vs Heavy-Duty Tires) ---
 function renderStockBar() {
-  const bar = document.querySelector('.stock-bar');
-  if (!bar) return;
-  bar.className = 'stock-bar ctrl-grid-3';
-  bar.style.display = 'grid';
-  bar.style.gridTemplateColumns = '1fr 1fr 1fr';
-  bar.style.gap = '6px';
+  const dispatchPage = document.getElementById('page-dispatch');
+  if (!dispatchPage) return;
+  let bar = document.getElementById('delwin-stock-grid');
+  // Hide any legacy single-tire stock bar from index.html
+  const legacyBar = dispatchPage.querySelector('.stock-bar:not(#delwin-stock-grid)');
+  if (legacyBar) legacyBar.style.display = 'none';
+
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'delwin-stock-grid';
+    bar.style.display = 'grid';
+    bar.style.gridTemplateColumns = '1fr 1fr 1fr';
+    bar.style.gap = '6px';
+    bar.style.marginBottom = '8px';
+    const targetAnchor = document.getElementById('delwin-contract-card') || document.getElementById('job-list');
+    dispatchPage.insertBefore(bar, targetAnchor);
+  }
   bar.innerHTML = `
-    <button class="stock-btn" onclick="buyStock('plug')" style="font-size:11px;padding:8px 4px;">
+    <button class="stock-btn" onclick="buyStock('plug')" style="font-size:11px;padding:8px 4px;line-height:1.3;">
       Plugs: <strong>${state.plugs}</strong><br><span style="color:var(--amber);">+3 ($20)</span>
     </button>
-    <button class="stock-btn" onclick="buyStock('std')" style="font-size:11px;padding:8px 4px;">
+    <button class="stock-btn" onclick="buyStock('std')" style="font-size:11px;padding:8px 4px;line-height:1.3;">
       Std Tires: <strong>${state.stdTires}</strong><br><span style="color:var(--amber);">+1 ($45)</span>
     </button>
-    <button class="stock-btn" onclick="buyStock('hd')" style="font-size:11px;padding:8px 4px;">
+    <button class="stock-btn" onclick="buyStock('hd')" style="font-size:11px;padding:8px 4px;line-height:1.3;">
       HD Tires: <strong>${state.hdTires}</strong><br><span style="color:var(--amber);">+1 ($95)</span>
     </button>`;
+}
+
+function renderRatingPerkBanner() {
+  const dispatchPage = document.getElementById('page-dispatch');
+  if (!dispatchPage) return;
+  let pill = document.getElementById('rating-perk-pill');
+  if (!pill) {
+    pill = document.createElement('div');
+    pill.id = 'rating-perk-pill';
+    pill.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:#0f172a;border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:11px;margin-bottom:6px;';
+    const anchor = document.getElementById('delwin-stock-grid') || document.getElementById('job-list');
+    dispatchPage.insertBefore(pill, anchor);
+  }
+  const avg = getRatingAvg().toFixed(2);
+  const info = getRatingTierInfo();
+  pill.innerHTML = `
+    <span>Customer Rating: <strong style="color:${info.color};">${avg} ★ (${info.label})</strong></span>
+    <span style="color:${info.color};font-weight:800;">Pay ${info.bonusPct} · VIP ${Math.round(info.vipChance * 100)}%</span>
+  `;
 }
 
 function updateHUD() {
@@ -471,14 +513,16 @@ function updateHUD() {
   document.getElementById('hud-tokens').textContent = state.tokens;
   document.getElementById('drawer-parts').textContent = `${state.parts} ⚙️`;
   const avg = getRatingAvg().toFixed(1);
-  document.getElementById('drawer-rating').textContent = `${avg} ★`;
+  const rInfo = getRatingTierInfo();
+  document.getElementById('drawer-rating').textContent = `${avg} ★ (${rInfo.bonusPct})`;
   const z = getZone();
   document.getElementById('drawer-zone').textContent = z.name;
   document.getElementById('dispatch-zone-label').textContent = `${z.name.toUpperCase()} (${z.mult}x)`;
   document.getElementById('dispatch-boost-label').textContent =
     state.surgeJobs > 0 ? `2X SURGE ACTIVE (${state.surgeJobs} LEFT)` : 'ACTIVATE 2X SURGE';
-  renderStockBar();
   renderContractBanner();
+  renderStockBar();
+  renderRatingPerkBanner();
   renderProfileCard();
 }
 
@@ -488,7 +532,11 @@ function goPage(pageId) {
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
   const nav = document.getElementById(`nav-${pageId}`);
   if (nav) nav.classList.add('active');
-  if (pageId === 'dispatch') renderContractBanner();
+  if (pageId === 'dispatch') {
+    renderContractBanner();
+    renderStockBar();
+    renderRatingPerkBanner();
+  }
   if (pageId === 'garage') {
     previewRigTier = getRigTier();
     renderGarage();
@@ -517,9 +565,8 @@ function generateJob(vip = false) {
   const dmg = DAMAGES[Math.floor(Math.random() * DAMAGES.length)];
   const mile = Math.floor(Math.random() * 65) + 4;
   const rig = RIG_TIERS[getRigTier() - 1];
-  const ratingBonus = getRatingAvg() >= 4.7 ? 1.08 : 1.0;
-  // Balanced VIP multiplier (1.65x) so spending 4 Dispatch Tokens has clear ROI
-  const basePay = Math.round(veh.basePay * z.mult * rig.mult * ratingBonus * (vip ? 1.65 : 1));
+  const rInfo = getRatingTierInfo();
+  const basePay = Math.round(veh.basePay * z.mult * rig.mult * rInfo.mult * (vip ? 1.65 : 1));
   const radarBonusSec = (state.tools.radar.level - 1) * 2;
   const timeLimit = veh.timeSec + radarBonusSec;
   return {
@@ -535,7 +582,14 @@ function generateJob(vip = false) {
 }
 
 function refreshJobs() {
-  state.jobs = [generateJob(false), generateJob(false), generateJob(false), generateJob(true)];
+  const rInfo = getRatingTierInfo();
+  const hasVipSlot = Math.random() < (rInfo.vipChance + 0.55); // High rating guarantees VIP slot; Probation (<4.0★) loses VIP access
+  state.jobs = [
+    generateJob(false),
+    generateJob(false),
+    generateJob(false),
+    generateJob(rInfo.vipChance > 0 && hasVipSlot)
+  ];
   renderJobs();
 }
 
@@ -561,7 +615,7 @@ function renderJobs() {
   `).join('');
 }
 
-// --- LIVE COUNTDOWN TIMER (Always initialized & ticking cleanly) ---
+// --- LIVE COUNTDOWN TIMER ---
 function startBayTimer() {
   if (bayTimerInterval) clearInterval(bayTimerInterval);
   bayTimerInterval = setInterval(() => {
@@ -578,8 +632,8 @@ function startBayTimer() {
         timerEl.style.color = job.timeLeft <= 20 ? '#ef4444' : '#f59e0b';
       }
       if (job.timeLeft === 0) {
-        addBayPenalty(job, 25, 'SLA Response Timeout: Exceeded dispatch window');
-        showAlert('SLA TIMER EXPIRED (-$25)', 'Dispatch response window expired! Finish the repair immediately to avoid further rating loss.');
+        addBayPenalty(job, 25, 'SLA Response Timeout: Exceeded dispatch window', 12);
+        showAlert('SLA TIMER EXPIRED (-$25 / -12 REP)', 'Dispatch response window expired! Finish the repair immediately to avoid further rating loss.');
         renderBay();
       }
     }
@@ -618,6 +672,7 @@ function acceptJob(jobId) {
     psi: 12,
     torqueIdx: 0,
     penalties: 0,
+    repPenalties: 0,
     penaltyLog: []
   };
   saveState();
@@ -650,6 +705,7 @@ function startTutorial() {
     psi: 14,
     torqueIdx: 0,
     penalties: 0,
+    repPenalties: 0,
     penaltyLog: []
   };
   dismissAlert();
@@ -666,13 +722,13 @@ function skipTutorial() {
 
 function getTutorialCoaching(job) {
   if (job.step === 1 && !job.conesSet) {
-    return { stepLabel: 'TRAINING 1/7', text: 'Tap DEPLOY TRAFFIC CONES first to secure your highway work perimeter.' };
+    return { stepLabel: 'TRAINING 1/7', text: 'Tap 1. SET CONES first to secure your highway shoulder perimeter.' };
   }
   if (job.step === 1 && !job.chocked) {
-    return { stepLabel: 'TRAINING 2/7', text: 'Tap SET WHEEL CHOCKS next to lock the opposite wheels before jacking.' };
+    return { stepLabel: 'TRAINING 2/7', text: 'Tap 2. CHOCKS next to lock the opposite wheels before jacking.' };
   }
   if (job.step === 1 && job.chocked) {
-    return { stepLabel: 'TRAINING 3/7', text: 'Tap PUMP FLOOR JACK to raise the hydraulic lift arm and vehicle body.' };
+    return { stepLabel: 'TRAINING 3/7', text: 'Tap 3. PUMP JACK to raise the hydraulic lift arm and vehicle body.' };
   }
   if (job.step === 2) {
     return { stepLabel: 'TRAINING 4/7', text: 'Tap each of the 5 glowing lug nuts directly on the wheel hub to spin them off.' };
@@ -689,11 +745,14 @@ function getTutorialCoaching(job) {
   return { stepLabel: 'TRAINING 7/7', text: `Tap Lug #${STAR_ORDER[job.torqueIdx]} directly on the wheel hub (Star Order: 1→3→5→2→4).` };
 }
 
-function addBayPenalty(job, amount, reason) {
+// Penalties now deduct BOTH Cash ($) AND Corridor Reputation (REP)
+function addBayPenalty(job, cashAmt, reason, repAmt = null) {
   if (!job || job.isTutorial) return;
-  job.penalties += amount;
+  const repLoss = repAmt !== null ? repAmt : Math.max(4, Math.round(cashAmt * 0.4));
+  job.penalties += cashAmt;
+  job.repPenalties = (job.repPenalties || 0) + repLoss;
   if (!job.penaltyLog) job.penaltyLog = [];
-  job.penaltyLog.push({ reason, amount });
+  job.penaltyLog.push({ reason, amount: cashAmt, repLoss });
 }
 
 function showAlert(title, msg) {
@@ -720,7 +779,6 @@ function renderBay() {
   document.getElementById('bay-active').classList.toggle('hidden', !job);
   if (!job) return;
 
-  // Guard against saved legacy jobs missing timeLeft
   if (typeof job.timeLeft !== 'number' || isNaN(job.timeLeft)) {
     job.timeLimit = job.timeLimit || job.veh.timeSec || 85;
     job.timeLeft = job.timeLimit;
@@ -924,8 +982,8 @@ function setChocks() {
   const job = state.activeJob;
   if (!job) return;
   if (!job.conesSet) {
-    addBayPenalty(job, 10, 'DOT Safety Violation: Worked shoulder without traffic cones');
-    showAlert('DOT CONE ALERT (-$10)', 'Deploy reflective highway traffic cones before chocking or lifting on the shoulder!');
+    addBayPenalty(job, 10, 'DOT Safety Violation: Worked shoulder without traffic cones', 5);
+    showAlert('DOT CONE ALERT (-$10 / -5 REP)', 'Deploy reflective highway traffic cones before chocking or lifting on the shoulder!');
     renderBay();
     return;
   }
@@ -941,14 +999,14 @@ function pumpJack() {
   const job = state.activeJob;
   if (!job) return;
   if (!job.conesSet) {
-    addBayPenalty(job, 10, 'DOT Safety Violation: Lifted without traffic cones');
-    showAlert('DOT CONE ALERT (-$10)', 'Deploy highway traffic cones first to protect your roadside bay!');
+    addBayPenalty(job, 10, 'DOT Safety Violation: Lifted without traffic cones', 5);
+    showAlert('DOT CONE ALERT (-$10 / -5 REP)', 'Deploy highway traffic cones first to protect your roadside bay!');
     renderBay();
     return;
   }
   if (!job.chocked) {
-    addBayPenalty(job, 15, 'OSHA Safety Violation: Lifted without wheel chocks');
-    showAlert('OSHA SAFETY VIOLATION (-$15)', 'Set rubber wheel chocks before raising the hydraulic floor jack!');
+    addBayPenalty(job, 15, 'OSHA Safety Violation: Lifted without wheel chocks', 8);
+    showAlert('OSHA SAFETY VIOLATION (-$15 / -8 REP)', 'Set rubber wheel chocks before raising the hydraulic floor jack!');
     renderBay();
     return;
   }
@@ -972,8 +1030,8 @@ function tapLug(id) {
   const job = state.activeJob;
   if (!job) return;
   if (job.step === 1) {
-    addBayPenalty(job, 10, 'Protocol Error: Impacted lugs before vehicle was lifted');
-    showAlert('LIFT VEHICLE FIRST (-$10)', 'Deploy cones, set chocks, and pump the hydraulic jack to 100% before unbolting lugs.');
+    addBayPenalty(job, 10, 'Protocol Error: Impacted lugs before vehicle was lifted', 5);
+    showAlert('LIFT VEHICLE FIRST (-$10 / -5 REP)', 'Deploy cones, set chocks, and pump the hydraulic jack to 100% before unbolting lugs.');
     renderBay();
     return;
   }
@@ -991,8 +1049,8 @@ function tapLug(id) {
   } else if (job.step === 5) {
     const expected = STAR_ORDER[job.torqueIdx];
     if (id !== expected) {
-      addBayPenalty(job, 12, 'Torque Sequence Error: Out-of-order lug torquing');
-      showAlert('STAR-PATTERN SEQUENCE ERROR (-$12)', 'Wrong lug! Follow crisscross star torque sequence (1 → 3 → 5 → 2 → 4).');
+      addBayPenalty(job, 12, 'Torque Sequence Error: Out-of-order lug torquing', 6);
+      showAlert('STAR-PATTERN SEQUENCE ERROR (-$12 / -6 REP)', 'Wrong lug! Follow crisscross star torque sequence (1 → 3 → 5 → 2 → 4).');
       renderBay();
       return;
     }
@@ -1020,18 +1078,18 @@ function performRepair(choice) {
   job.lastSpunLug = null;
 
   if (job.dmg.action === 'plug' && choice !== 'plug') {
-    addBayPenalty(job, 20, 'Diagnostic Error: Swapped repairable center-nail tire');
+    addBayPenalty(job, 20, 'Diagnostic Error: Swapped repairable center-nail tire', 10);
     showAlert(
-      'UNNECESSARY TIRE SWAP (-$20)',
+      'UNNECESSARY TIRE SWAP (-$20 / -10 REP)',
       'Center-tread nail punctures are ALWAYS Plug Only. Do not waste a new tire!'
     );
     renderBay();
     return;
   }
   if (job.dmg.action === 'swap' && choice !== 'swap') {
-    addBayPenalty(job, 30, 'Safety Violation: Attempted to plug unrepairable casing');
+    addBayPenalty(job, 30, 'Safety Violation: Attempted to plug unrepairable casing', 15);
     showAlert(
-      'UNSAFE REPAIR REJECTED (-$30)',
+      'UNSAFE REPAIR REJECTED (-$30 / -15 REP)',
       `${job.dmg.title} cannot be plugged safely. You MUST perform a full Tire Swap!`
     );
     renderBay();
@@ -1096,8 +1154,8 @@ function adjustPsi(delta) {
   SoundFX.air();
   job.psi = Math.max(0, Math.min(130, job.psi + delta));
   if (job.psi > job.veh.targetPsi + 10) {
-    addBayPenalty(job, 15, 'Over-Inflation Hazard: Exceeded safe PSI threshold');
-    showAlert('OVER-INFLATION HAZARD (-$15)', `Pressure spiked above ${job.veh.targetPsi + 10} PSI! Bleed air immediately.`);
+    addBayPenalty(job, 15, 'Over-Inflation Hazard: Exceeded safe PSI threshold', 8);
+    showAlert('OVER-INFLATION HAZARD (-$15 / -8 REP)', `Pressure spiked above ${job.veh.targetPsi + 10} PSI! Bleed air immediately.`);
   }
   renderBay();
 }
@@ -1108,8 +1166,8 @@ function lockPsi() {
   job.lastSpunLug = null;
   const t = job.veh.targetPsi;
   if (Math.abs(job.psi - t) > 2) {
-    addBayPenalty(job, 12, 'PSI Calibration Error: Locked pressure out of spec');
-    showAlert('PSI OUT OF SPEC (-$12)', `Calibrate pressure between ${t - 2} and ${t + 2} PSI before torquing lugs.`);
+    addBayPenalty(job, 12, 'PSI Calibration Error: Locked pressure out of spec', 6);
+    showAlert('PSI OUT OF SPEC (-$12 / -6 REP)', `Calibrate pressure between ${t - 2} and ${t + 2} PSI before torquing lugs.`);
     renderBay();
     return;
   }
@@ -1151,13 +1209,16 @@ function completeJob() {
   const speedBonus = isFast ? Math.round(job.pay * 0.2) : 0;
   const totalDeductions = job.penalties;
   const net = Math.max(25, gross + speedBonus - totalDeductions);
-  // Balanced REP pacing: ~32-45 REP per job in Zone 1 so unlocking Zone 2 (350 REP) takes ~9-11 calls
-  const repGain = Math.round((30 + (isFast ? 12 : 0)) * getZone().mult);
-  // Gold Tool Parts drop at 25% rate on clean jobs (or via Elite Contracts / Shop)
+
+  // Corridor REP is directly reduced by Bay & SLA penalties (can even go negative on sloppy runs)
+  const baseRep = Math.round((30 + (isFast ? 12 : 0)) * getZone().mult);
+  const repDeductions = job.repPenalties || 0;
+  const netRep = baseRep - repDeductions;
+  state.rep = Math.max(0, state.rep + netRep);
+
   const gotPart = totalDeductions === 0 && Math.random() < 0.25;
 
   state.cash += net;
-  state.rep += repGain;
   state.jobsCompleted = (state.jobsCompleted || 0) + 1;
   if (totalDeductions === 0) state.streak = (state.streak || 0) + 1;
   else state.streak = 0;
@@ -1172,9 +1233,10 @@ function completeJob() {
     if (ct === 'heavy' && job.veh.heavy) state.contract.progress += 1;
   }
 
-  const jobRating = totalDeductions === 0 ? 5.0 : Math.max(3.5, 4.8 - totalDeductions * 0.02);
+  // Customer Star Rating drops sharply with violations and climbs slowly on clean runs
+  const jobRating = totalDeductions === 0 ? 5.0 : Math.max(2.0, 4.7 - totalDeductions * 0.04);
   state.ratings.push(jobRating);
-  if (state.ratings.length > 20) state.ratings.shift();
+  if (state.ratings.length > 15) state.ratings.shift();
   state.activeJob = null;
 
   if (state.jobs.length < 2) refreshJobs();
@@ -1182,11 +1244,11 @@ function completeJob() {
   updateHUD();
 
   const logHtml = (job.penaltyLog || []).map((p) =>
-    `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--red);"><span>• ${p.reason}</span><span>-$${p.amount}</span></div>`
+    `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--red);"><span>• ${p.reason}</span><span>-$${p.amount} / -${p.repLoss} REP</span></div>`
   ).join('');
 
   openModal(`
-    <span class="badge">DIGITAL CUSTOMER INVOICE</span>
+    <span class="badge">DIGITAL CUSTOMER INVOICE · ${jobRating.toFixed(1)} ★</span>
     <h3>${job.title}</h3>
     <div style="background:#090c12;padding:12px;border-radius:10px;font-size:13px;display:flex;flex-direction:column;gap:6px;">
       <div style="display:flex;justify-content:space-between;"><span>Base Service Payout:</span><strong style="color:var(--green);">+$${gross}</strong></div>
@@ -1194,7 +1256,7 @@ function completeJob() {
       <div style="display:flex;justify-content:space-between;"><span>Bay & SLA Deductions:</span><strong style="color:var(--red);">-$${totalDeductions}</strong></div>
       ${logHtml}
       <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;"><span>Net Collected:</span><strong style="color:var(--green);">$${net}</strong></div>
-      <div style="display:flex;justify-content:space-between;"><span>Corridor Reputation:</span><strong style="color:var(--amber);">+${repGain} REP</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Corridor REP (${baseRep} - ${repDeductions} pen):</span><strong style="color:${netRep >= 0 ? 'var(--amber)' : 'var(--red)'};">${netRep >= 0 ? '+' : ''}${netRep} REP</strong></div>
       ${gotPart ? `<div style="color:var(--amber);font-weight:800;">+1 Gold Tool Part Found (⚙️)</div>` : ''}
     </div>
     <button class="primary-btn" onclick="closeModal(); goPage('dispatch');">RETURN TO DISPATCH</button>
@@ -1222,7 +1284,7 @@ function buyStock(type) {
   updateHUD();
 }
 
-// --- GARAGE & TOOL UPGRADES ---
+// --- GARAGE: DUAL-GATE RIG UNLOCKS (Tool Level Milestone + Cash + Gold Parts + Tokens) ---
 function stepRigPreview(delta) {
   const current = previewRigTier || getRigTier();
   previewRigTier = Math.max(1, Math.min(6, current + delta));
@@ -1239,16 +1301,53 @@ function stepToolPreview(key, delta) {
   renderGarage();
 }
 
-function renderGarage() {
-  const ownedRigTier = getRigTier();
-  if (!previewRigTier) previewRigTier = ownedRigTier;
-  const rig = RIG_TIERS[previewRigTier - 1];
-  const isOwned = previewRigTier <= ownedRigTier;
+function purchaseRigTier(tierNum) {
+  const rig = RIG_TIERS[tierNum - 1];
+  if (!rig) return;
+  if (state.unlockedRigTier >= tierNum) return;
+  if (state.unlockedRigTier !== tierNum - 1) {
+    showAlert('SEQUENTIAL RIG UNLOCK', `Unlock Tier ${tierNum - 1} first before commissioning Tier ${tierNum}.`);
+    return;
+  }
+  if (getMinToolLevel() < rig.reqLvl) {
+    showAlert('TOOL MILESTONE REQUIRED', `Upgrade all 4 tools to Level ${rig.reqLvl}+ before unlocking ${rig.name}.`);
+    return;
+  }
+  if (state.cash < rig.cashCost || state.parts < rig.partCost || state.tokens < rig.tokenCost) {
+    showAlert(
+      'INSUFFICIENT RIG COMMISSION RESOURCES',
+      `${rig.name} requires $${rig.cashCost.toLocaleString()} Cash, ${rig.partCost} ⚙️ Gold Parts, and ${rig.tokenCost} ⚡ Dispatch Tokens.`
+    );
+    return;
+  }
+  state.cash -= rig.cashCost;
+  state.parts -= rig.partCost;
+  state.tokens -= rig.tokenCost;
+  state.unlockedRigTier = tierNum;
+  SoundFX.success();
+  saveState();
+  updateHUD();
+  renderGarage();
+  openModal(`
+    <span class="badge">NEW SERVICE RIG COMMISSIONED</span>
+    <h3>${rig.name}</h3>
+    <p style="font-size:13px;color:var(--muted);">${rig.perk}</p>
+    <button class="primary-btn" onclick="closeModal()">ROLL OUT NEW RIG</button>
+  `);
+}
 
-  const heroTop = document.querySelector('.rig-hero-top');
+function renderGarage() {
+  const activeRigTier = getRigTier();
+  if (!previewRigTier) previewRigTier = activeRigTier;
+  const rig = RIG_TIERS[previewRigTier - 1];
+  const isUnlocked = previewRigTier <= (state.unlockedRigTier || 1);
+  const meetsTools = getMinToolLevel() >= rig.reqLvl;
+
+  const heroCard = document.querySelector('.rig-hero');
+  const heroTop = heroCard.querySelector('.rig-hero-top');
   heroTop.innerHTML = `
     <div>
-      <span class="badge">${isOwned ? 'UNLOCKED SERVICE RIG' : `LOCKED · ${rig.req.toUpperCase()}`}</span>
+      <span class="badge">${isUnlocked ? 'COMMISSIONED FLEET RIG' : meetsTools ? 'READY TO COMMISSION' : `REQUIRES ${rig.req.toUpperCase()}`}</span>
       <h3 style="font-size:15px;margin-top:4px;">${rig.name}</h3>
     </div>
     <div class="carousel-nav">
@@ -1264,6 +1363,25 @@ function renderGarage() {
   rigFb.innerHTML = renderRigSVG(rig);
   rigImg.src = rig.img;
   document.getElementById('rig-perk').textContent = `${rig.perk} (${rig.req})`;
+
+  let unlockBtn = document.getElementById('rig-commission-btn');
+  if (!unlockBtn) {
+    unlockBtn = document.createElement('button');
+    unlockBtn.id = 'rig-commission-btn';
+    unlockBtn.className = 'primary-btn';
+    unlockBtn.style.marginTop = '8px';
+    heroCard.appendChild(unlockBtn);
+  }
+  if (isUnlocked) {
+    unlockBtn.disabled = true;
+    unlockBtn.textContent = `✓ ACTIVE FLEET RIG (${rig.mult.toFixed(2)}x PAYOUTS)`;
+  } else {
+    unlockBtn.disabled = !meetsTools || previewRigTier !== (state.unlockedRigTier + 1);
+    unlockBtn.onclick = () => purchaseRigTier(previewRigTier);
+    unlockBtn.textContent = meetsTools
+      ? `COMMISSION RIG: $${rig.cashCost.toLocaleString()} + ${rig.partCost} ⚙️ + ${rig.tokenCost} ⚡`
+      : `LOCKED · UPGRADE ALL TOOLS TO LVL ${rig.reqLvl}+ ($${rig.cashCost.toLocaleString()} + ${rig.partCost}⚙️ + ${rig.tokenCost}⚡)`;
+  }
 
   const list = document.getElementById('tool-list');
   list.innerHTML = Object.entries(state.tools).map(([key, tool]) => {
@@ -1319,16 +1437,15 @@ function upgradeTool(key) {
   tool.level += 1;
   const newOwnedTier = Math.min(6, Math.floor((tool.level - 1) / 4) + 1);
   previewToolTiers[key] = newOwnedTier;
-  previewRigTier = getRigTier();
   SoundFX.success();
   saveState();
   updateHUD();
   renderGarage();
 }
 
-// --- TUNED LEADERBOARD MATH (Dynamic Division Scaling Across 0 to 50,000+ REP) ---
+// --- TUNED LEADERBOARD MATH ---
 function renderLeague() {
-  document.getElementById('league-rep').textContent = state.rep;
+  document.getElementById('league-rep').textContent = state.rep.toLocaleString();
 
   const divisionIndex = Math.min(5, Math.floor(state.rep / 3000));
   const divisionNames = [
@@ -1340,7 +1457,6 @@ function renderLeague() {
     'APEX SYNDICATE DIVISION'
   ];
 
-  // Rivals scale dynamically around the player's current REP tier so climbing feels competitive and fair
   const anchor = Math.max(0, divisionIndex * 3000);
   const rivals = [
     { name: 'Southside_Rescue', avatar: '🔧', rep: anchor + 180 },
@@ -1420,7 +1536,7 @@ function selectZone(id) {
   goPage('dispatch');
 }
 
-// --- REWARDED ADS & DUAL-CURRENCY SHOP (Clear Separation: ⚡ Tactical Tokens vs ⚙️ Gold Tool Parts) ---
+// --- REWARDED ADS & DUAL-CURRENCY SHOP ---
 function watchRewardedAd(type) {
   openModal(`
     <span class="badge">SPONSORED TRANSMISSION</span>
