@@ -35,50 +35,29 @@ function status(message, error = false) {
   }
 }
 function accountCard() {
-  if (document.getElementById("cloud-account-card")) return;
-  const drawer = document.getElementById("menu-drawer");
-  if (!drawer) return;
-  const card = document.createElement("section");
-  card.id = "cloud-account-card";
-  card.style.cssText = "background:#090c12;border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:7px;";
-  card.innerHTML = `
-    <div style="font-size:12px;font-weight:900;color:var(--amber);">CLOUD CAREER SAVE</div>
-    <div id="cloud-account-status" role="status" style="font-size:11px;color:var(--muted);">Checking account status…</div>
-    <div id="cloud-signed-out">
-      <input id="cloud-email" type="email" autocomplete="email" placeholder="Email address"
-        style="box-sizing:border-box;width:100%;padding:9px;border-radius:7px;border:1px solid var(--border);background:#111827;color:var(--text);font-size:12px;" />
-      <input id="cloud-password" type="password" autocomplete="current-password" placeholder="Password (6+ characters)"
-        style="box-sizing:border-box;width:100%;padding:9px;border-radius:7px;border:1px solid var(--border);background:#111827;color:var(--text);font-size:12px;" />
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-        <button id="cloud-create" type="button" class="primary-btn" style="font-size:11px;padding:9px;">CREATE ACCOUNT</button>
-        <button id="cloud-signin" type="button" class="secondary-btn" style="font-size:11px;padding:9px;">SIGN IN</button>
-      </div>
-      <button id="cloud-reset" type="button" class="ghost-btn" style="font-size:11px;">Forgot password?</button>
-    </div>
-    <div id="cloud-signed-in" hidden>
-      <div id="cloud-user-email" style="font-size:11px;overflow-wrap:anywhere;"></div>
-      <button id="cloud-signout" type="button" class="secondary-btn" style="font-size:11px;padding:9px;">SIGN OUT</button>
-    </div>`;
-  const stats = document.querySelector("#menu-drawer .drawer-stats");
-  if (stats && stats.nextSibling) drawer.insertBefore(card, stats.nextSibling);
-  else drawer.prepend(card);
-
-  document.getElementById("cloud-create").addEventListener("click", async () => {
+  const card = document.getElementById("cloud-account-card");
+  if (!card || card.dataset.bound === "true") return;
+  card.dataset.bound = "true";
+  const create = document.getElementById("cloud-create");
+  const signin = document.getElementById("cloud-signin");
+  const reset = document.getElementById("cloud-reset");
+  const signout = document.getElementById("cloud-signout");
+  create?.addEventListener("click", async () => {
     const { email, password } = credentials();
     if (!email || password.length < 6) return status("Enter a valid email and a password of at least 6 characters.", true);
     await runAuth(() => createUserWithEmailAndPassword(auth, email, password), "Creating account…");
   });
-  document.getElementById("cloud-signin").addEventListener("click", async () => {
+  signin?.addEventListener("click", async () => {
     const { email, password } = credentials();
     if (!email || !password) return status("Enter your email and password.", true);
     await runAuth(() => signInWithEmailAndPassword(auth, email, password), "Signing in…");
   });
-  document.getElementById("cloud-reset").addEventListener("click", async () => {
+  reset?.addEventListener("click", async () => {
     const { email } = credentials();
     if (!email) return status("Enter your email first, then choose Forgot password.", true);
     await runAuth(() => sendPasswordResetEmail(auth, email), "Sending password-reset email…", "Password-reset email sent. Check your inbox.");
   });
-  document.getElementById("cloud-signout").addEventListener("click", async () => {
+  signout?.addEventListener("click", async () => {
     await runAuth(() => signOut(auth), "Signing out…", "Signed out. This device's local career is still saved.");
   });
 }
@@ -250,10 +229,8 @@ window.DelWinCloud = { queueSave, keepLocal, keepCloud, signOut: () => signOut(a
 window.addEventListener("online", () => {
   if (currentUser) reconcile(currentUser);
 });
-document.addEventListener("DOMContentLoaded", () => {
-  window.ensureMenuDrawerElements?.();
-  accountCard();
-  onAuthStateChanged(auth, user => {
+accountCard();
+onAuthStateChanged(auth, user => {
     currentUser = user;
     syncReady = false;
     const signedOut = document.getElementById("cloud-signed-out");
@@ -264,5 +241,4 @@ document.addEventListener("DOMContentLoaded", () => {
     if (email) email.textContent = user ? `Signed in as ${user.email || "player"}` : "";
     if (user) reconcile(user);
     else status("Sign in to back up your career across devices.");
-  });
 });
