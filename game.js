@@ -11,38 +11,38 @@ const RIG_TIERS = [
 ];
 
 const ZONES = [
-  { id: 'z1', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 North Perimeter', mult: 1.00, unlockRep: 0, desc: 'Steady commuter flats and shoulder punctures.' },
-  { id: 'z2', hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.12, unlockRep: 350, desc: 'High-density commuter & SUV roadside calls.' },
-  { id: 'z3', hub: 'HUB 1 · ATLANTA METRO', name: 'GA-400 Buckhead Express', mult: 1.24, unlockRep: 850, desc: 'Luxury sedans and evening rush-hour flats.' },
-  { id: 'z4', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 Airport South Loop', mult: 1.36, unlockRep: 1500, desc: 'Shuttle vans, pickups, and cargo sprinters.' },
-  { id: 'z5', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-20 West Freight Corridor', mult: 1.50, unlockRep: 2300, desc: 'Commercial box trucks and highway blowouts.' },
-  { id: 'z6', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-85 Gwinnett Logistics', mult: 1.64, unlockRep: 3250, desc: 'Distribution hub semi-trailers & duals.' },
-  { id: 'z7', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-75 Macon Bypass', mult: 1.78, unlockRep: 4350, desc: 'Long-haul freight and heavy pickup rescues.' },
-  { id: 'z8', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-16 Central Freightway', mult: 1.92, unlockRep: 5600, desc: 'High-speed interstate retread delaminations.' },
-  { id: 'z9', hub: 'HUB 3 · COASTAL PORTS', name: 'Savannah Port Gate 1', mult: 2.08, unlockRep: 7000, desc: '18-wheeler port containers and dock gashes.' },
-  { id: 'z10', hub: 'HUB 3 · COASTAL PORTS', name: 'Talmadge Bridge Approach', mult: 2.24, unlockRep: 8550, desc: 'Heavy container tractor-trailers.' },
-  { id: 'z11', hub: 'HUB 3 · COASTAL PORTS', name: 'Brunswick Auto Terminal', mult: 2.40, unlockRep: 10250, desc: 'Fleet carriers and multi-axle haulers.' },
-  { id: 'z12', hub: 'HUB 3 · COASTAL PORTS', name: 'Pooler Logistics Park', mult: 2.58, unlockRep: 12100, desc: '24/7 commercial warehouse dispatch grid.' },
-  { id: 'z13', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-95 Coastal Freightway', mult: 2.76, unlockRep: 14100, desc: 'Interstate night-shift emergency fleet calls.' },
-  { id: 'z14', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-26 Charleston Spur', mult: 2.94, unlockRep: 16250, desc: 'Port-to-inland heavy commercial rigs.' },
-  { id: 'z15', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-77 Charlotte Corridor', mult: 3.12, unlockRep: 18550, desc: 'High-speed regional freight & VIP calls.' },
-  { id: 'z16', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-40 Piedmont Ridge', mult: 3.30, unlockRep: 21000, desc: 'Steep-grade heavy truck tire blowouts.' },
-  { id: 'z17', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Jacksonville Interchange', mult: 3.50, unlockRep: 23650, desc: 'Cross-country 18-wheeler hub.' },
-  { id: 'z18', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-65 Mobile Bayway', mult: 3.70, unlockRep: 26500, desc: 'Coastal bridge heavy-duty rescue.' },
-  { id: 'z19', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Baton Rouge Refinery', mult: 3.90, unlockRep: 29550, desc: 'Industrial tanker & commercial fleet calls.' },
-  { id: 'z20', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-45 Houston Ship Channel', mult: 4.12, unlockRep: 32800, desc: 'Maximum-volume freight tire emergencies.' },
-  { id: 'z21', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Night-Shift Sector A', mult: 4.35, unlockRep: 36300, desc: 'Executive fleet & high-priority contracts.' },
-  { id: 'z22', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Heavy Convoy Lane', mult: 4.60, unlockRep: 40000, desc: 'Multi-rig commercial rescue operations.' },
-  { id: 'z23', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Interstate Command', mult: 4.85, unlockRep: 44000, desc: 'Elite zero-margin-for-error dispatches.' },
-  { id: 'z24', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Pinnacle Terminal', mult: 5.15, unlockRep: 48500, desc: 'Top-tier syndicate payouts across all classes.' }
+  { id: 'z1', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 North Perimeter', mult: 1.00, unlockRep: 0, rustChance: 0.15, desc: 'Steady commuter flats and shoulder punctures.' },
+  { id: 'z2', hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.12, unlockRep: 350, rustChance: 0.20, desc: 'High-density commuter & SUV roadside calls.' },
+  { id: 'z3', hub: 'HUB 1 · ATLANTA METRO', name: 'GA-400 Buckhead Express', mult: 1.24, unlockRep: 850, rustChance: 0.22, desc: 'Luxury sedans and evening rush-hour flats.' },
+  { id: 'z4', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 Airport South Loop', mult: 1.36, unlockRep: 1500, rustChance: 0.28, desc: 'Shuttle vans, pickups, and cargo sprinters.' },
+  { id: 'z5', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-20 West Freight Corridor', mult: 1.50, unlockRep: 2300, rustChance: 0.35, desc: 'Commercial box trucks and highway blowouts.' },
+  { id: 'z6', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-85 Gwinnett Logistics', mult: 1.64, unlockRep: 3250, rustChance: 0.38, desc: 'Distribution hub semi-trailers & duals.' },
+  { id: 'z7', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-75 Macon Bypass', mult: 1.78, unlockRep: 4350, rustChance: 0.40, desc: 'Long-haul freight and heavy pickup rescues.' },
+  { id: 'z8', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-16 Central Freightway', mult: 1.92, unlockRep: 5600, rustChance: 0.44, desc: 'High-speed interstate retread delaminations.' },
+  { id: 'z9', hub: 'HUB 3 · COASTAL PORTS', name: 'Savannah Port Gate 1', mult: 2.08, unlockRep: 7000, rustChance: 0.55, desc: 'Salt-air 18-wheeler port containers & seized lugs.' },
+  { id: 'z10', hub: 'HUB 3 · COASTAL PORTS', name: 'Talmadge Bridge Approach', mult: 2.24, unlockRep: 8550, rustChance: 0.58, desc: 'Heavy container tractor-trailers.' },
+  { id: 'z11', hub: 'HUB 3 · COASTAL PORTS', name: 'Brunswick Auto Terminal', mult: 2.40, unlockRep: 10250, rustChance: 0.60, desc: 'Fleet carriers and multi-axle haulers.' },
+  { id: 'z12', hub: 'HUB 3 · COASTAL PORTS', name: 'Pooler Logistics Park', mult: 2.58, unlockRep: 12100, rustChance: 0.62, desc: '24/7 commercial warehouse dispatch grid.' },
+  { id: 'z13', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-95 Coastal Freightway', mult: 2.76, unlockRep: 14100, rustChance: 0.65, desc: 'Interstate night-shift emergency fleet calls.' },
+  { id: 'z14', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-26 Charleston Spur', mult: 2.94, unlockRep: 16250, rustChance: 0.65, desc: 'Port-to-inland heavy commercial rigs.' },
+  { id: 'z15', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-77 Charlotte Corridor', mult: 3.12, unlockRep: 18550, rustChance: 0.68, desc: 'High-speed regional freight & VIP calls.' },
+  { id: 'z16', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-40 Piedmont Ridge', mult: 3.30, unlockRep: 21000, rustChance: 0.70, desc: 'Steep-grade heavy truck tire blowouts.' },
+  { id: 'z17', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Jacksonville Interchange', mult: 3.50, unlockRep: 23650, rustChance: 0.72, desc: 'Cross-country 18-wheeler hub.' },
+  { id: 'z18', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-65 Mobile Bayway', mult: 3.70, unlockRep: 26500, rustChance: 0.75, desc: 'Coastal bridge heavy-duty rescue.' },
+  { id: 'z19', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Baton Rouge Refinery', mult: 3.90, unlockRep: 29550, rustChance: 0.76, desc: 'Industrial tanker & commercial fleet calls.' },
+  { id: 'z20', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-45 Houston Ship Channel', mult: 4.12, unlockRep: 32800, rustChance: 0.78, desc: 'Maximum-volume freight tire emergencies.' },
+  { id: 'z21', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Night-Shift Sector A', mult: 4.35, unlockRep: 36300, rustChance: 0.80, desc: 'Executive fleet & high-priority contracts.' },
+  { id: 'z22', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Heavy Convoy Lane', mult: 4.60, unlockRep: 40000, rustChance: 0.82, desc: 'Multi-rig commercial rescue operations.' },
+  { id: 'z23', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Interstate Command', mult: 4.85, unlockRep: 44000, rustChance: 0.85, desc: 'Elite zero-margin-for-error dispatches.' },
+  { id: 'z24', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Pinnacle Terminal', mult: 5.15, unlockRep: 48500, rustChance: 0.88, desc: 'Top-tier syndicate payouts across all classes.' }
 ];
 
 const VEHICLES = [
-  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, basePay: 75, targetPsi: 35, timeSec: 85, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
-  { id: 'suv', label: 'FAMILY SUV', heavy: false, basePay: 88, targetPsi: 36, timeSec: 80, bodyColor: '#475569', img: 'assets/veh-suv.png' },
-  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, basePay: 100, targetPsi: 40, timeSec: 75, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
-  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, basePay: 155, targetPsi: 95, timeSec: 95, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
-  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, basePay: 195, targetPsi: 105, timeSec: 105, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
+  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, basePay: 75, targetPsi: 35, timeSec: 85, axleWeight: 1.0, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
+  { id: 'suv', label: 'FAMILY SUV', heavy: false, basePay: 88, targetPsi: 36, timeSec: 80, axleWeight: 1.15, bodyColor: '#475569', img: 'assets/veh-suv.png' },
+  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, basePay: 100, targetPsi: 40, timeSec: 75, axleWeight: 1.30, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
+  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, basePay: 155, targetPsi: 95, timeSec: 95, axleWeight: 1.75, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
+  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, basePay: 195, targetPsi: 105, timeSec: 105, axleWeight: 2.10, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
 ];
 
 const DAMAGES = [
@@ -106,6 +106,10 @@ const LUG_COORDS = [
 const STAR_ORDER = [1, 3, 5, 2, 4];
 const AVATAR_PRESETS = ['🛞', '🚛', '🔧', '⚡', '🏆', '🔥', '🛡️', '👑'];
 
+// Dispatch Radar Scan Cooldown: 2 free charges max, 1 recharges every 2 hours
+const MAX_DISPATCH_SCANS = 2;
+const SCAN_RECHARGE_MS = 2 * 60 * 60 * 1000;
+
 let state = {
   bizName: 'DelWin Mobile Tire Rescue',
   avatarEmoji: '🛞',
@@ -115,6 +119,8 @@ let state = {
   parts: 0,
   rep: 0,
   unlockedRigTier: 1,
+  dispatchScans: 2,
+  lastScanRechargeAt: Date.now(),
   streak: 0,
   jobsCompleted: 0,
   zoneId: 'z1',
@@ -149,6 +155,7 @@ let state = {
 let previewRigTier = null;
 let previewToolTiers = {};
 let bayTimerInterval = null;
+let dispatchCooldownInterval = null;
 let spinClearTimeout = null;
 
 function loadState() {
@@ -166,6 +173,8 @@ function loadState() {
     if (!state.bizName) state.bizName = 'DelWin Mobile Tire Rescue';
     if (!state.avatarEmoji) state.avatarEmoji = '🛞';
     if (!state.unlockedRigTier) state.unlockedRigTier = 1;
+    if (typeof state.dispatchScans !== 'number') state.dispatchScans = MAX_DISPATCH_SCANS;
+    if (!state.lastScanRechargeAt) state.lastScanRechargeAt = Date.now();
   } catch (e) {}
 }
 
@@ -173,7 +182,36 @@ function saveState() {
   try { localStorage.setItem('delwin_v4_save', JSON.stringify(state)); } catch (e) {}
 }
 
-// Active Rig Tier is gated by BOTH Tool Level Milestone AND Rig Purchase
+function syncDispatchScanRecharge() {
+  if (state.dispatchScans >= MAX_DISPATCH_SCANS) {
+    state.dispatchScans = MAX_DISPATCH_SCANS;
+    state.lastScanRechargeAt = Date.now();
+    return 0;
+  }
+  const now = Date.now();
+  const elapsed = now - state.lastScanRechargeAt;
+  if (elapsed >= SCAN_RECHARGE_MS) {
+    const gained = Math.floor(elapsed / SCAN_RECHARGE_MS);
+    state.dispatchScans = Math.min(MAX_DISPATCH_SCANS, state.dispatchScans + gained);
+    if (state.dispatchScans >= MAX_DISPATCH_SCANS) {
+      state.lastScanRechargeAt = now;
+      return 0;
+    } else {
+      state.lastScanRechargeAt += gained * SCAN_RECHARGE_MS;
+    }
+  }
+  return Math.max(0, SCAN_RECHARGE_MS - (Date.now() - state.lastScanRechargeAt));
+}
+
+function formatMs(ms) {
+  const totalSec = Math.ceil(ms / 1000);
+  const hrs = Math.floor(totalSec / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = totalSec % 60;
+  if (hrs > 0) return `${hrs}h ${String(mins).padStart(2, '0')}m`;
+  return `${mins}m ${String(secs).padStart(2, '0')}s`;
+}
+
 function getRigTier() {
   const maxByTools = Math.min(6, Math.floor((getMinToolLevel() - 1) / 4) + 1);
   return Math.min(state.unlockedRigTier || 1, maxByTools);
@@ -191,7 +229,6 @@ function getRatingAvg() {
   return state.ratings.reduce((a, b) => a + b, 0) / state.ratings.length;
 }
 
-// Star Rating Tier Mechanics: directly drives Payout Multiplier, VIP Spawn Rate & Tip Bonus
 function getRatingTierInfo() {
   const avg = getRatingAvg();
   if (avg >= 4.8) return { label: 'ELITE 5-STAR', mult: 1.15, bonusPct: '+15%', vipChance: 0.45, color: '#10b981' };
@@ -200,10 +237,31 @@ function getRatingTierInfo() {
   return { label: 'PROBATION', mult: 0.85, bonusPct: '-15%', vipChance: 0.0, color: '#ef4444' };
 }
 
+function getToolEffectSummary(key, level) {
+  if (key === 'impact') {
+    const breakPower = 1 + Math.floor((level - 1) / 4);
+    return `Breaks ${breakPower} rust layer${breakPower > 1 ? 's' : ''}/tap · Fast spin-off`;
+  }
+  if (key === 'jack') {
+    const liftForce = 26 + level * 4;
+    return `Lift Force: ${liftForce}%/pump (Crushes heavy commercial axles)`;
+  }
+  if (key === 'comp') {
+    const psiStep = 4 + Math.floor((level - 1) / 3);
+    const tol = 2 + Math.floor((level - 1) / 8);
+    return `+${psiStep} PSI/tap · ±${tol} PSI green tolerance band`;
+  }
+  if (key === 'radar') {
+    const extraSec = (level - 1) * 2;
+    return `+${extraSec}s SLA Buffer · Previews rusted lugs & axle weight`;
+  }
+  return '';
+}
+
 function injectCustomStyles() {
-  if (document.getElementById('delwin-v43-styles')) return;
+  if (document.getElementById('delwin-v44-styles')) return;
   const st = document.createElement('style');
-  st.id = 'delwin-v43-styles';
+  st.id = 'delwin-v44-styles';
   st.textContent = `
     .stage-cones {
       position: absolute; bottom: 28px; right: 16px;
@@ -218,19 +276,80 @@ function injectCustomStyles() {
       border-bottom: 2px solid #090c12;
     }
     .stage-cones.set .cone-item { box-shadow: 0 0 8px rgba(249, 115, 22, 0.7); }
-    .ctrl-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+
+    /* Dark-themed Inventory Buttons (No white browser defaults) */
+    .dw-stock-btn {
+      background: #0f172a !important;
+      color: #f8fafc !important;
+      border: 1px solid #334155 !important;
+      border-radius: 10px !important;
+      padding: 8px 4px !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      line-height: 1.35 !important;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      text-align: center;
+    }
+    .dw-stock-btn:active { background: #1e293b !important; transform: scale(0.98); }
+    .dw-stock-btn.low { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.12) !important; }
+
+    /* Rusted / Seized Lug Styling */
+    .lug-btn.rusted {
+      background: radial-gradient(circle, #9a3412 30%, #431407 95%) !important;
+      border: 2px dashed #f97316 !important;
+      color: #ffedd5 !important;
+      box-shadow: 0 0 8px rgba(234, 88, 12, 0.65);
+    }
+
+    /* Garage Vector + Image Hybrid Showcase */
+    .rig-visual-box {
+      position: relative; width: 100%; height: 104px;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle at 50% 70%, rgba(245, 158, 11, 0.12), transparent 72%);
+      border-radius: 10px; margin: 6px 0; overflow: hidden;
+    }
+    .rig-visual-box img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: contain; z-index: 2;
+    }
+    .tool-thumb-hybrid {
+      position: relative; width: 54px; height: 54px; border-radius: 10px;
+      background: #090c12; border: 1px solid #334155;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; overflow: hidden;
+    }
+    .tool-thumb-hybrid img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: contain; z-index: 2; background: #090c12;
+    }
+
+    /* Top Header Player Command Bar */
+    .player-hud-left {
+      display: flex; align-items: center; gap: 8px;
+      cursor: pointer; min-width: 0; flex: 1;
+    }
+    .hud-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #1e293b; border: 1.5px solid var(--amber);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; overflow: hidden; flex-shrink: 0;
+    }
+    .hud-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .hud-curr-row {
+      display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+    }
+    .hud-pill-compact {
+      background: #0f172a; border: 1px solid #334155;
+      padding: 4px 7px; border-radius: 8px;
+      font-size: 11px; font-weight: 800; white-space: nowrap;
+    }
+
     .profile-pill {
       display: flex; align-items: center; gap: 8px;
       background: #0f172a; border: 1px solid var(--border);
       padding: 8px 10px; border-radius: 10px; margin-bottom: 8px;
     }
-    .profile-avatar {
-      width: 34px; height: 34px; border-radius: 50%;
-      background: #1e293b; border: 1.5px solid var(--amber);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; overflow: hidden; flex-shrink: 0;
-    }
-    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 8px 0; }
     .emoji-opt {
       padding: 8px; font-size: 20px; border-radius: 8px;
@@ -241,10 +360,43 @@ function injectCustomStyles() {
   document.head.appendChild(st);
 }
 
-// --- PLAYER PROFILE & BUSINESS NAME EDITOR ---
+// --- TOP HEADER PLAYER COMMAND BAR + DRAWER BRANDING ---
+function renderTopHeader() {
+  const topBar = document.querySelector('.top-bar') || document.querySelector('header');
+  if (!topBar) return;
+  const avatarHtml = state.avatarImg
+    ? `<img src="${state.avatarImg}" alt="Logo" />`
+    : `<span>${state.avatarEmoji}</span>`;
+  const ratingAvg = getRatingAvg().toFixed(1);
+
+  topBar.innerHTML = `
+    <div class="player-hud-left" onclick="openProfileEditor()" title="Tap to edit Business Name & Logo">
+      <div class="hud-avatar">${avatarHtml}</div>
+      <div style="min-width:0;">
+        <div style="font-size:12px;font-weight:900;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:118px;">
+          ${state.bizName}
+        </div>
+        <div style="font-size:10px;font-weight:700;color:var(--amber);">
+          T${getRigTier()} · ${ratingAvg} ★
+        </div>
+      </div>
+    </div>
+    <div class="hud-curr-row">
+      <div class="hud-pill-compact" style="color:var(--green);">$<span id="hud-cash">${state.cash.toLocaleString()}</span></div>
+      <div class="hud-pill-compact" style="color:var(--amber);"><span id="hud-parts">${state.parts}</span> ⚙️</div>
+      <div class="hud-pill-compact" style="color:#38bdf8;"><span id="hud-tokens">${state.tokens}</span> ⚡</div>
+      <button class="icon-btn" onclick="toggleDrawer(true)" style="padding:6px 9px;font-size:15px;">☰</button>
+    </div>
+  `;
+}
+
 function renderProfileCard() {
   const drawer = document.getElementById('menu-drawer');
   if (!drawer) return;
+  const drawerTitle = drawer.querySelector('.drawer-header strong') || drawer.querySelector('.drawer-header h3');
+  if (drawerTitle) {
+    drawerTitle.innerHTML = `DELWIN MOBILE<br><span style="font-size:10px;color:var(--amber);font-weight:700;">ROADSIDE TIRE RESCUE</span>`;
+  }
   let card = document.getElementById('biz-profile-card');
   if (!card) {
     card = document.createElement('div');
@@ -258,7 +410,7 @@ function renderProfileCard() {
     : `<span>${state.avatarEmoji}</span>`;
   card.innerHTML = `
     <div class="profile-pill">
-      <div class="profile-avatar">${avatarHtml}</div>
+      <div class="hud-avatar">${avatarHtml}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${state.bizName}</div>
         <div style="font-size:11px;color:var(--amber);">Tier ${getRigTier()} Rig · ${state.rep.toLocaleString()} REP</div>
@@ -308,7 +460,7 @@ function handleAvatarUpload(e) {
       ctx.drawImage(img, 0, 0, 96, 96);
       state.avatarImg = canvas.toDataURL('image/jpeg', 0.8);
       saveState();
-      renderProfileCard();
+      updateHUD();
       if (document.getElementById('page-league').classList.contains('active')) renderLeague();
     };
     img.src = ev.target.result;
@@ -398,21 +550,64 @@ function renderContractBanner() {
   `;
 }
 
-// --- SVG FALLBACKS ---
+// --- HIGH-DETAIL VECTOR GRAPHICS (Guaranteed Render in Garage & Bay) ---
 function renderRigSVG(tierObj) {
+  const t = tierObj.tier;
+  const isBox = t >= 5;
+  const isDually = t >= 4;
   return `
-    <svg viewBox="0 0 260 95" width="240" height="88">
-      <ellipse cx="130" cy="86" rx="108" ry="6" fill="rgba(0,0,0,0.6)"/>
-      <rect x="32" y="26" width="136" height="44" rx="8" fill="#1e293b" stroke="${tierObj.color}" stroke-width="2.5"/>
-      <path d="M168 34 L212 34 L228 52 L228 70 L168 70 Z" fill="#0f172a" stroke="${tierObj.color}" stroke-width="2.5"/>
-      <polygon points="174,38 206,38 218,51 174,51" fill="#38bdf8" opacity="0.45"/>
-      <rect x="85" y="18" width="38" height="7" rx="3" fill="#f59e0b"/>
-      <text x="52" y="53" fill="#f59e0b" font-size="13" font-weight="900" font-family="sans-serif">DELWIN T${tierObj.tier}</text>
-      <circle cx="68" cy="73" r="14" fill="#090c12" stroke="#94a3b8" stroke-width="3"/>
-      <circle cx="68" cy="73" r="6" fill="${tierObj.color}"/>
-      <circle cx="196" cy="73" r="14" fill="#090c12" stroke="#94a3b8" stroke-width="3"/>
-      <circle cx="196" cy="73" r="6" fill="${tierObj.color}"/>
+    <svg viewBox="0 0 280 100" width="260" height="92">
+      <ellipse cx="140" cy="90" rx="116" ry="6" fill="rgba(0,0,0,0.65)"/>
+      ${isBox
+        ? `<rect x="28" y="20" width="144" height="54" rx="6" fill="#1e293b" stroke="${tierObj.color}" stroke-width="2.5"/>
+           <line x1="34" y1="36" x2="166" y2="36" stroke="${tierObj.color}" stroke-width="1.5" opacity="0.6"/>`
+        : `<rect x="34" y="34" width="136" height="40" rx="7" fill="#1e293b" stroke="${tierObj.color}" stroke-width="2.5"/>
+           ${t >= 3 ? `<circle cx="58" cy="28" r="11" fill="#0f172a" stroke="#94a3b8" stroke-width="2.5"/><circle cx="84" cy="28" r="11" fill="#0f172a" stroke="#94a3b8" stroke-width="2.5"/>` : ''}`
+      }
+      <path d="M172 34 L216 34 L236 54 L236 74 L172 74 Z" fill="#0f172a" stroke="${tierObj.color}" stroke-width="2.5"/>
+      <polygon points="178,39 211,39 225,53 178,53" fill="#38bdf8" opacity="0.5"/>
+      <rect x="178" y="26" width="28" height="6" rx="3" fill="#f59e0b"/>
+      <text x="50" y="56" fill="#f8fafc" font-size="13" font-weight="900" font-family="sans-serif">DELWIN T${t}</text>
+      <text x="50" y="68" fill="${tierObj.color}" font-size="9" font-weight="800" font-family="sans-serif">${tierObj.mult.toFixed(2)}X FLEET</text>
+      <circle cx="68" cy="76" r="15" fill="#090c12" stroke="#94a3b8" stroke-width="3"/>
+      <circle cx="68" cy="76" r="6" fill="${tierObj.color}"/>
+      ${isDually ? `<circle cx="102" cy="76" r="15" fill="#090c12" stroke="#94a3b8" stroke-width="3"/><circle cx="102" cy="76" r="6" fill="${tierObj.color}"/>` : ''}
+      <circle cx="204" cy="76" r="15" fill="#090c12" stroke="#94a3b8" stroke-width="3"/>
+      <circle cx="204" cy="76" r="6" fill="${tierObj.color}"/>
     </svg>`;
+}
+
+function renderToolSVG(key, tier) {
+  const colors = ['#cbd5e1', '#38bdf8', '#f59e0b', '#a855f7', '#ef4444', '#fde047'];
+  const c = colors[(tier - 1) % colors.length];
+  if (key === 'impact') {
+    return `<svg viewBox="0 0 60 60" width="46" height="46">
+      <rect x="12" y="16" width="30" height="14" rx="4" fill="#1e293b" stroke="${c}" stroke-width="2.5"/>
+      <rect x="42" y="20" width="10" height="6" rx="2" fill="${c}"/>
+      <path d="M20 30 L16 48 L26 48 L29 30 Z" fill="#334155" stroke="${c}" stroke-width="2"/>
+    </svg>`;
+  }
+  if (key === 'jack') {
+    return `<svg viewBox="0 0 60 60" width="46" height="46">
+      <rect x="10" y="42" width="36" height="7" rx="3" fill="#1e293b" stroke="${c}" stroke-width="2.5"/>
+      <line x1="22" y1="42" x2="36" y2="24" stroke="${c}" stroke-width="4" stroke-linecap="round"/>
+      <rect x="30" y="19" width="12" height="5" rx="2" fill="#f8fafc"/>
+      <line x1="12" y1="42" x2="6" y2="16" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>`;
+  }
+  if (key === 'comp') {
+    return `<svg viewBox="0 0 60 60" width="46" height="46">
+      <rect x="12" y="22" width="36" height="22" rx="10" fill="#1e293b" stroke="${c}" stroke-width="2.5"/>
+      <circle cx="30" cy="15" r="6" fill="#0f172a" stroke="${c}" stroke-width="2"/>
+      <line x1="30" y1="15" x2="33" y2="12" stroke="#f8fafc" stroke-width="1.5"/>
+    </svg>`;
+  }
+  return `<svg viewBox="0 0 60 60" width="46" height="46">
+    <circle cx="30" cy="30" r="18" fill="#0f172a" stroke="${c}" stroke-width="2.5"/>
+    <circle cx="30" cy="30" r="10" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <circle cx="30" cy="30" r="3" fill="#f8fafc"/>
+    <line x1="30" y1="30" x2="43" y2="19" stroke="#10b981" stroke-width="2"/>
+  </svg>`;
 }
 
 function renderVehicleSVG(veh) {
@@ -458,12 +653,11 @@ function renderTireSVG(job, size = 130) {
     </svg>`;
 }
 
-// --- INVENTORY & HUD (Explicitly Separated Standard vs Heavy-Duty Tires) ---
+// --- INVENTORY & DISPATCH SCAN BAR (Dark Theme + Metered Dispatch Scan) ---
 function renderStockBar() {
   const dispatchPage = document.getElementById('page-dispatch');
   if (!dispatchPage) return;
   let bar = document.getElementById('delwin-stock-grid');
-  // Hide any legacy single-tire stock bar from index.html
   const legacyBar = dispatchPage.querySelector('.stock-bar:not(#delwin-stock-grid)');
   if (legacyBar) legacyBar.style.display = 'none';
 
@@ -478,15 +672,107 @@ function renderStockBar() {
     dispatchPage.insertBefore(bar, targetAnchor);
   }
   bar.innerHTML = `
-    <button class="stock-btn" onclick="buyStock('plug')" style="font-size:11px;padding:8px 4px;line-height:1.3;">
+    <button class="dw-stock-btn ${state.plugs === 0 ? 'low' : ''}" onclick="buyStock('plug')">
       Plugs: <strong>${state.plugs}</strong><br><span style="color:var(--amber);">+3 ($20)</span>
     </button>
-    <button class="stock-btn" onclick="buyStock('std')" style="font-size:11px;padding:8px 4px;line-height:1.3;">
+    <button class="dw-stock-btn ${state.stdTires === 0 ? 'low' : ''}" onclick="buyStock('std')">
       Std Tires: <strong>${state.stdTires}</strong><br><span style="color:var(--amber);">+1 ($45)</span>
     </button>
-    <button class="stock-btn" onclick="buyStock('hd')" style="font-size:11px;padding:8px 4px;line-height:1.3;">
+    <button class="dw-stock-btn ${state.hdTires === 0 ? 'low' : ''}" onclick="buyStock('hd')">
       HD Tires: <strong>${state.hdTires}</strong><br><span style="color:var(--amber);">+1 ($95)</span>
     </button>`;
+}
+
+function renderDispatchScanControl() {
+  const dispatchPage = document.getElementById('page-dispatch');
+  if (!dispatchPage) return;
+
+  // Hide any legacy free refresh button in index.html so Dispatch Scan goes through our metered radar
+  dispatchPage.querySelectorAll('button').forEach((btn) => {
+    if (btn.getAttribute('onclick') === 'refreshJobs()' && btn.id !== 'dispatch-scan-btn') {
+      btn.style.display = 'none';
+    }
+  });
+
+  let scanBox = document.getElementById('dispatch-scan-panel');
+  if (!scanBox) {
+    scanBox = document.createElement('div');
+    scanBox.id = 'dispatch-scan-panel';
+    scanBox.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-bottom:8px;';
+    const jobList = document.getElementById('job-list');
+    dispatchPage.insertBefore(scanBox, jobList);
+  }
+
+  const remainMs = syncDispatchScanRecharge();
+  const hasFreeScan = state.dispatchScans > 0;
+  const cdText = hasFreeScan
+    ? (state.dispatchScans < MAX_DISPATCH_SCANS ? `Next charge in ${formatMs(remainMs)}` : 'Full Capacity')
+    : `Next free scan in ${formatMs(remainMs)}`;
+
+  if (hasFreeScan) {
+    scanBox.innerHTML = `
+      <button id="dispatch-scan-btn" class="secondary-btn" onclick="triggerDispatchScan('free')" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>📡 SCAN FOR NEW CALLS (${state.dispatchScans}/${MAX_DISPATCH_SCANS} FREE)</span>
+        <span style="font-size:10px;color:var(--amber);">${cdText}</span>
+      </button>`;
+  } else {
+    scanBox.innerHTML = `
+      <div style="font-size:11px;color:var(--amber);text-align:center;font-weight:700;">
+        📡 Radar Recharging · ${cdText}
+      </div>
+      <div class="ctrl-grid-2">
+        <button class="secondary-btn" onclick="triggerDispatchScan('ad')" style="font-size:11px;padding:9px 4px;">
+          📺 WATCH AD (+1 SCAN)
+        </button>
+        <button class="primary-btn" onclick="triggerDispatchScan('token')" style="font-size:11px;padding:9px 4px;">
+          ⚡ INSTANT SCAN (2 ⚡)
+        </button>
+      </div>`;
+  }
+}
+
+function triggerDispatchScan(mode) {
+  syncDispatchScanRecharge();
+  if (mode === 'free') {
+    if (state.dispatchScans <= 0) {
+      renderDispatchScanControl();
+      return;
+    }
+    if (state.dispatchScans === MAX_DISPATCH_SCANS) {
+      state.lastScanRechargeAt = Date.now();
+    }
+    state.dispatchScans -= 1;
+    SoundFX.scan();
+    refreshJobs();
+    saveState();
+    updateHUD();
+    return;
+  }
+  if (mode === 'token') {
+    if (state.tokens < 2) {
+      showAlert('INSUFFICIENT TOKENS', 'Instant Radar Scan requires 2 ⚡ Dispatch Tokens, or watch a quick sponsor ad.');
+      goPage('shop');
+      return;
+    }
+    state.tokens -= 2;
+    SoundFX.scan();
+    refreshJobs();
+    saveState();
+    updateHUD();
+    return;
+  }
+  if (mode === 'ad') {
+    watchRewardedAd('scan');
+  }
+}
+
+function startDispatchCooldownTicker() {
+  if (dispatchCooldownInterval) clearInterval(dispatchCooldownInterval);
+  dispatchCooldownInterval = setInterval(() => {
+    if (document.getElementById('page-dispatch').classList.contains('active')) {
+      renderDispatchScanControl();
+    }
+  }, 1000);
 }
 
 function renderRatingPerkBanner() {
@@ -509,20 +795,26 @@ function renderRatingPerkBanner() {
 }
 
 function updateHUD() {
-  document.getElementById('hud-cash').textContent = state.cash;
-  document.getElementById('hud-tokens').textContent = state.tokens;
-  document.getElementById('drawer-parts').textContent = `${state.parts} ⚙️`;
+  renderTopHeader();
+  const drawerParts = document.getElementById('drawer-parts');
+  if (drawerParts) drawerParts.textContent = `${state.parts} ⚙️`;
   const avg = getRatingAvg().toFixed(1);
   const rInfo = getRatingTierInfo();
-  document.getElementById('drawer-rating').textContent = `${avg} ★ (${rInfo.bonusPct})`;
+  const drawerRating = document.getElementById('drawer-rating');
+  if (drawerRating) drawerRating.textContent = `${avg} ★ (${rInfo.bonusPct})`;
   const z = getZone();
-  document.getElementById('drawer-zone').textContent = z.name;
-  document.getElementById('dispatch-zone-label').textContent = `${z.name.toUpperCase()} (${z.mult}x)`;
-  document.getElementById('dispatch-boost-label').textContent =
-    state.surgeJobs > 0 ? `2X SURGE ACTIVE (${state.surgeJobs} LEFT)` : 'ACTIVATE 2X SURGE';
+  const drawerZone = document.getElementById('drawer-zone');
+  if (drawerZone) drawerZone.textContent = z.name;
+  const zoneLbl = document.getElementById('dispatch-zone-label');
+  if (zoneLbl) zoneLbl.textContent = `${z.name.toUpperCase()} (${z.mult}x)`;
+  const boostLbl = document.getElementById('dispatch-boost-label');
+  if (boostLbl) {
+    boostLbl.textContent = state.surgeJobs > 0 ? `2X SURGE ACTIVE (${state.surgeJobs} LEFT)` : 'ACTIVATE 2X SURGE';
+  }
   renderContractBanner();
   renderStockBar();
   renderRatingPerkBanner();
+  renderDispatchScanControl();
   renderProfileCard();
 }
 
@@ -536,6 +828,7 @@ function goPage(pageId) {
     renderContractBanner();
     renderStockBar();
     renderRatingPerkBanner();
+    renderDispatchScanControl();
   }
   if (pageId === 'garage') {
     previewRigTier = getRigTier();
@@ -557,7 +850,7 @@ function toggleSound() {
   document.getElementById('sound-toggle-btn').textContent = `🔊 Mechanical Audio: ${on ? 'ON' : 'OFF'}`;
 }
 
-// --- DISPATCH & JOB GENERATION ---
+// --- DISPATCH & JOB GENERATION (With Rusted Lugs & Radar Intel) ---
 function generateJob(vip = false) {
   const z = getZone();
   const pool = z.id === 'z1' ? VEHICLES.slice(0, 3) : VEHICLES;
@@ -566,14 +859,22 @@ function generateJob(vip = false) {
   const mile = Math.floor(Math.random() * 65) + 4;
   const rig = RIG_TIERS[getRigTier() - 1];
   const rInfo = getRatingTierInfo();
-  const basePay = Math.round(veh.basePay * z.mult * rig.mult * rInfo.mult * (vip ? 1.65 : 1));
+
+  // Rusted / Seized Lug hazard scales with Zone coastal/freight exposure & VIP status
+  const isRusted = Math.random() < (z.rustChance + (vip ? 0.15 : 0));
+  const rustLayers = isRusted ? (z.mult >= 2.0 ? 3 : 2) : 0;
+
+  const basePay = Math.round(veh.basePay * z.mult * rig.mult * rInfo.mult * (vip ? 1.65 : 1) * (isRusted ? 1.12 : 1));
   const radarBonusSec = (state.tools.radar.level - 1) * 2;
   const timeLimit = veh.timeSec + radarBonusSec;
+
   return {
     id: 'job_' + Math.random().toString(36).slice(2, 8),
     title: `${z.name.split(' ')[0]} Mile ${mile} — Stranded ${veh.label.split(' ')[1]}`,
     veh,
     dmg,
+    isRusted,
+    rustLayers,
     pay: basePay,
     timeLimit,
     vip,
@@ -583,7 +884,7 @@ function generateJob(vip = false) {
 
 function refreshJobs() {
   const rInfo = getRatingTierInfo();
-  const hasVipSlot = Math.random() < (rInfo.vipChance + 0.55); // High rating guarantees VIP slot; Probation (<4.0★) loses VIP access
+  const hasVipSlot = Math.random() < (rInfo.vipChance + 0.55);
   state.jobs = [
     generateJob(false),
     generateJob(false),
@@ -595,24 +896,30 @@ function refreshJobs() {
 
 function renderJobs() {
   const wrap = document.getElementById('job-list');
-  wrap.innerHTML = state.jobs.map((j) => `
-    <div class="job-card ${j.vip ? 'vip' : ''}">
-      <div class="job-top">
-        <div>
-          <span class="badge">${j.vip ? '⚡ VIP COMMERCIAL SNIPE' : j.veh.label}</span>
-          <h3 style="font-size:14px;margin-top:5px;">${j.title}</h3>
+  const radarLvl = state.tools.radar.level;
+  wrap.innerHTML = state.jobs.map((j) => {
+    const hazardBadge = radarLvl >= 2 && j.isRusted
+      ? `<span style="color:#f97316;font-weight:800;"> · 🔩 SEIZED LUGS</span>`
+      : '';
+    return `
+      <div class="job-card ${j.vip ? 'vip' : ''}">
+        <div class="job-top">
+          <div>
+            <span class="badge">${j.vip ? '⚡ VIP COMMERCIAL SNIPE' : j.veh.label}</span>
+            <h3 style="font-size:14px;margin-top:5px;">${j.title}</h3>
+          </div>
+          <div class="job-pay">$${j.pay}${state.surgeJobs > 0 ? ' (2x)' : ''}</div>
         </div>
-        <div class="job-pay">$${j.pay}${state.surgeJobs > 0 ? ' (2x)' : ''}</div>
+        <div class="job-meta">
+          <span>${j.veh.heavy ? '🛞 HD Tire' : '🛞 Std Tire'} · ${j.veh.targetPsi} PSI${hazardBadge}</span>
+          <span>⏱️ SLA: ${j.timeLimit}s</span>
+        </div>
+        <button class="primary-btn" onclick="acceptJob('${j.id}')">
+          ${j.vip ? `SNIPE DISPATCH (${j.snipeCost} ⚡)` : 'ACCEPT & ROLL RIG'}
+        </button>
       </div>
-      <div class="job-meta">
-        <span>${j.veh.heavy ? '🛞 Heavy-Duty Tire' : '🛞 Standard Tire'} · ${j.veh.targetPsi} PSI</span>
-        <span>⏱️ SLA: ${j.timeLimit}s</span>
-      </div>
-      <button class="primary-btn" onclick="acceptJob('${j.id}')">
-        ${j.vip ? `SNIPE DISPATCH (${j.snipeCost} ⚡)` : 'ACCEPT & ROLL RIG'}
-      </button>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // --- LIVE COUNTDOWN TIMER ---
@@ -657,6 +964,11 @@ function acceptJob(jobId) {
   }
   state.jobs = state.jobs.filter((j) => j.id !== jobId);
   const startSec = job.timeLimit || job.veh.timeSec || 85;
+  const lugHealth = {};
+  LUG_COORDS.forEach((l) => {
+    lugHealth[l.id] = job.isRusted ? (job.rustLayers || 2) : 1;
+  });
+
   state.activeJob = {
     ...job,
     timeLimit: startSec,
@@ -665,6 +977,7 @@ function acceptJob(jobId) {
     conesSet: false,
     chocked: false,
     liftPct: 0,
+    lugHealth,
     lugsRemoved: [],
     lastSpunLug: null,
     scanned: false,
@@ -689,6 +1002,9 @@ function startTutorial() {
     title: 'I-285 Mile 14 — Guided Training Call',
     veh: VEHICLES[0],
     dmg: DAMAGES[0],
+    isRusted: false,
+    rustLayers: 0,
+    lugHealth: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 },
     pay: 80,
     timeLimit: 120,
     timeLeft: 120,
@@ -745,7 +1061,6 @@ function getTutorialCoaching(job) {
   return { stepLabel: 'TRAINING 7/7', text: `Tap Lug #${STAR_ORDER[job.torqueIdx]} directly on the wheel hub (Star Order: 1→3→5→2→4).` };
 }
 
-// Penalties now deduct BOTH Cash ($) AND Corridor Reputation (REP)
 function addBayPenalty(job, cashAmt, reason, repAmt = null) {
   if (!job || job.isTutorial) return;
   const repLoss = repAmt !== null ? repAmt : Math.max(4, Math.round(cashAmt * 0.4));
@@ -772,7 +1087,7 @@ function getTireSpritePath(job) {
   return prefix + suffix;
 }
 
-// --- 5-STEP REPAIR BAY ---
+// --- 5-STEP REPAIR BAY (With Tool-Driven Mechanics) ---
 function renderBay() {
   const job = state.activeJob;
   document.getElementById('bay-empty').classList.toggle('hidden', !!job);
@@ -783,6 +1098,9 @@ function renderBay() {
     job.timeLimit = job.timeLimit || job.veh.timeSec || 85;
     job.timeLeft = job.timeLimit;
     if (!job.isTutorial) startBayTimer();
+  }
+  if (!job.lugHealth) {
+    job.lugHealth = { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 };
   }
 
   let tutEl = document.getElementById('tut-coach-box');
@@ -805,7 +1123,7 @@ function renderBay() {
     tutEl.className = 'hidden';
   }
 
-  document.getElementById('bay-veh-tag').textContent = job.veh.label;
+  document.getElementById('bay-veh-tag').textContent = `${job.veh.label}${job.isRusted ? ' · 🔩 RUSTED LUGS' : ''}`;
   document.getElementById('bay-job-title').textContent = job.title;
   const finalPay = job.pay * (state.surgeJobs > 0 ? 2 : 1);
   const payoutBox = document.getElementById('bay-payout');
@@ -872,13 +1190,15 @@ function renderBay() {
     const isRemoved = job.lugsRemoved.includes(l.id) && job.step < 5;
     const isTorqued = job.step === 5 && STAR_ORDER.slice(0, job.torqueIdx).includes(l.id);
     const isSpinning = canSpin && job.lastSpunLug === l.id;
+    const remHealth = job.lugHealth[l.id] || 1;
+    const isSeized = job.step === 2 && !isRemoved && remHealth > 1;
     const pulseLug = job.isTutorial && (
       (job.step === 2 && !isRemoved) ||
       (job.step === 5 && STAR_ORDER[job.torqueIdx] === l.id)
     );
-    return `<button class="lug-btn ${isRemoved ? 'removed' : ''} ${isTorqued ? 'torqued' : ''} ${isSpinning ? 'spinning' : ''} ${pulseLug ? 'tut-pulse' : ''}"
+    return `<button class="lug-btn ${isRemoved ? 'removed' : ''} ${isTorqued ? 'torqued' : ''} ${isSpinning ? 'spinning' : ''} ${isSeized ? 'rusted' : ''} ${pulseLug ? 'tut-pulse' : ''}"
       style="left:${l.x}%;top:${l.y}%;"
-      onclick="tapLug(${l.id})">${l.id}</button>`;
+      onclick="tapLug(${l.id})">${isSeized ? '🔩' : l.id}</button>`;
   }).join('');
 
   const svg = document.getElementById('star-lines-svg');
@@ -894,8 +1214,9 @@ function renderBay() {
 
   const ctrl = document.getElementById('bay-controls');
   if (job.step === 1) {
+    const weightNote = job.veh.heavy ? ' · Heavy Commercial Axle' : '';
     ctrl.innerHTML = `
-      <strong>Step 1: Highway Perimeter & Lift (${job.liftPct}%)</strong>
+      <strong>Step 1: Perimeter & Hydraulic Lift (${job.liftPct}%)${weightNote}</strong>
       <div class="ctrl-grid-3">
         <button class="secondary-btn ${job.isTutorial && !job.conesSet ? 'tut-pulse' : ''}" onclick="setCones()" style="font-size:11px;padding:9px 4px;">
           ${job.conesSet ? '✓ CONES SET' : '1. SET CONES'}
@@ -908,14 +1229,17 @@ function renderBay() {
         </button>
       </div>`;
   } else if (job.step === 2) {
+    const breakPower = 1 + Math.floor((state.tools.impact.level - 1) / 4);
     ctrl.innerHTML = `
-      <strong>Step 2: Unbolt All 5 Lugs on Wheel (${job.lugsRemoved.length}/5)</strong>
-      <p style="font-size:12px;color:var(--muted);">Tap each lug nut directly on the wheel hub to spin it off into the magnetic tray.</p>`;
+      <strong>Step 2: Unbolt All 5 Lugs (${job.lugsRemoved.length}/5) · Impact Power: ${breakPower}x</strong>
+      <p style="font-size:12px;color:var(--muted);">
+        ${job.isRusted ? '🔩 Seized rusted lugs detected! Hammer each rusted lug with your Impact Wrench to break corrosion.' : 'Tap each lug nut directly on the wheel hub to spin it off.'}
+      </p>`;
   } else if (job.step === 3) {
     if (!job.scanned) {
       ctrl.innerHTML = `
-        <strong>Step 3: Inspect Tire Damage</strong>
-        <p style="font-size:12px;color:var(--muted);">Run diagnostic laser scan to reveal correlated tire damage visual.</p>
+        <strong>Step 3: Diagnostic Tire Inspection</strong>
+        <p style="font-size:12px;color:var(--muted);">Run diagnostic laser scan to verify puncture vs. structural casing failure.</p>
         <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="runScan()">SCAN TIRE TREAD & SIDEWALL</button>`;
     } else {
       const tireSprite = getTireSpritePath(job);
@@ -942,13 +1266,14 @@ function renderBay() {
     }
   } else if (job.step === 4) {
     const t = job.veh.targetPsi;
-    const inSpec = Math.abs(job.psi - t) <= 2;
+    const tol = 2 + Math.floor((state.tools.comp.level - 1) / 8);
+    const inSpec = Math.abs(job.psi - t) <= tol;
     const fillPct = Math.min(100, Math.round((job.psi / (t + 20)) * 100));
-    const bandLeft = Math.round(((t - 2) / (t + 20)) * 100);
-    const bandWidth = Math.max(8, Math.round((4 / (t + 20)) * 100));
+    const bandLeft = Math.round(((t - tol) / (t + 20)) * 100);
+    const bandWidth = Math.max(8, Math.round(((tol * 2) / (t + 20)) * 100));
     const psiStep = 4 + Math.floor((state.tools.comp.level - 1) / 3);
     ctrl.innerHTML = `
-      <strong>Step 4: Calibrate Air Pressure (Target: ${t - 2}–${t + 2} PSI)</strong>
+      <strong>Step 4: Calibrate Pressure (Target: ${t - tol}–${t + tol} PSI)</strong>
       <div class="psi-meter">
         <div class="psi-val">${job.psi} PSI</div>
         <div class="psi-bar-track">
@@ -995,6 +1320,7 @@ function setChocks() {
   renderBay();
 }
 
+// Hydraulic Floor Jack force scales with Jack Level and is tested against Vehicle Axle Weight
 function pumpJack() {
   const job = state.activeJob;
   if (!job) return;
@@ -1012,8 +1338,10 @@ function pumpJack() {
   }
   dismissAlert();
   SoundFX.jack();
-  const boost = 25 + state.tools.jack.level * 4;
-  job.liftPct = Math.min(100, job.liftPct + boost);
+  const rawLift = 26 + state.tools.jack.level * 4;
+  const weightDivisor = job.veh.axleWeight || 1.0;
+  const effectiveBoost = Math.max(12, Math.round(rawLift / weightDivisor));
+  job.liftPct = Math.min(100, job.liftPct + effectiveBoost);
   if (job.liftPct >= 100) job.step = 2;
   renderBay();
 }
@@ -1026,6 +1354,7 @@ function triggerLugSpin(job, id) {
   }, 460);
 }
 
+// Pneumatic Impact Wrench Torque Power breaks rusted/seized lugs faster at higher levels
 function tapLug(id) {
   const job = state.activeJob;
   if (!job) return;
@@ -1037,12 +1366,16 @@ function tapLug(id) {
   }
   if (job.step === 2) {
     if (!job.lugsRemoved.includes(id)) {
-      job.lugsRemoved.push(id);
+      const breakPower = 1 + Math.floor((state.tools.impact.level - 1) / 4);
+      job.lugHealth[id] = Math.max(0, (job.lugHealth[id] || 1) - breakPower);
       triggerLugSpin(job, id);
       SoundFX.impact();
-      if (job.lugsRemoved.length >= 5) {
-        job.lastSpunLug = null;
-        job.step = 3;
+      if (job.lugHealth[id] <= 0) {
+        job.lugsRemoved.push(id);
+        if (job.lugsRemoved.length >= 5) {
+          job.lastSpunLug = null;
+          job.step = 3;
+        }
       }
       renderBay();
     }
@@ -1165,9 +1498,10 @@ function lockPsi() {
   if (!job) return;
   job.lastSpunLug = null;
   const t = job.veh.targetPsi;
-  if (Math.abs(job.psi - t) > 2) {
+  const tol = 2 + Math.floor((state.tools.comp.level - 1) / 8);
+  if (Math.abs(job.psi - t) > tol) {
     addBayPenalty(job, 12, 'PSI Calibration Error: Locked pressure out of spec', 6);
-    showAlert('PSI OUT OF SPEC (-$12 / -6 REP)', `Calibrate pressure between ${t - 2} and ${t + 2} PSI before torquing lugs.`);
+    showAlert('PSI OUT OF SPEC (-$12 / -6 REP)', `Calibrate pressure between ${t - tol} and ${t + tol} PSI before torquing lugs.`);
     renderBay();
     return;
   }
@@ -1210,7 +1544,6 @@ function completeJob() {
   const totalDeductions = job.penalties;
   const net = Math.max(25, gross + speedBonus - totalDeductions);
 
-  // Corridor REP is directly reduced by Bay & SLA penalties (can even go negative on sloppy runs)
   const baseRep = Math.round((30 + (isFast ? 12 : 0)) * getZone().mult);
   const repDeductions = job.repPenalties || 0;
   const netRep = baseRep - repDeductions;
@@ -1233,7 +1566,6 @@ function completeJob() {
     if (ct === 'heavy' && job.veh.heavy) state.contract.progress += 1;
   }
 
-  // Customer Star Rating drops sharply with violations and climbs slowly on clean runs
   const jobRating = totalDeductions === 0 ? 5.0 : Math.max(2.0, 4.7 - totalDeductions * 0.04);
   state.ratings.push(jobRating);
   if (state.ratings.length > 15) state.ratings.shift();
@@ -1284,7 +1616,7 @@ function buyStock(type) {
   updateHUD();
 }
 
-// --- GARAGE: DUAL-GATE RIG UNLOCKS (Tool Level Milestone + Cash + Gold Parts + Tokens) ---
+// --- GARAGE: GUARANTEED VECTOR + SPRITE RENDERING & TOOL IMPACT DISPLAY ---
 function stepRigPreview(delta) {
   const current = previewRigTier || getRigTier();
   previewRigTier = Math.max(1, Math.min(6, current + delta));
@@ -1343,45 +1675,41 @@ function renderGarage() {
   const isUnlocked = previewRigTier <= (state.unlockedRigTier || 1);
   const meetsTools = getMinToolLevel() >= rig.reqLvl;
 
-  const heroCard = document.querySelector('.rig-hero');
-  const heroTop = heroCard.querySelector('.rig-hero-top');
-  heroTop.innerHTML = `
-    <div>
-      <span class="badge">${isUnlocked ? 'COMMISSIONED FLEET RIG' : meetsTools ? 'READY TO COMMISSION' : `REQUIRES ${rig.req.toUpperCase()}`}</span>
-      <h3 style="font-size:15px;margin-top:4px;">${rig.name}</h3>
+  const garagePage = document.getElementById('page-garage');
+  let heroCard = garagePage.querySelector('.rig-hero');
+  if (!heroCard) {
+    heroCard = document.createElement('div');
+    heroCard.className = 'item-card rig-hero';
+    garagePage.prepend(heroCard);
+  }
+
+  heroCard.innerHTML = `
+    <div class="rig-hero-top" style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <span class="badge">${isUnlocked ? 'COMMISSIONED FLEET RIG' : meetsTools ? 'READY TO COMMISSION' : `REQUIRES ${rig.req.toUpperCase()}`}</span>
+        <h3 style="font-size:15px;margin-top:4px;">${rig.name}</h3>
+      </div>
+      <div class="carousel-nav">
+        <button class="arrow-btn" ${previewRigTier <= 1 ? 'disabled' : ''} onclick="stepRigPreview(-1)">◀</button>
+        <span class="tier-pill">T${previewRigTier}/6</span>
+        <button class="arrow-btn" ${previewRigTier >= 6 ? 'disabled' : ''} onclick="stepRigPreview(1)">▶</button>
+      </div>
     </div>
-    <div class="carousel-nav">
-      <button class="arrow-btn" ${previewRigTier <= 1 ? 'disabled' : ''} onclick="stepRigPreview(-1)">◀</button>
-      <span class="tier-pill">T${previewRigTier}/6</span>
-      <button class="arrow-btn" ${previewRigTier >= 6 ? 'disabled' : ''} onclick="stepRigPreview(1)">▶</button>
-    </div>`;
-
-  const rigImg = document.getElementById('rig-img');
-  const rigFb = document.getElementById('rig-fallback');
-  rigImg.style.display = 'block';
-  rigFb.style.display = 'none';
-  rigFb.innerHTML = renderRigSVG(rig);
-  rigImg.src = rig.img;
-  document.getElementById('rig-perk').textContent = `${rig.perk} (${rig.req})`;
-
-  let unlockBtn = document.getElementById('rig-commission-btn');
-  if (!unlockBtn) {
-    unlockBtn = document.createElement('button');
-    unlockBtn.id = 'rig-commission-btn';
-    unlockBtn.className = 'primary-btn';
-    unlockBtn.style.marginTop = '8px';
-    heroCard.appendChild(unlockBtn);
-  }
-  if (isUnlocked) {
-    unlockBtn.disabled = true;
-    unlockBtn.textContent = `✓ ACTIVE FLEET RIG (${rig.mult.toFixed(2)}x PAYOUTS)`;
-  } else {
-    unlockBtn.disabled = !meetsTools || previewRigTier !== (state.unlockedRigTier + 1);
-    unlockBtn.onclick = () => purchaseRigTier(previewRigTier);
-    unlockBtn.textContent = meetsTools
-      ? `COMMISSION RIG: $${rig.cashCost.toLocaleString()} + ${rig.partCost} ⚙️ + ${rig.tokenCost} ⚡`
-      : `LOCKED · UPGRADE ALL TOOLS TO LVL ${rig.reqLvl}+ ($${rig.cashCost.toLocaleString()} + ${rig.partCost}⚙️ + ${rig.tokenCost}⚡)`;
-  }
+    <div class="rig-visual-box">
+      ${renderRigSVG(rig)}
+      <img src="${rig.img}" alt="${rig.name}" onerror="this.remove();" />
+    </div>
+    <p id="rig-perk" style="font-size:12px;color:var(--muted);">${rig.perk} (${rig.req})</p>
+    <button id="rig-commission-btn" class="primary-btn" style="margin-top:8px;"
+      ${isUnlocked || !meetsTools || previewRigTier !== (state.unlockedRigTier + 1) ? 'disabled' : ''}
+      onclick="purchaseRigTier(${previewRigTier})">
+      ${isUnlocked
+        ? `✓ ACTIVE FLEET RIG (${rig.mult.toFixed(2)}x PAYOUTS)`
+        : meetsTools
+          ? `COMMISSION RIG: $${rig.cashCost.toLocaleString()} + ${rig.partCost} ⚙️ + ${rig.tokenCost} ⚡`
+          : `LOCKED · ALL TOOLS LVL ${rig.reqLvl}+ ($${rig.cashCost.toLocaleString()} + ${rig.partCost}⚙️ + ${rig.tokenCost}⚡)`}
+    </button>
+  `;
 
   const list = document.getElementById('tool-list');
   list.innerHTML = Object.entries(state.tools).map(([key, tool]) => {
@@ -1393,26 +1721,28 @@ function renderGarage() {
     const cost = Math.round(tool.baseCost * Math.pow(1.26, tool.level - 1));
     const imgPath = `assets/${tool.prefix}-t${viewTier}.png`;
     const isPreviewingFuture = viewTier > ownedTier;
+    const effectDesc = getToolEffectSummary(key, tool.level);
 
     return `
       <div class="item-card">
-        <div class="tool-row">
-          <div class="tool-thumb">
-            <img src="${imgPath}" alt="${tool.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
-            <span style="display:none;">${tool.icon}</span>
+        <div class="tool-row" style="display:flex;align-items:center;gap:10px;">
+          <div class="tool-thumb-hybrid">
+            ${renderToolSVG(key, viewTier)}
+            <img src="${imgPath}" alt="${tool.name}" onerror="this.remove();" />
           </div>
           <div style="flex:1;min-width:0;">
             <span class="badge">
-              ${isPreviewingFuture ? `PREVIEW T${viewTier}: ${viewTierLabel.toUpperCase()}` : `OWNED LVL ${tool.level}/24 · ${TIER_NAMES[ownedTier - 1].toUpperCase()}`}
+              ${isPreviewingFuture ? `PREVIEW T${viewTier}: ${viewTierLabel.toUpperCase()}` : `LVL ${tool.level}/24 · ${TIER_NAMES[ownedTier - 1].toUpperCase()}`}
             </span>
             <h3 style="font-size:14px;margin-top:4px;">${tool.name}</h3>
+            <div style="font-size:11px;color:var(--amber);margin-top:2px;">${effectDesc}</div>
           </div>
           <div class="carousel-nav">
             <button class="arrow-btn" ${viewTier <= 1 ? 'disabled' : ''} onclick="stepToolPreview('${key}', -1)">◀</button>
             <button class="arrow-btn" ${viewTier >= 6 ? 'disabled' : ''} onclick="stepToolPreview('${key}', 1)">▶</button>
           </div>
         </div>
-        <button class="primary-btn" ${isMax ? 'disabled' : ''} onclick="upgradeTool('${key}')">
+        <button class="primary-btn" ${isMax ? 'disabled' : ''} onclick="upgradeTool('${key}')" style="margin-top:8px;">
           ${isMax ? 'MAXED OUT (LVL 24)' : `UPGRADE TO LVL ${tool.level + 1} ($${cost}${needsPart ? ' + 1 ⚙️' : ''})`}
         </button>
       </div>`;
@@ -1554,6 +1884,9 @@ function watchRewardedAd(type) {
       if (type === 'surge') state.surgeJobs += 3;
       if (type === 'tokens') state.tokens += 5;
       if (type === 'restock') { state.plugs += 4; state.stdTires += 2; state.hdTires += 1; }
+      if (type === 'scan') {
+        refreshJobs();
+      }
       SoundFX.success();
       saveState();
       updateHUD();
@@ -1596,5 +1929,6 @@ loadState();
 if (!state.jobs || state.jobs.length === 0) refreshJobs();
 else renderJobs();
 updateHUD();
+startDispatchCooldownTicker();
 if (state.activeJob && !state.activeJob.isTutorial) startBayTimer();
 if (!state.tutorialDone) startTutorial();
