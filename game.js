@@ -1,13 +1,50 @@
+// DelWin Mobile: Roadside Tire Rescue
+// Full Restored Build + Merged Gameplay Mechanics:
+// 1. Dynamic Roadside Weather & Night Shifts (Clear, Night Shift + LED Floodlights, Georgia Downpour)
+// 2. Rig Tier Cargo Capacity Limits (Std Tires, HD Tires, Plug Kits tied to Rig Tier)
+// 3. Security Wheel Lock Keys + Final Lower Jack & Stow Cones Checkpoint
+
+const SoundFX = (() => {
+  let enabled = true;
+  let ctx = null;
+  function beep(freq, dur = 0.08, type = 'triangle', gainVal = 0.08) {
+    if (!enabled) return;
+    try {
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.value = gainVal;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + dur);
+    } catch (e) {}
+  }
+  return {
+    toggle() { enabled = !enabled; return enabled; },
+    chock() { beep(180, 0.07, 'square', 0.07); },
+    jack() { beep(130, 0.11, 'sawtooth', 0.08); },
+    impact() { beep(240, 0.06, 'square', 0.09); setTimeout(() => beep(310, 0.05, 'square', 0.07), 45); },
+    scan() { beep(520, 0.09, 'sine', 0.07); setTimeout(() => beep(740, 0.12, 'sine', 0.07), 80); },
+    air() { beep(420, 0.08, 'sine', 0.05); },
+    torqueClick() { beep(640, 0.06, 'triangle', 0.09); },
+    success() { beep(523, 0.09); setTimeout(() => beep(659, 0.09), 90); setTimeout(() => beep(784, 0.16), 180); },
+    error() { beep(140, 0.18, 'sawtooth', 0.1); }
+  };
+})();
+
 const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
 
-// Rig Tiers: Require BOTH minimum Tool Level AND an explicit Rig Unlock Purchase (Cash + Gold Parts + Tokens)
+// Rig Tiers: Require BOTH minimum Tool Level AND an explicit Rig Unlock Purchase + Define Cargo Capacities
 const RIG_TIERS = [
-  { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', reqLvl: 1, req: 'Starting Rig', cashCost: 0, partCost: 0, tokenCost: 0, mult: 1.00, perk: 'Standard highway response rig (1.00x Payouts).' },
-  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', reqLvl: 5, req: 'All Tools Lvl 5+', cashCost: 650, partCost: 2, tokenCost: 10, mult: 1.18, perk: '1.18x Base Payouts & Twin Amber Strobes.' },
-  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', color: '#f59e0b', reqLvl: 9, req: 'All Tools Lvl 9+', cashCost: 1650, partCost: 4, tokenCost: 20, mult: 1.38, perk: '1.38x Base Payouts & Exterior Spare Tire Rack.' },
-  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', color: '#a855f7', reqLvl: 13, req: 'All Tools Lvl 13+', cashCost: 3800, partCost: 7, tokenCost: 35, mult: 1.60, perk: '1.60x Base Payouts & Dual-Wheel Hydraulic Lift.' },
-  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', color: '#ef4444', reqLvl: 17, req: 'All Tools Lvl 17+', cashCost: 8200, partCost: 11, tokenCost: 55, mult: 1.85, perk: '1.85x Base Payouts & Commercial Fleet Priority.' },
-  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', reqLvl: 21, req: 'All Tools Lvl 21+', cashCost: 16500, partCost: 16, tokenCost: 80, mult: 2.15, perk: '2.15x Base Payouts & Maximum Corridor Prestige.' }
+  { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', reqLvl: 1, req: 'Starting Rig', cashCost: 0, partCost: 0, tokenCost: 0, mult: 1.00, capPlugs: 6, capStd: 3, capHd: 1, perk: 'Standard highway response rig (1.00x Payouts).' },
+  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', reqLvl: 5, req: 'All Tools Lvl 5+', cashCost: 650, partCost: 2, tokenCost: 10, mult: 1.18, capPlugs: 9, capStd: 4, capHd: 2, perk: '1.18x Base Payouts & Twin Amber Strobes.' },
+  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', color: '#f59e0b', reqLvl: 9, req: 'All Tools Lvl 9+', cashCost: 1650, partCost: 4, tokenCost: 20, mult: 1.38, capPlugs: 12, capStd: 6, capHd: 3, perk: '1.38x Base Payouts & Exterior Spare Tire Rack.' },
+  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', color: '#a855f7', reqLvl: 13, req: 'All Tools Lvl 13+', cashCost: 3800, partCost: 7, tokenCost: 35, mult: 1.60, capPlugs: 16, capStd: 8, capHd: 4, perk: '1.60x Base Payouts & Dual-Wheel Hydraulic Lift.' },
+  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', color: '#ef4444', reqLvl: 17, req: 'All Tools Lvl 17+', cashCost: 8200, partCost: 11, tokenCost: 55, mult: 1.85, capPlugs: 22, capStd: 10, capHd: 6, perk: '1.85x Base Payouts & Commercial Fleet Priority.' },
+  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', reqLvl: 21, req: 'All Tools Lvl 21+', cashCost: 16500, partCost: 16, tokenCost: 80, mult: 2.15, capPlugs: 30, capStd: 14, capHd: 8, perk: '2.15x Base Payouts & Maximum Corridor Prestige.' }
 ];
 
 const ZONES = [
@@ -38,11 +75,17 @@ const ZONES = [
 ];
 
 const VEHICLES = [
-  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, basePay: 75, targetPsi: 35, timeSec: 85, axleWeight: 1.0, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
-  { id: 'suv', label: 'FAMILY SUV', heavy: false, basePay: 88, targetPsi: 36, timeSec: 80, axleWeight: 1.15, bodyColor: '#475569', img: 'assets/veh-suv.png' },
-  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, basePay: 100, targetPsi: 40, timeSec: 75, axleWeight: 1.30, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
-  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, basePay: 155, targetPsi: 95, timeSec: 95, axleWeight: 1.75, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
-  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, basePay: 195, targetPsi: 105, timeSec: 105, axleWeight: 2.10, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
+  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, basePay: 75, targetPsi: 35, timeSec: 85, axleWeight: 1.0, lockChance: 0.25, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
+  { id: 'suv', label: 'FAMILY SUV', heavy: false, basePay: 88, targetPsi: 36, timeSec: 80, axleWeight: 1.15, lockChance: 0.45, bodyColor: '#475569', img: 'assets/veh-suv.png' },
+  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, basePay: 100, targetPsi: 40, timeSec: 75, axleWeight: 1.30, lockChance: 0.35, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
+  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, basePay: 155, targetPsi: 95, timeSec: 95, axleWeight: 1.75, lockChance: 0.15, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
+  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, basePay: 195, targetPsi: 105, timeSec: 105, axleWeight: 2.10, lockChance: 0.15, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
+];
+
+const WEATHER_CONDITIONS = [
+  { id: 'clear', label: '☀️ CLEAR DAY', mult: 1.00 },
+  { id: 'night', label: '🌙 NIGHT SHIFT (+20%)', mult: 1.20 },
+  { id: 'rain', label: '🌧️ GA DOWNPOUR (+35%)', mult: 1.35 }
 ];
 
 const DAMAGES = [
@@ -106,7 +149,6 @@ const LUG_COORDS = [
 const STAR_ORDER = [1, 3, 5, 2, 4];
 const AVATAR_PRESETS = ['🛞', '🚛', '🔧', '⚡', '🏆', '🔥', '🛡️', '👑'];
 
-// Dispatch Radar Scan Cooldown: 2 free charges max, 1 recharges every 2 hours
 const MAX_DISPATCH_SCANS = 2;
 const SCAN_RECHARGE_MS = 2 * 60 * 60 * 1000;
 
@@ -217,6 +259,10 @@ function getRigTier() {
   return Math.min(state.unlockedRigTier || 1, maxByTools);
 }
 
+function getActiveRigObj() {
+  return RIG_TIERS[getRigTier() - 1] || RIG_TIERS[0];
+}
+
 function getMinToolLevel() {
   return Math.min(...Object.values(state.tools).map((t) => t.level));
 }
@@ -253,7 +299,7 @@ function getToolEffectSummary(key, level) {
   }
   if (key === 'radar') {
     const extraSec = (level - 1) * 2;
-    return `+${extraSec}s SLA Buffer · Previews rusted lugs & axle weight`;
+    return `+${extraSec}s SLA Buffer · Previews rusted lugs, locks & weather`;
   }
   return '';
 }
@@ -277,7 +323,6 @@ function injectCustomStyles() {
     }
     .stage-cones.set .cone-item { box-shadow: 0 0 8px rgba(249, 115, 22, 0.7); }
 
-    /* Dark-themed Inventory Buttons (No white browser defaults) */
     .dw-stock-btn {
       background: #0f172a !important;
       color: #f8fafc !important;
@@ -293,8 +338,8 @@ function injectCustomStyles() {
     }
     .dw-stock-btn:active { background: #1e293b !important; transform: scale(0.98); }
     .dw-stock-btn.low { border-color: #ef4444 !important; background: rgba(239, 68, 68, 0.12) !important; }
+    .dw-stock-btn.full { border-color: #10b981 !important; opacity: 0.85; }
 
-    /* Rusted / Seized Lug Styling */
     .lug-btn.rusted {
       background: radial-gradient(circle, #9a3412 30%, #431407 95%) !important;
       border: 2px dashed #f97316 !important;
@@ -302,7 +347,6 @@ function injectCustomStyles() {
       box-shadow: 0 0 8px rgba(234, 88, 12, 0.65);
     }
 
-    /* Garage Vector + Image Hybrid Showcase */
     .rig-visual-box {
       position: relative; width: 100%; height: 104px;
       display: flex; align-items: center; justify-content: center;
@@ -324,7 +368,6 @@ function injectCustomStyles() {
       object-fit: contain; z-index: 2; background: #090c12;
     }
 
-    /* Top Header Player Command Bar */
     .player-hud-left {
       display: flex; align-items: center; gap: 8px;
       cursor: pointer; min-width: 0; flex: 1;
@@ -524,6 +567,7 @@ function renderContractBanner() {
     box.id = 'delwin-contract-card';
     box.className = 'item-card';
     box.style.borderColor = 'var(--amber)';
+    box.style.marginBottom = '8px';
     const jobList = document.getElementById('job-list');
     dispatchPage.insertBefore(box, jobList);
   }
@@ -653,7 +697,7 @@ function renderTireSVG(job, size = 130) {
     </svg>`;
 }
 
-// --- INVENTORY & DISPATCH SCAN BAR (Dark Theme + Metered Dispatch Scan) ---
+// --- INVENTORY & RIG CARGO CAPACITY BAR ---
 function renderStockBar() {
   const dispatchPage = document.getElementById('page-dispatch');
   if (!dispatchPage) return;
@@ -671,15 +715,20 @@ function renderStockBar() {
     const targetAnchor = document.getElementById('delwin-contract-card') || document.getElementById('job-list');
     dispatchPage.insertBefore(bar, targetAnchor);
   }
+  const rig = getActiveRigObj();
+  const plugFull = state.plugs >= rig.capPlugs;
+  const stdFull = state.stdTires >= rig.capStd;
+  const hdFull = state.hdTires >= rig.capHd;
+
   bar.innerHTML = `
-    <button class="dw-stock-btn ${state.plugs === 0 ? 'low' : ''}" onclick="buyStock('plug')">
-      Plugs: <strong>${state.plugs}</strong><br><span style="color:var(--amber);">+3 ($20)</span>
+    <button class="dw-stock-btn ${state.plugs === 0 ? 'low' : plugFull ? 'full' : ''}" onclick="buyStock('plug')">
+      Plugs: <strong>${state.plugs}/${rig.capPlugs}</strong><br><span style="color:var(--amber);">${plugFull ? 'CARGO FULL' : '+3 ($20)'}</span>
     </button>
-    <button class="dw-stock-btn ${state.stdTires === 0 ? 'low' : ''}" onclick="buyStock('std')">
-      Std Tires: <strong>${state.stdTires}</strong><br><span style="color:var(--amber);">+1 ($45)</span>
+    <button class="dw-stock-btn ${state.stdTires === 0 ? 'low' : stdFull ? 'full' : ''}" onclick="buyStock('std')">
+      Std Tires: <strong>${state.stdTires}/${rig.capStd}</strong><br><span style="color:var(--amber);">${stdFull ? 'CARGO FULL' : '+1 ($45)'}</span>
     </button>
-    <button class="dw-stock-btn ${state.hdTires === 0 ? 'low' : ''}" onclick="buyStock('hd')">
-      HD Tires: <strong>${state.hdTires}</strong><br><span style="color:var(--amber);">+1 ($95)</span>
+    <button class="dw-stock-btn ${state.hdTires === 0 ? 'low' : hdFull ? 'full' : ''}" onclick="buyStock('hd')">
+      HD Tires: <strong>${state.hdTires}/${rig.capHd}</strong><br><span style="color:var(--amber);">${hdFull ? 'CARGO FULL' : '+1 ($95)'}</span>
     </button>`;
 }
 
@@ -687,7 +736,6 @@ function renderDispatchScanControl() {
   const dispatchPage = document.getElementById('page-dispatch');
   if (!dispatchPage) return;
 
-  // Hide any legacy free refresh button in index.html so Dispatch Scan goes through our metered radar
   dispatchPage.querySelectorAll('button').forEach((btn) => {
     if (btn.getAttribute('onclick') === 'refreshJobs()' && btn.id !== 'dispatch-scan-btn') {
       btn.style.display = 'none';
@@ -850,21 +898,27 @@ function toggleSound() {
   document.getElementById('sound-toggle-btn').textContent = `🔊 Mechanical Audio: ${on ? 'ON' : 'OFF'}`;
 }
 
-// --- DISPATCH & JOB GENERATION (With Rusted Lugs & Radar Intel) ---
+// --- DISPATCH & JOB GENERATION (With Weather, Rusted Lugs & Security Wheel Locks) ---
 function generateJob(vip = false) {
   const z = getZone();
   const pool = z.id === 'z1' ? VEHICLES.slice(0, 3) : VEHICLES;
   const veh = pool[Math.floor(Math.random() * pool.length)];
   const dmg = DAMAGES[Math.floor(Math.random() * DAMAGES.length)];
+  const weather = WEATHER_CONDITIONS[Math.floor(Math.random() * WEATHER_CONDITIONS.length)];
   const mile = Math.floor(Math.random() * 65) + 4;
   const rig = RIG_TIERS[getRigTier() - 1];
   const rInfo = getRatingTierInfo();
 
-  // Rusted / Seized Lug hazard scales with Zone coastal/freight exposure & VIP status
   const isRusted = Math.random() < (z.rustChance + (vip ? 0.15 : 0));
   const rustLayers = isRusted ? (z.mult >= 2.0 ? 3 : 2) : 0;
 
-  const basePay = Math.round(veh.basePay * z.mult * rig.mult * rInfo.mult * (vip ? 1.65 : 1) * (isRusted ? 1.12 : 1));
+  const hasWheelLock = Math.random() < veh.lockChance;
+  const lockLugId = hasWheelLock ? (Math.floor(Math.random() * 5) + 1) : null;
+
+  const basePay = Math.round(
+    veh.basePay * z.mult * rig.mult * rInfo.mult * weather.mult *
+    (vip ? 1.65 : 1) * (isRusted ? 1.12 : 1) * (hasWheelLock ? 1.08 : 1)
+  );
   const radarBonusSec = (state.tools.radar.level - 1) * 2;
   const timeLimit = veh.timeSec + radarBonusSec;
 
@@ -873,8 +927,11 @@ function generateJob(vip = false) {
     title: `${z.name.split(' ')[0]} Mile ${mile} — Stranded ${veh.label.split(' ')[1]}`,
     veh,
     dmg,
+    weather,
     isRusted,
     rustLayers,
+    hasWheelLock,
+    lockLugId,
     pay: basePay,
     timeLimit,
     vip,
@@ -898,20 +955,25 @@ function renderJobs() {
   const wrap = document.getElementById('job-list');
   const radarLvl = state.tools.radar.level;
   wrap.innerHTML = state.jobs.map((j) => {
+    const w = j.weather || WEATHER_CONDITIONS[0];
     const hazardBadge = radarLvl >= 2 && j.isRusted
       ? `<span style="color:#f97316;font-weight:800;"> · 🔩 SEIZED LUGS</span>`
+      : '';
+    const lockBadge = j.hasWheelLock
+      ? `<span style="color:#f59e0b;font-weight:800;"> · 🔑 LOCK KEY</span>`
       : '';
     return `
       <div class="job-card ${j.vip ? 'vip' : ''}">
         <div class="job-top">
           <div>
             <span class="badge">${j.vip ? '⚡ VIP COMMERCIAL SNIPE' : j.veh.label}</span>
+            <span class="badge" style="margin-left:4px;">${w.label}</span>
             <h3 style="font-size:14px;margin-top:5px;">${j.title}</h3>
           </div>
           <div class="job-pay">$${j.pay}${state.surgeJobs > 0 ? ' (2x)' : ''}</div>
         </div>
         <div class="job-meta">
-          <span>${j.veh.heavy ? '🛞 HD Tire' : '🛞 Std Tire'} · ${j.veh.targetPsi} PSI${hazardBadge}</span>
+          <span>${j.veh.heavy ? '🛞 HD Tire' : '🛞 Std Tire'} · ${j.veh.targetPsi} PSI${hazardBadge}${lockBadge}</span>
           <span>⏱️ SLA: ${j.timeLimit}s</span>
         </div>
         <button class="primary-btn" onclick="acceptJob('${j.id}')">
@@ -971,11 +1033,14 @@ function acceptJob(jobId) {
 
   state.activeJob = {
     ...job,
+    weather: job.weather || WEATHER_CONDITIONS[0],
     timeLimit: startSec,
     timeLeft: startSec,
     step: 1,
     conesSet: false,
     chocked: false,
+    floodlightsOn: false,
+    lockKeyApplied: !job.hasWheelLock,
     liftPct: 0,
     lugHealth,
     lugsRemoved: [],
@@ -984,6 +1049,7 @@ function acceptJob(jobId) {
     fixed: false,
     psi: 12,
     torqueIdx: 0,
+    jackLowered: false,
     penalties: 0,
     repPenalties: 0,
     penaltyLog: []
@@ -1002,8 +1068,13 @@ function startTutorial() {
     title: 'I-285 Mile 14 — Guided Training Call',
     veh: VEHICLES[0],
     dmg: DAMAGES[0],
+    weather: WEATHER_CONDITIONS[0],
     isRusted: false,
     rustLayers: 0,
+    hasWheelLock: false,
+    lockLugId: null,
+    lockKeyApplied: true,
+    floodlightsOn: true,
     lugHealth: { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 },
     pay: 80,
     timeLimit: 120,
@@ -1020,6 +1091,7 @@ function startTutorial() {
     fixed: false,
     psi: 14,
     torqueIdx: 0,
+    jackLowered: false,
     penalties: 0,
     repPenalties: 0,
     penaltyLog: []
@@ -1038,27 +1110,30 @@ function skipTutorial() {
 
 function getTutorialCoaching(job) {
   if (job.step === 1 && !job.conesSet) {
-    return { stepLabel: 'TRAINING 1/7', text: 'Tap 1. SET CONES first to secure your highway shoulder perimeter.' };
+    return { stepLabel: 'TRAINING 1/8', text: 'Tap 1. SET CONES first to secure your highway shoulder perimeter.' };
   }
   if (job.step === 1 && !job.chocked) {
-    return { stepLabel: 'TRAINING 2/7', text: 'Tap 2. CHOCKS next to lock the opposite wheels before jacking.' };
+    return { stepLabel: 'TRAINING 2/8', text: 'Tap 2. CHOCKS next to lock the opposite wheels before jacking.' };
   }
   if (job.step === 1 && job.chocked) {
-    return { stepLabel: 'TRAINING 3/7', text: 'Tap 3. PUMP JACK to raise the hydraulic lift arm and vehicle body.' };
+    return { stepLabel: 'TRAINING 3/8', text: 'Tap 3. PUMP JACK to raise the hydraulic lift arm and vehicle body.' };
   }
   if (job.step === 2) {
-    return { stepLabel: 'TRAINING 4/7', text: 'Tap each of the 5 glowing lug nuts directly on the wheel hub to spin them off.' };
+    return { stepLabel: 'TRAINING 4/8', text: 'Tap each of the 5 glowing lug nuts directly on the wheel hub to spin them off.' };
   }
   if (job.step === 3 && !job.scanned) {
-    return { stepLabel: 'TRAINING 5/7', text: 'Tap SCAN TIRE TREAD & SIDEWALL to inspect the damage.' };
+    return { stepLabel: 'TRAINING 5/8', text: 'Tap SCAN TIRE TREAD & SIDEWALL to inspect the damage.' };
   }
   if (job.step === 3 && job.scanned) {
-    return { stepLabel: 'TRAINING 5/7', text: 'Center-tread nail detected! Tap PLUG PUNCTURE (never swap a center nail).' };
+    return { stepLabel: 'TRAINING 5/8', text: 'Center-tread nail detected! Tap PLUG PUNCTURE (never swap a center nail).' };
   }
   if (job.step === 4) {
-    return { stepLabel: 'TRAINING 6/7', text: 'Inflate air into the green 33–37 PSI target band, then tap LOCK PRESSURE.' };
+    return { stepLabel: 'TRAINING 6/8', text: 'Inflate air into the green 33–37 PSI target band, then tap LOCK PRESSURE.' };
   }
-  return { stepLabel: 'TRAINING 7/7', text: `Tap Lug #${STAR_ORDER[job.torqueIdx]} directly on the wheel hub (Star Order: 1→3→5→2→4).` };
+  if (job.step === 5 && job.torqueIdx < 5) {
+    return { stepLabel: 'TRAINING 7/8', text: `Tap Lug #${STAR_ORDER[job.torqueIdx]} directly on the wheel hub (Star Order: 1→3→5→2→4).` };
+  }
+  return { stepLabel: 'TRAINING 8/8', text: 'Tap LOWER JACK & STOW CONES to drop the rig and close the call!' };
 }
 
 function addBayPenalty(job, cashAmt, reason, repAmt = null) {
@@ -1087,7 +1162,24 @@ function getTireSpritePath(job) {
   return prefix + suffix;
 }
 
-// --- 5-STEP REPAIR BAY (With Tool-Driven Mechanics) ---
+function toggleBayFloodlights() {
+  const job = state.activeJob;
+  if (!job) return;
+  job.floodlightsOn = !job.floodlightsOn;
+  SoundFX.torqueClick();
+  renderBay();
+}
+
+function applyWheelLockKey() {
+  const job = state.activeJob;
+  if (!job || !job.hasWheelLock || job.lockKeyApplied) return;
+  job.lockKeyApplied = true;
+  dismissAlert();
+  SoundFX.torqueClick();
+  renderBay();
+}
+
+// --- 5-STEP REPAIR BAY (With Weather, Security Wheel Locks & Lower Jack Finish) ---
 function renderBay() {
   const job = state.activeJob;
   document.getElementById('bay-empty').classList.toggle('hidden', !!job);
@@ -1102,6 +1194,7 @@ function renderBay() {
   if (!job.lugHealth) {
     job.lugHealth = { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1 };
   }
+  const w = job.weather || WEATHER_CONDITIONS[0];
 
   let tutEl = document.getElementById('tut-coach-box');
   if (!tutEl) {
@@ -1123,7 +1216,7 @@ function renderBay() {
     tutEl.className = 'hidden';
   }
 
-  document.getElementById('bay-veh-tag').textContent = `${job.veh.label}${job.isRusted ? ' · 🔩 RUSTED LUGS' : ''}`;
+  document.getElementById('bay-veh-tag').textContent = `${job.veh.label}${job.isRusted ? ' · 🔩 RUSTED LUGS' : ''}${job.hasWheelLock ? ' · 🔑 WHEEL LOCK' : ''}`;
   document.getElementById('bay-job-title').textContent = job.title;
   const finalPay = job.pay * (state.surgeJobs > 0 ? 2 : 1);
   const payoutBox = document.getElementById('bay-payout');
@@ -1134,6 +1227,26 @@ function renderBay() {
     </div>`;
 
   const stage = document.getElementById('bay-stage');
+  stage.classList.toggle('night-shift', w.id === 'night');
+  stage.classList.toggle('floodlights-on', !!job.floodlightsOn);
+
+  const weatherLayer = document.getElementById('weather-layer');
+  if (weatherLayer) weatherLayer.classList.toggle('raining', w.id === 'rain');
+
+  const nightShade = document.getElementById('night-shade');
+  if (nightShade) nightShade.classList.toggle('hidden', !(w.id === 'night' && !job.floodlightsOn));
+
+  const condPill = document.getElementById('stage-cond-pill');
+  if (condPill) {
+    condPill.className = `cond-pill ${w.id}`;
+    condPill.textContent = w.label;
+  }
+  const floodBtn = document.getElementById('stage-flood-btn');
+  if (floodBtn) {
+    floodBtn.textContent = `🔦 FLOODLIGHTS: ${job.floodlightsOn ? 'ON' : 'OFF'}`;
+    floodBtn.classList.toggle('on', !!job.floodlightsOn);
+  }
+
   if (!document.getElementById('mag-tray')) {
     const tray = document.createElement('div');
     tray.id = 'mag-tray';
@@ -1171,10 +1284,11 @@ function renderBay() {
   tireFb.innerHTML = renderTireSVG(job, 132);
   tireImg.src = getTireSpritePath(job);
 
-  const liftPx = Math.round((job.liftPct / 100) * 26);
-  const wheelLiftPx = Math.round((job.liftPct / 100) * 16);
-  document.getElementById('stage-chock').classList.toggle('set', job.chocked);
-  document.getElementById('jack-arm').style.height = `${12 + Math.round((job.liftPct / 100) * 44)}px`;
+  const effectiveLift = job.jackLowered ? 0 : job.liftPct;
+  const liftPx = Math.round((effectiveLift / 100) * 26);
+  const wheelLiftPx = Math.round((effectiveLift / 100) * 16);
+  document.getElementById('stage-chock').classList.toggle('set', job.chocked && !job.jackLowered);
+  document.getElementById('jack-arm').style.height = `${12 + Math.round((effectiveLift / 100) * 44)}px`;
   document.getElementById('stage-chassis').style.transform = `translateX(-50%) translateY(-${liftPx}px)`;
   document.getElementById('stage-wheel-wrap').style.transform = `translateX(-50%) translateY(-${wheelLiftPx}px)`;
   document.getElementById('scan-beam').classList.toggle('hidden', !(job.step === 3 && !job.scanned));
@@ -1184,7 +1298,7 @@ function renderBay() {
     el.className = 'sp' + (job.step === i ? ' active' : job.step > i ? ' done' : '');
   }
 
-  const canSpin = job.step === 2 || job.step === 5;
+  const canSpin = job.step === 2 || (job.step === 5 && job.torqueIdx < 5);
   const lugRing = document.getElementById('lug-ring');
   lugRing.innerHTML = LUG_COORDS.map((l) => {
     const isRemoved = job.lugsRemoved.includes(l.id) && job.step < 5;
@@ -1192,13 +1306,16 @@ function renderBay() {
     const isSpinning = canSpin && job.lastSpunLug === l.id;
     const remHealth = job.lugHealth[l.id] || 1;
     const isSeized = job.step === 2 && !isRemoved && remHealth > 1;
+    const isSecLock = job.hasWheelLock && job.lockLugId === l.id;
     const pulseLug = job.isTutorial && (
       (job.step === 2 && !isRemoved) ||
-      (job.step === 5 && STAR_ORDER[job.torqueIdx] === l.id)
+      (job.step === 5 && job.torqueIdx < 5 && STAR_ORDER[job.torqueIdx] === l.id)
     );
-    return `<button class="lug-btn ${isRemoved ? 'removed' : ''} ${isTorqued ? 'torqued' : ''} ${isSpinning ? 'spinning' : ''} ${isSeized ? 'rusted' : ''} ${pulseLug ? 'tut-pulse' : ''}"
+    const lockClass = isSecLock ? (job.lockKeyApplied ? 'lock-unlocked' : 'security-lock') : '';
+    const iconTxt = isSecLock && !job.lockKeyApplied ? '🔑' : isSeized ? '🔩' : l.id;
+    return `<button class="lug-btn ${isRemoved ? 'removed' : ''} ${isTorqued ? 'torqued' : ''} ${isSpinning ? 'spinning' : ''} ${isSeized ? 'rusted' : ''} ${lockClass} ${pulseLug ? 'tut-pulse' : ''}"
       style="left:${l.x}%;top:${l.y}%;"
-      onclick="tapLug(${l.id})">${isSeized ? '🔩' : l.id}</button>`;
+      onclick="tapLug(${l.id})">${iconTxt}</button>`;
   }).join('');
 
   const svg = document.getElementById('star-lines-svg');
@@ -1215,8 +1332,12 @@ function renderBay() {
   const ctrl = document.getElementById('bay-controls');
   if (job.step === 1) {
     const weightNote = job.veh.heavy ? ' · Heavy Commercial Axle' : '';
+    const nightWarn = w.id === 'night' && !job.floodlightsOn
+      ? `<p style="font-size:11px;color:#a5b4fc;font-weight:700;">🌙 Night Shift: Toggle LED Floodlights ON at top of stage before unbolting!</p>`
+      : '';
     ctrl.innerHTML = `
       <strong>Step 1: Perimeter & Hydraulic Lift (${job.liftPct}%)${weightNote}</strong>
+      ${nightWarn}
       <div class="ctrl-grid-3">
         <button class="secondary-btn ${job.isTutorial && !job.conesSet ? 'tut-pulse' : ''}" onclick="setCones()" style="font-size:11px;padding:9px 4px;">
           ${job.conesSet ? '✓ CONES SET' : '1. SET CONES'}
@@ -1230,11 +1351,17 @@ function renderBay() {
       </div>`;
   } else if (job.step === 2) {
     const breakPower = 1 + Math.floor((state.tools.impact.level - 1) / 4);
+    const lockUi = job.hasWheelLock && !job.lockKeyApplied
+      ? `<button class="primary-btn tut-pulse" onclick="applyWheelLockKey()" style="margin-top:4px;">🔑 SEAT WHEEL LOCK KEY ON LUG #${job.lockLugId}</button>`
+      : job.hasWheelLock
+        ? `<div style="font-size:11px;color:var(--blue);font-weight:800;">✓ Security Lock Key Adapter Seated on Lug #${job.lockLugId}</div>`
+        : '';
     ctrl.innerHTML = `
       <strong>Step 2: Unbolt All 5 Lugs (${job.lugsRemoved.length}/5) · Impact Power: ${breakPower}x</strong>
       <p style="font-size:12px;color:var(--muted);">
         ${job.isRusted ? '🔩 Seized rusted lugs detected! Hammer each rusted lug with your Impact Wrench to break corrosion.' : 'Tap each lug nut directly on the wheel hub to spin it off.'}
-      </p>`;
+      </p>
+      ${lockUi}`;
   } else if (job.step === 3) {
     if (!job.scanned) {
       ctrl.innerHTML = `
@@ -1287,9 +1414,16 @@ function renderBay() {
       </div>
       <button class="primary-btn ${job.isTutorial && inSpec ? 'tut-pulse' : ''}" onclick="lockPsi()">LOCK PRESSURE & CONTINUE</button>`;
   } else if (job.step === 5) {
-    ctrl.innerHTML = `
-      <strong>Step 5: Star-Pattern Torque (${job.torqueIdx}/5)</strong>
-      <p style="font-size:12px;color:var(--muted);">Tap the lugs directly on the wheel in crisscross star order: <strong>1 → 3 → 5 → 2 → 4</strong>.</p>`;
+    if (job.torqueIdx < 5) {
+      ctrl.innerHTML = `
+        <strong>Step 5: Star-Pattern Torque (${job.torqueIdx}/5)</strong>
+        <p style="font-size:12px;color:var(--muted);">Tap the lugs directly on the wheel in crisscross star order: <strong>1 → 3 → 5 → 2 → 4</strong>.</p>`;
+    } else {
+      ctrl.innerHTML = `
+        <strong>Step 5 Complete: All 5 Lugs Torqued to Spec!</strong>
+        <p style="font-size:12px;color:var(--green);">Lower the hydraulic floor jack and stow traffic cones to release the vehicle.</p>
+        <button class="primary-btn tut-pulse" style="background:var(--green);" onclick="lowerJackAndFinish()">⬇️ LOWER JACK & STOW CONES</button>`;
+    }
   }
 }
 
@@ -1320,7 +1454,6 @@ function setChocks() {
   renderBay();
 }
 
-// Hydraulic Floor Jack force scales with Jack Level and is tested against Vehicle Axle Weight
 function pumpJack() {
   const job = state.activeJob;
   if (!job) return;
@@ -1354,17 +1487,39 @@ function triggerLugSpin(job, id) {
   }, 460);
 }
 
-// Pneumatic Impact Wrench Torque Power breaks rusted/seized lugs faster at higher levels
 function tapLug(id) {
   const job = state.activeJob;
   if (!job) return;
+  const w = job.weather || WEATHER_CONDITIONS[0];
+
   if (job.step === 1) {
     addBayPenalty(job, 10, 'Protocol Error: Impacted lugs before vehicle was lifted', 5);
     showAlert('LIFT VEHICLE FIRST (-$10 / -5 REP)', 'Deploy cones, set chocks, and pump the hydraulic jack to 100% before unbolting lugs.');
     renderBay();
     return;
   }
+
+  if (w.id === 'night' && !job.floodlightsOn) {
+    addBayPenalty(job, 8, 'Night Visibility Hazard: Worked wheel hub without LED floodlights', 4);
+    showAlert('TURN ON LED FLOODLIGHTS (-$8 / -4 REP)', 'Tap 🔦 FLOODLIGHTS: OFF in the top-right of the highway stage before working in the dark!');
+    renderBay();
+    return;
+  }
+
   if (job.step === 2) {
+    if (job.hasWheelLock && job.lockLugId === id && !job.lockKeyApplied) {
+      addBayPenalty(job, 10, 'Security Wheel Lock Error: Impacted lock lug without key adapter', 5);
+      showAlert('SECURITY WHEEL LOCK (-$10 / -5 REP)', `Lug #${id} has a security spline lock! Tap 🔑 SEAT WHEEL LOCK KEY below first.`);
+      renderBay();
+      return;
+    }
+
+    if (w.id === 'rain' && Math.random() < 0.22) {
+      SoundFX.error();
+      showAlert('🌧️ WET SOCKET SLIP', 'Rain-slicked lug nut slipped! Tap the lug firmly again to seat the socket.');
+      return;
+    }
+
     if (!job.lugsRemoved.includes(id)) {
       const breakPower = 1 + Math.floor((state.tools.impact.level - 1) / 4);
       job.lugHealth[id] = Math.max(0, (job.lugHealth[id] || 1) - breakPower);
@@ -1379,7 +1534,7 @@ function tapLug(id) {
       }
       renderBay();
     }
-  } else if (job.step === 5) {
+  } else if (job.step === 5 && job.torqueIdx < 5) {
     const expected = STAR_ORDER[job.torqueIdx];
     if (id !== expected) {
       addBayPenalty(job, 12, 'Torque Sequence Error: Out-of-order lug torquing', 6);
@@ -1391,9 +1546,19 @@ function tapLug(id) {
     SoundFX.torqueClick();
     triggerLugSpin(job, id);
     job.torqueIdx++;
-    if (job.torqueIdx >= 5) completeJob();
-    else renderBay();
+    renderBay();
   }
+}
+
+function lowerJackAndFinish() {
+  const job = state.activeJob;
+  if (!job || job.step !== 5 || job.torqueIdx < 5) return;
+  job.jackLowered = true;
+  SoundFX.jack();
+  renderBay();
+  setTimeout(() => {
+    completeJob();
+  }, 350);
 }
 
 function runScan() {
@@ -1526,7 +1691,7 @@ function completeJob() {
       <span class="badge">TRAINING COMPLETE</span>
       <h3>Certified DelWin Technician!</h3>
       <p style="font-size:13px;color:var(--muted);">
-        You mastered traffic cones, wheel chocks, lug removal, center-nail plug diagnostics, PSI calibration, and star-pattern torquing.
+        You mastered traffic cones, wheel chocks, lug removal, center-nail plug diagnostics, PSI calibration, star-pattern torquing, and jack stowage.
       </p>
       <div style="background:#090c12;padding:12px;border-radius:10px;text-align:center;color:var(--amber);font-weight:900;">
         ${firstTime ? '+12 DISPATCH TOKENS (⚡) CREDITED!' : 'TRAINING PRACTICE COMPLETE'}
@@ -1583,7 +1748,7 @@ function completeJob() {
     <span class="badge">DIGITAL CUSTOMER INVOICE · ${jobRating.toFixed(1)} ★</span>
     <h3>${job.title}</h3>
     <div style="background:#090c12;padding:12px;border-radius:10px;font-size:13px;display:flex;flex-direction:column;gap:6px;">
-      <div style="display:flex;justify-content:space-between;"><span>Base Service Payout:</span><strong style="color:var(--green);">+$${gross}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Base + Weather Payout:</span><strong style="color:var(--green);">+$${gross}</strong></div>
       <div style="display:flex;justify-content:space-between;"><span>Fast-Response Bonus:</span><strong style="color:var(--blue);">+$${speedBonus}</strong></div>
       <div style="display:flex;justify-content:space-between;"><span>Bay & SLA Deductions:</span><strong style="color:var(--red);">-$${totalDeductions}</strong></div>
       ${logHtml}
@@ -1596,21 +1761,46 @@ function completeJob() {
 }
 
 function buyStock(type) {
-  if (type === 'plug' && state.cash >= 20) {
-    state.cash -= 20;
-    state.plugs += 3;
-    SoundFX.torqueClick();
-  } else if (type === 'std' && state.cash >= 45) {
-    state.cash -= 45;
-    state.stdTires += 1;
-    SoundFX.torqueClick();
-  } else if (type === 'hd' && state.cash >= 95) {
-    state.cash -= 95;
-    state.hdTires += 1;
-    SoundFX.torqueClick();
-  } else {
-    showAlert('INSUFFICIENT CASH', 'Complete a dispatch call to earn cash for restocking supplies.');
-    return;
+  const rig = getActiveRigObj();
+  if (type === 'plug') {
+    if (state.plugs >= rig.capPlugs) {
+      showAlert('CARGO CAPACITY FULL', `${rig.name} holds max ${rig.capPlugs} Plug Kits. Upgrade your Rig Tier in the Garage for more cargo space!`);
+      return;
+    }
+    if (state.cash >= 20) {
+      state.cash -= 20;
+      state.plugs = Math.min(rig.capPlugs, state.plugs + 3);
+      SoundFX.torqueClick();
+    } else {
+      showAlert('INSUFFICIENT CASH', 'Complete a dispatch call to earn cash for restocking supplies.');
+      return;
+    }
+  } else if (type === 'std') {
+    if (state.stdTires >= rig.capStd) {
+      showAlert('CARGO CAPACITY FULL', `${rig.name} holds max ${rig.capStd} Standard Tires. Upgrade your Rig Tier in the Garage for more cargo space!`);
+      return;
+    }
+    if (state.cash >= 45) {
+      state.cash -= 45;
+      state.stdTires += 1;
+      SoundFX.torqueClick();
+    } else {
+      showAlert('INSUFFICIENT CASH', 'Complete a dispatch call to earn cash for restocking supplies.');
+      return;
+    }
+  } else if (type === 'hd') {
+    if (state.hdTires >= rig.capHd) {
+      showAlert('CARGO CAPACITY FULL', `${rig.name} holds max ${rig.capHd} Heavy-Duty Tires. Upgrade your Rig Tier in the Garage for more cargo space!`);
+      return;
+    }
+    if (state.cash >= 95) {
+      state.cash -= 95;
+      state.hdTires += 1;
+      SoundFX.torqueClick();
+    } else {
+      showAlert('INSUFFICIENT CASH', 'Complete a dispatch call to earn cash for restocking supplies.');
+      return;
+    }
   }
   saveState();
   updateHUD();
@@ -1663,7 +1853,7 @@ function purchaseRigTier(tierNum) {
   openModal(`
     <span class="badge">NEW SERVICE RIG COMMISSIONED</span>
     <h3>${rig.name}</h3>
-    <p style="font-size:13px;color:var(--muted);">${rig.perk}</p>
+    <p style="font-size:13px;color:var(--muted);">${rig.perk} Cargo Cap: ${rig.capStd} Std / ${rig.capHd} HD / ${rig.capPlugs} Plugs.</p>
     <button class="primary-btn" onclick="closeModal()">ROLL OUT NEW RIG</button>
   `);
 }
@@ -1680,6 +1870,7 @@ function renderGarage() {
   if (!heroCard) {
     heroCard = document.createElement('div');
     heroCard.className = 'item-card rig-hero';
+    heroCard.style.marginBottom = '10px';
     garagePage.prepend(heroCard);
   }
 
@@ -1700,7 +1891,10 @@ function renderGarage() {
       <img src="${rig.img}" alt="${rig.name}" onerror="this.remove();" />
     </div>
     <p id="rig-perk" style="font-size:12px;color:var(--muted);">${rig.perk} (${rig.req})</p>
-    <button id="rig-commission-btn" class="primary-btn" style="margin-top:8px;"
+    <div style="font-size:11px;color:var(--amber);font-weight:800;">
+      Cargo Rack: ${rig.capStd} Std Tires · ${rig.capHd} HD Tires · ${rig.capPlugs} Plug Kits
+    </div>
+    <button id="rig-commission-btn" class="primary-btn" style="margin-top:6px;"
       ${isUnlocked || !meetsTools || previewRigTier !== (state.unlockedRigTier + 1) ? 'disabled' : ''}
       onclick="purchaseRigTier(${previewRigTier})">
       ${isUnlocked
@@ -1807,7 +2001,7 @@ function renderLeague() {
   document.getElementById('league-rank').textContent = `#${myRank}`;
 
   const headerBanner = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
       <span class="badge">${divisionNames[divisionIndex]}</span>
       <button class="ghost-btn" style="padding:4px 8px;font-size:11px;" onclick="openProfileEditor()">Edit Name/Logo</button>
     </div>`;
@@ -1881,9 +2075,14 @@ function watchRewardedAd(type) {
     if (el) el.textContent = sec;
     if (sec <= 0) {
       clearInterval(iv);
+      const rig = getActiveRigObj();
       if (type === 'surge') state.surgeJobs += 3;
       if (type === 'tokens') state.tokens += 5;
-      if (type === 'restock') { state.plugs += 4; state.stdTires += 2; state.hdTires += 1; }
+      if (type === 'restock') {
+        state.plugs = Math.min(rig.capPlugs, state.plugs + 4);
+        state.stdTires = Math.min(rig.capStd, state.stdTires + 2);
+        state.hdTires = Math.min(rig.capHd, state.hdTires + 1);
+      }
       if (type === 'scan') {
         refreshJobs();
       }
