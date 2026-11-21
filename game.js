@@ -1,7 +1,6 @@
 /* ==========================================================================
    DELWIN MOBILE: ROADSIDE TIRE RESCUE — GAME ENGINE (game.js)
-   Rock-solid startup, Safari-safe cloning, instant delegated tab/button wiring,
-   and full 5-step repair bay + hazards + progression.
+   Complete, self-healing engine aligned with index.html & screenshots.
    ========================================================================== */
 
 'use strict';
@@ -77,6 +76,7 @@ const DEFAULT_STATE = {
   leaguePoints: 0,
   tutorialDone: false,
   tutorialStep: 0,
+  floodlightsOn: false,
   tools: {
     jack:   { label: 'Hydraulic Floor Jack', level: 1, max: 12 },
     impact: { label: 'Pneumatic Impact Gun', level: 1, max: 12 },
@@ -91,13 +91,49 @@ function cloneDefault() {
   return JSON.parse(JSON.stringify(DEFAULT_STATE));
 }
 
+function hydrateJob(rawJob) {
+  if (!rawJob || typeof rawJob !== 'object') return null;
+  const fallbackVeh = VEHICLES.find(v => v.id === (rawJob.veh && rawJob.veh.id)) || VEHICLES[0];
+  const fallbackDmg = DAMAGE_TYPES.find(d => d.id === (rawJob.dmg && rawJob.dmg.id)) || DAMAGE_TYPES[0];
+  const veh = { ...fallbackVeh, ...(rawJob.veh || {}) };
+  if (!veh.name) veh.name = fallbackVeh.name;
+  if (!veh.icon) veh.icon = fallbackVeh.icon;
+  if (!veh.img) veh.img = fallbackVeh.img;
+  if (!veh.targetPsi) veh.targetPsi = fallbackVeh.targetPsi;
+
+  const dmg = { ...fallbackDmg, ...(rawJob.dmg || {}) };
+  return {
+    ...rawJob,
+    veh,
+    dmg,
+    zoneName: rawJob.zoneName || getZone().name,
+    cond: rawJob.cond || 'day',
+    payout: Number(rawJob.payout) || 75,
+    repReward: Number(rawJob.repReward) || 18,
+    timeLimit: Number(rawJob.timeLimit) || 90,
+    timeLeft: typeof rawJob.timeLeft === 'number' ? rawJob.timeLeft : 90,
+    penalties: Array.isArray(rawJob.penalties) ? rawJob.penalties : [],
+    penaltyCash: Number(rawJob.penaltyCash) || 0,
+    penaltyRep: Number(rawJob.penaltyRep) || 0,
+    step: Number(rawJob.step) || 1,
+    jackPumps: Number(rawJob.jackPumps) || 0,
+    jackPumpsNeeded: Number(rawJob.jackPumpsNeeded) || 4,
+    seizedLugs: Array.isArray(rawJob.seizedLugs) ? rawJob.seizedLugs : [],
+    oilAppliedLugs: Array.isArray(rawJob.oilAppliedLugs) ? rawJob.oilAppliedLugs : [],
+    lugsOff: Array.isArray(rawJob.lugsOff) && rawJob.lugsOff.length === 5 ? rawJob.lugsOff : [false, false, false, false, false],
+    lugsTorqued: Array.isArray(rawJob.lugsTorqued) && rawJob.lugsTorqued.length === 5 ? rawJob.lugsTorqued : [false, false, false, false, false],
+    torquedCount: Number(rawJob.torquedCount) || 0,
+    psi: typeof rawJob.psi === 'number' ? rawJob.psi : 12
+  };
+}
+
 function loadState() {
   const base = cloneDefault();
   try {
     const raw = window.localStorage ? window.localStorage.getItem(STORAGE_KEY) : null;
     if (!raw) return base;
     const parsed = JSON.parse(raw);
-    return {
+    const merged = {
       ...base,
       ...(parsed && typeof parsed === 'object' ? parsed : {}),
       tools: {
@@ -105,6 +141,11 @@ function loadState() {
         ...((parsed && parsed.tools && typeof parsed.tools === 'object') ? parsed.tools : {})
       }
     };
+    merged.boardJobs = Array.isArray(merged.boardJobs)
+      ? merged.boardJobs.map(hydrateJob).filter(Boolean)
+      : [];
+    merged.activeJob = merged.activeJob ? hydrateJob(merged.activeJob) : null;
+    return merged;
   } catch (e) {
     return base;
   }
@@ -186,12 +227,12 @@ function createJob(options = {}) {
   const availableVehicles = VEHICLES.filter(v => v.minRig <= (state.rigLevel || 1));
   const pool = availableVehicles.length ? availableVehicles : [VEHICLES[0]];
   const veh = isTutorial
-    ? VEHICLES[0]
-    : pool[Math.floor(Math.random() * pool.length)];
+    ? { ...VEHICLES[0] }
+    : { ...pool[Math.floor(Math.random() * pool.length)] };
 
   const dmg = isTutorial
-    ? DAMAGE_TYPES[0]
-    : DAMAGE_TYPES[Math.floor(Math.random() * DAMAGE_TYPES.length)];
+    ? { ...DAMAGE_TYPES[0] }
+    : { ...DAMAGE_TYPES[Math.floor(Math.random() * DAMAGE_TYPES.length)] };
 
   const rollCond = Math.random();
   const cond = isTutorial ? 'day' : (rollCond < 0.25 ? 'rain' : (rollCond < 0.50 ? 'night' : 'day'));
@@ -259,7 +300,11 @@ function createJob(options = {}) {
 }
 
 function refreshDispatchBoard(force = false) {
-  if (!force && Array.isArray(state.boardJobs) && state.boardJobs.length >= 3) return;
+  const hasValidExisting = Array.isArray(state.boardJobs) &&
+    state.boardJobs.length >= 3 &&
+    state.boardJobs.every(j => j && j.veh && j.veh.name && typeof j.payout === 'number');
+
+  if (!force && hasValidExisting) return;
   state.boardJobs = [
     createJob({ vip: false }),
     createJob({ vip: false }),
@@ -434,7 +479,7 @@ function acceptJob(jobId) {
   }
   const idx = state.boardJobs.findIndex(j => j.id === jobId);
   if (idx === -1) return;
-  const job = state.boardJobs.splice(idx, 1)[0];
+  const job = hydrateJob(state.boardJobs.splice(idx, 1)[0]);
   state.activeJob = job;
   hideDiagAlert();
   saveState();
@@ -767,6 +812,66 @@ function handleLowerJackAndComplete() {
   renderAll();
 }
 
+function toggleFloodlights() {
+  state.floodlightsOn = !state.floodlightsOn;
+  saveState();
+  renderBay();
+}
+
+function jumpToBayStep(targetStep) {
+  const job = state.activeJob;
+  if (!job) return;
+  if (targetStep === 1) {
+    job.step = 1;
+  } else if (targetStep === 2) {
+    job.conesSet = true;
+    job.chocksSet = true;
+    job.jackPumps = job.jackPumpsNeeded;
+    job.jackRaised = true;
+    job.step = 2;
+  } else if (targetStep === 3) {
+    job.conesSet = true;
+    job.chocksSet = true;
+    job.jackPumps = job.jackPumpsNeeded;
+    job.jackRaised = true;
+    job.lockKeyApplied = true;
+    job.seizedLugs = [];
+    job.lugsOff = [true, true, true, true, true];
+    job.wheelOff = true;
+    job.step = 3;
+  } else if (targetStep === 4) {
+    job.conesSet = true;
+    job.chocksSet = true;
+    job.jackPumps = job.jackPumpsNeeded;
+    job.jackRaised = true;
+    job.lockKeyApplied = true;
+    job.seizedLugs = [];
+    job.lugsOff = [true, true, true, true, true];
+    job.wheelOff = true;
+    job.inspected = true;
+    job.repaired = true;
+    job.unseatedBead = false;
+    job.step = 4;
+  } else if (targetStep === 5) {
+    job.conesSet = true;
+    job.chocksSet = true;
+    job.jackPumps = job.jackPumpsNeeded;
+    job.jackRaised = true;
+    job.lockKeyApplied = true;
+    job.seizedLugs = [];
+    job.lugsOff = [true, true, true, true, true];
+    job.wheelOff = true;
+    job.inspected = true;
+    job.repaired = true;
+    job.unseatedBead = false;
+    job.psi = job.veh.targetPsi;
+    job.step = 5;
+  }
+  hideDiagAlert();
+  saveState();
+  renderBay();
+}
+
 /* ==========================================================================
    SHOP, RIG UPGRADES, CARGO & ZONES
    ========================================================================== */
@@ -918,6 +1023,9 @@ function renderDispatch() {
     : '';
 
   const cards = (state.boardJobs || []).map(j => {
+    const vehName = (j.veh && j.veh.name) ? j.veh.name : 'Roadside Vehicle';
+    const vehIcon = (j.veh && j.veh.icon) ? j.veh.icon : '🚗';
+    const targetPsi = (j.veh && j.veh.targetPsi) ? j.veh.targetPsi : 35;
     const condBadge = j.cond === 'rain' ? '🌧️ RAIN +25%' : (j.cond === 'night' ? '🌙 NIGHT +18%' : '☀️ CLEAR');
     const vipBadge = j.isVip ? '<span style="color:#facc15;font-weight:800;">★ VIP FLEET</span> • ' : '';
     const hazardHints = [
@@ -928,11 +1036,11 @@ function renderDispatch() {
     return `
       <div class="job-card" style="border:1px solid #1e293b;border-radius:12px;padding:12px;margin-bottom:10px;background:#0f172a;color:#f8fafc;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <strong>${vipBadge}${j.veh.icon} ${j.veh.name}</strong>
+          <strong>${vipBadge}${vehIcon} ${vehName}</strong>
           <span style="color:#34d399;font-weight:900;">+$${j.payout}</span>
         </div>
         <div style="font-size:12px;color:#94a3b8;margin-top:4px;">
-          ${condBadge} • Target ${j.veh.targetPsi} PSI • +${j.repReward} REP
+          ${condBadge} • Target ${targetPsi} PSI • +${j.repReward} REP
         </div>
         ${hazardHints ? `<div style="font-size:11px;color:#fbbf24;margin-top:4px;">${hazardHints}</div>` : ''}
         <button type="button" class="primary-btn" style="margin-top:10px;width:100%;" data-action="accept-job" data-job-id="${j.id}">
@@ -957,12 +1065,70 @@ function renderDispatch() {
 }
 
 function renderBayStageVisuals(job) {
-  const vehImg = document.getElementById('stage-veh-img');
-  const vehFb = document.getElementById('stage-veh-fallback');
-  if (vehImg && vehFb) {
-    vehImg.src = job.veh.img;
-    vehImg.onerror = () => { vehImg.style.display = 'none'; vehFb.style.display = 'block'; vehFb.textContent = job.veh.icon; };
-    vehImg.onload = () => { vehImg.style.display = 'block'; vehFb.style.display = 'none'; };
+  const stage = document.getElementById('bay-stage');
+  if (stage) {
+    stage.style.position = 'relative';
+    stage.style.minHeight = '195px';
+    stage.style.overflow = 'hidden';
+    if (state.floodlightsOn) {
+      stage.style.boxShadow = 'inset 0 0 60px rgba(250, 204, 21, 0.22)';
+    } else {
+      stage.style.boxShadow = '';
+    }
+  }
+
+  let visualLayer = document.getElementById('bay-stage-visual-layer');
+  if (!visualLayer && stage) {
+    visualLayer = document.createElement('div');
+    visualLayer.id = 'bay-stage-visual-layer';
+    visualLayer.style.cssText = [
+      'position:relative;width:100%;height:155px;display:flex;',
+      'align-items:flex-end;justify-content:center;padding-bottom:14px;',
+      'pointer-events:none;z-index:1;'
+    ].join('');
+    stage.appendChild(visualLayer);
+  }
+
+  if (visualLayer) {
+    const liftedY = job.jackRaised ? '-12px' : '0px';
+    const wheelDim = (job.step === 3 && !job.repaired) ? '0.35' : '1';
+    const lugDots = [0, 1, 2, 3, 4].map(idx => {
+      const off = job.lugsOff[idx];
+      const torqued = job.lugsTorqued[idx];
+      const seized = job.seizedLugs.includes(idx);
+      const bg = torqued ? '#10b981' : (off ? '#334155' : (seized ? '#f59e0b' : '#e2e8f0'));
+      const angle = (idx * 72) - 90;
+      const rad = (angle * Math.PI) / 180;
+      const x = Math.round(Math.cos(rad) * 16);
+      const y = Math.round(Math.sin(rad) * 16);
+      return `<span style="position:absolute;left:50%;top:50%;width:8px;height:8px;border-radius:50%;background:${bg};transform:translate(calc(-50% + ${x}px), calc(-50% + ${y}px));border:1px solid #020617;"></span>`;
+    }).join('');
+
+    visualLayer.innerHTML = `
+      <div style="display:flex;align-items:flex-end;gap:14px;transform:translateY(${liftedY});transition:transform 0.18s ease;">
+        ${job.conesSet ? '<div style="font-size:24px;line-height:1;">🚧</div>' : ''}
+        <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
+          <img id="stage-veh-img" src="${job.veh.img}" alt="${job.veh.name}"
+               style="max-height:76px;max-width:165px;object-fit:contain;display:block;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.45));" />
+          <div id="stage-veh-fallback" style="display:none;font-size:52px;line-height:1;">${job.veh.icon}</div>
+          <div id="stage-wheel-wrap" style="position:relative;width:46px;height:46px;border-radius:50%;border:5px solid #1e293b;background:#475569;margin-top:-10px;opacity:${wheelDim};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.5);">
+            <div style="width:18px;height:18px;border-radius:50%;background:#94a3b8;position:relative;"></div>
+            ${lugDots}
+          </div>
+        </div>
+        ${job.chocksSet ? '<div style="font-size:18px;line-height:1;background:#facc15;color:#0f172a;padding:2px 6px;border-radius:4px;font-weight:900;">CHOCK</div>' : ''}
+        ${job.jackPumps > 0 ? `<div style="font-size:11px;background:#dc2626;color:#fff;padding:3px 6px;border-radius:6px;font-weight:800;">JACK ${job.jackRaised ? 'UP' : job.jackPumps + '/' + job.jackPumpsNeeded}</div>` : ''}
+      </div>
+    `;
+
+    const imgEl = document.getElementById('stage-veh-img');
+    const fbEl = document.getElementById('stage-veh-fallback');
+    if (imgEl && fbEl) {
+      imgEl.onerror = () => {
+        imgEl.style.display = 'none';
+        fbEl.style.display = 'block';
+      };
+    }
   }
 
   const chockEl = document.getElementById('stage-chock');
@@ -973,9 +1139,6 @@ function renderBayStageVisuals(job) {
 
   const chassisEl = document.getElementById('stage-chassis');
   if (chassisEl) chassisEl.style.transform = job.jackRaised ? 'translateY(-14px)' : 'translateY(0px)';
-
-  const wheelWrap = document.getElementById('stage-wheel-wrap');
-  if (wheelWrap) wheelWrap.style.opacity = (job.step === 3 && !job.repaired) ? '0.35' : '1';
 
   const lugRing = document.getElementById('lug-ring');
   if (lugRing) {
@@ -1012,6 +1175,19 @@ function renderBay() {
   setTxt('bay-veh-tag', `${condTag} • ${job.zoneName}`);
   setTxt('bay-job-title', `${job.veh.name} (${job.veh.targetPsi} PSI)`);
   setTxt('bay-payout', `+$${Math.max(20, job.payout - (job.penaltyCash || 0))}`);
+
+  const floodBtn = document.querySelector('[data-action="toggle-floodlights"], #floodlight-btn');
+  if (floodBtn) {
+    floodBtn.textContent = state.floodlightsOn ? '💡 FLOODLIGHTS: ON' : '🔦 FLOODLIGHTS: OFF';
+  }
+
+  document.querySelectorAll('[data-step], .step-pill, .bay-step-btn').forEach(el => {
+    const s = Number(el.getAttribute('data-step') || (el.textContent || '').trim().charAt(0));
+    if (s >= 1 && s <= 5) {
+      el.classList.toggle('active', s === job.step);
+      el.classList.toggle('done', s < job.step);
+    }
+  });
 
   renderBayTimerOnly();
   updateShoulderTrafficBanner(job);
@@ -1312,6 +1488,21 @@ document.addEventListener('click', (e) => {
         switchView(view);
         return;
       }
+    }
+
+    const stepPill = target.closest('[data-step], .step-pill, .bay-step-btn');
+    if (stepPill && state.activeJob) {
+      const s = Number(stepPill.getAttribute('data-step') || (stepPill.textContent || '').trim().charAt(0));
+      if (s >= 1 && s <= 5) {
+        jumpToBayStep(s);
+        return;
+      }
+    }
+
+    const floodBtn = target.closest('#floodlight-btn, [data-action="toggle-floodlights"]');
+    if (floodBtn) {
+      toggleFloodlights();
+      return;
     }
 
     const menuToggle = target.closest('#menu-btn, [data-action="toggle-menu"]');
