@@ -715,3 +715,5 @@ document.getElementById("btn-close-summary").addEventListener("click", () => {
 
 // Init
 generateJobs();
+
+
