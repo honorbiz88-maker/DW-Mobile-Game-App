@@ -14,33 +14,146 @@
 const SoundFX = (() => {
   let enabled = true;
   let ctx = null;
-  function beep(freq, dur = 0.08, type = 'triangle', gainVal = 0.08) {
+
+  function ensureCtx() {
+    if (!enabled) return null;
+    try {
+      if (!ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) ctx = new AudioCtx();
+      }
+      if (ctx && ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      return ctx;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function vibe(pattern) {
     if (!enabled) return;
     try {
-      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = type;
-      osc.frequency.value = freq;
-      gain.gain.value = gainVal;
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + dur);
+      if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+        navigator.vibrate(pattern);
+      }
     } catch (e) {}
   }
+
+  function tone(freq, dur = 0.08, type = 'triangle', gainVal = 0.08, endFreq = null, delay = 0) {
+    const audio = ensureCtx();
+    if (!audio) return;
+    try {
+      const start = audio.currentTime + delay;
+      const osc = audio.createOscillator();
+      const gain = audio.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, start);
+      if (endFreq !== null) {
+        osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), start + dur);
+      }
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.linearRampToValueAtTime(gainVal, start + Math.min(0.015, dur * 0.25));
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+      osc.connect(gain);
+      gain.connect(audio.destination);
+      osc.start(start);
+      osc.stop(start + dur + 0.01);
+    } catch (e) {}
+  }
+
+  function noiseBurst(dur = 0.05, gainVal = 0.05, filterFreq = 1400, delay = 0) {
+    const audio = ensureCtx();
+    if (!audio) return;
+    try {
+      const sampleCount = Math.max(1, Math.floor(audio.sampleRate * dur));
+      const buffer = audio.createBuffer(1, sampleCount, audio.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < sampleCount; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / sampleCount);
+      }
+      const start = audio.currentTime + delay;
+      const src = audio.createBufferSource();
+      src.buffer = buffer;
+
+      const filter = audio.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(filterFreq, start);
+      filter.Q.setValueAtTime(1.8, start);
+
+      const gain = audio.createGain();
+      gain.gain.setValueAtTime(gainVal, start);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+
+      src.connect(filter);
+      filter.connect(gain);
+      gain.connect(audio.destination);
+      src.start(start);
+      src.stop(start + dur + 0.01);
+    } catch (e) {}
+  }
+
   return {
-    toggle() { enabled = !enabled; return enabled; },
-    chock() { beep(180, 0.07, 'square', 0.07); },
-    jack() { beep(130, 0.11, 'sawtooth', 0.08); },
-    impact() { beep(240, 0.06, 'square', 0.09); setTimeout(() => beep(310, 0.05, 'square', 0.07), 45); },
-    scan() { beep(520, 0.09, 'sine', 0.07); setTimeout(() => beep(740, 0.12, 'sine', 0.07), 80); },
-    air() { beep(420, 0.06, 'sine', 0.045); },
-    torqueClick() { beep(640, 0.06, 'triangle', 0.09); },
-    success() { beep(523, 0.09); setTimeout(() => beep(659, 0.09), 90); setTimeout(() => beep(784, 0.16), 180); },
-    error() { beep(140, 0.18, 'sawtooth', 0.1); }
+    toggle() {
+      enabled = !enabled;
+      if (enabled) {
+        ensureCtx();
+        vibe(15);
+      } else {
+        try {
+          if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(0);
+        } catch (e) {}
+      }
+      return enabled;
+    },
+    chock() {
+      tone(165, 0.08, 'square', 0.07, 95, 0);
+      noiseBurst(0.04, 0.04, 520, 0.01);
+      vibe(15);
+    },
+    jack() {
+      tone(125, 0.14, 'sawtooth', 0.075, 220, 0);
+      noiseBurst(0.08, 0.03, 900, 0.02);
+      vibe(22);
+    },
+    impact() {
+      // 3-hammer pneumatic ratchet burst
+      tone(230, 0.035, 'square', 0.08, 290, 0);
+      noiseBurst(0.03, 0.05, 1900, 0);
+      tone(250, 0.035, 'square', 0.08, 320, 0.045);
+      noiseBurst(0.03, 0.05, 2100, 0.045);
+      tone(280, 0.04, 'square', 0.075, 360, 0.09);
+      vibe([16, 20, 16]);
+    },
+    scan() {
+      tone(540, 0.08, 'sine', 0.065, 760, 0);
+      tone(780, 0.11, 'sine', 0.065, 980, 0.08);
+      vibe(12);
+    },
+    air() {
+      noiseBurst(0.055, 0.045, 2400, 0);
+      tone(380, 0.04, 'sine', 0.03, 440, 0);
+      vibe(10);
+    },
+    torqueClick() {
+      tone(680, 0.045, 'triangle', 0.09, 920, 0);
+      noiseBurst(0.025, 0.04, 3200, 0.01);
+      vibe(24);
+    },
+    success() {
+      tone(523.25, 0.09, 'triangle', 0.085, null, 0);
+      tone(659.25, 0.09, 'triangle', 0.085, null, 0.09);
+      tone(783.99, 0.18, 'triangle', 0.095, null, 0.18);
+      vibe([25, 35, 35]);
+    },
+    error() {
+      tone(155, 0.14, 'sawtooth', 0.09, 105, 0);
+      tone(120, 0.16, 'sawtooth', 0.085, 85, 0.11);
+      vibe([55, 35, 55]);
+    }
   };
 })();
+
 
 const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
 
