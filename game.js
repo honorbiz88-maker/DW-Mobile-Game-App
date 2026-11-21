@@ -79,11 +79,11 @@ const ZONES = [
 ];
 
 const VEHICLES = [
-  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, basePay: 75, targetPsi: 35, timeSec: 85, axleWeight: 1.0, lockChance: 0.25, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
-  { id: 'suv', label: 'FAMILY SUV', heavy: false, basePay: 88, targetPsi: 36, timeSec: 80, axleWeight: 1.15, lockChance: 0.45, bodyColor: '#475569', img: 'assets/veh-suv.png' },
-  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, basePay: 100, targetPsi: 40, timeSec: 75, axleWeight: 1.30, lockChance: 0.35, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
-  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, basePay: 155, targetPsi: 95, timeSec: 95, axleWeight: 1.75, lockChance: 0.15, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
-  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, basePay: 195, targetPsi: 105, timeSec: 105, axleWeight: 2.10, lockChance: 0.15, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
+  { id: 'sedan', label: 'COMMUTER SEDAN', heavy: false, basePay: 75, targetPsi: 35, timeSec: 64, axleWeight: 1.0, lockChance: 0.25, bodyColor: '#64748b', img: 'assets/veh-sedan.png' },
+  { id: 'suv', label: 'FAMILY SUV', heavy: false, basePay: 88, targetPsi: 36, timeSec: 60, axleWeight: 1.15, lockChance: 0.45, bodyColor: '#475569', img: 'assets/veh-suv.png' },
+  { id: 'pickup', label: 'LIFTED 4X4 PICKUP', heavy: false, basePay: 100, targetPsi: 40, timeSec: 58, axleWeight: 1.30, lockChance: 0.35, bodyColor: '#b91c1c', img: 'assets/veh-pickup.png' },
+  { id: 'boxtruck', label: 'COMMERCIAL BOX TRUCK', heavy: true, basePay: 155, targetPsi: 95, timeSec: 70, axleWeight: 1.75, lockChance: 0.15, bodyColor: '#cbd5e1', img: 'assets/veh-boxtruck.png' },
+  { id: 'semi', label: '18-WHEELER TRACTOR', heavy: true, basePay: 195, targetPsi: 105, timeSec: 76, axleWeight: 2.10, lockChance: 0.15, bodyColor: '#1d4ed8', img: 'assets/veh-semi.png' }
 ];
 
 const WEATHER_CONDITIONS = [
@@ -1010,7 +1010,14 @@ function generateJob(vip = false) {
     (vip ? 1.65 : 1) * (isRusted ? 1.12 : 1) * (hasWheelLock ? 1.08 : 1)
   );
   const radarBonusSec = (state.tools.radar.level - 1) * 2;
-  const timeLimit = veh.timeSec + radarBonusSec;
+  const swapTimeAdj = dmg.action === 'swap' ? 4 : -4;
+  const hazardTimeAdj = (isRusted ? 3 : 0) + (hasWheelLock ? 3 : 0) - (vip ? 5 : 0);
+  const timeLimit = Math.max(42, veh.timeSec + swapTimeAdj + hazardTimeAdj + radarBonusSec);
+
+  const actionRepBase = dmg.action === 'swap' ? 32 : 24;
+  const vehRepBonus = veh.id === 'semi' ? 16 : (veh.id === 'boxtruck' ? 11 : (veh.id === 'pickup' ? 5 : (veh.id === 'suv' ? 3 : 0)));
+  const hazardRepBonus = (isRusted ? 5 : 0) + (hasWheelLock ? 5 : 0) + (weather.id === 'rain' ? 6 : (weather.id === 'night' ? 3 : 0)) + (vip ? 14 : 0);
+  const baseRepValue = Math.round((actionRepBase + vehRepBonus + hazardRepBonus) * z.mult);
 
   return {
     id: 'job_' + Math.random().toString(36).slice(2, 8),
@@ -1023,6 +1030,7 @@ function generateJob(vip = false) {
     hasWheelLock,
     lockLugId,
     pay: basePay,
+    baseRep: baseRepValue,
     timeLimit,
     vip,
     snipeCost: vip ? 4 : 0
@@ -1064,7 +1072,7 @@ function renderJobs() {
         </div>
         <div class="job-meta">
           <span>${j.veh.heavy ? '🛞 HD Tire' : '🛞 Std Tire'} · ${j.veh.targetPsi} PSI${hazardBadge}${lockBadge}</span>
-          <span>⏱️ SLA: ${j.timeLimit}s</span>
+          <span>⭐ +${j.baseRep || 30} REP · ⏱️ SLA: ${j.timeLimit}s</span>
         </div>
         <button class="primary-btn" onclick="acceptJob('${j.id}')">
           ${j.vip ? `SNIPE DISPATCH (${j.snipeCost} ⚡)` : 'ACCEPT & ROLL RIG'}
@@ -1882,7 +1890,11 @@ function completeJob() {
   const totalDeductions = job.penalties + overheadFee;
   const net = Math.max(15, gross + speedBonus - totalDeductions);
 
-  const baseRep = Math.round((30 + (isFast ? 12 : 0)) * getZone().mult);
+  const z = getZone();
+  const fallbackBaseRep = Math.round(((job.dmg && job.dmg.action === 'swap' ? 32 : 24) + (job.veh && job.veh.heavy ? 12 : 0)) * z.mult);
+  const rawJobRep = job.baseRep || fallbackBaseRep;
+  const fastRepBonus = isFast ? Math.max(6, Math.round(rawJobRep * 0.25)) : 0;
+  const baseRep = rawJobRep + fastRepBonus;
   const repDeductions = job.repPenalties || 0;
   const netRep = baseRep - repDeductions;
   state.rep = Math.max(0, state.rep + netRep);
