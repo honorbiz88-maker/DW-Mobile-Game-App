@@ -1,8 +1,13 @@
 // DelWin Mobile: Roadside Tire Rescue
-// Full Restored Build + Merged Gameplay Mechanics:
-// 1. Dynamic Roadside Weather & Night Shifts (Clear, Night Shift + LED Floodlights, Georgia Downpour)
-// 2. Rig Tier Cargo Capacity Limits (Std Tires, HD Tires, Plug Kits tied to Rig Tier)
-// 3. Security Wheel Lock Keys + Final Lower Jack & Stow Cones Checkpoint
+// Full Build with:
+// - Zero broken-image text flash (empty alt + cached src swap)
+// - Press-and-Hold smooth PSI inflation & bleeding (eliminates mobile double-tap zoom)
+// - Top currency pills ($ Cash, ⚙️ Gold Gears, ⚡ Tokens) linked directly to Dispatch Shop
+// - 2X Surge Ad Charges (3 max, 1 ad = +1 charge, 8h recharge per charge, or 3 ⚡ instant surge)
+// - Token Ad Drop (3 max, 1 ad = +3 ⚡, 6h recharge per charge)
+// - Gold Gear (⚙️) drop on every 5-job clean streak + Elite Contracts + Shop / Exchange (15 ⚡ -> 1 ⚙️)
+// - Per-call Fleet Operating Overhead based on Rig Tier & Zone Multiplier
+// - Preserves all exact asset filenames: rig-t1..t6, tool-impact/jack/comp/radar-t1..t6, veh-*, bay-tire-*, bay-hd-tire-*
 
 const SoundFX = (() => {
   let enabled = true;
@@ -28,7 +33,7 @@ const SoundFX = (() => {
     jack() { beep(130, 0.11, 'sawtooth', 0.08); },
     impact() { beep(240, 0.06, 'square', 0.09); setTimeout(() => beep(310, 0.05, 'square', 0.07), 45); },
     scan() { beep(520, 0.09, 'sine', 0.07); setTimeout(() => beep(740, 0.12, 'sine', 0.07), 80); },
-    air() { beep(420, 0.08, 'sine', 0.05); },
+    air() { beep(420, 0.06, 'sine', 0.045); },
     torqueClick() { beep(640, 0.06, 'triangle', 0.09); },
     success() { beep(523, 0.09); setTimeout(() => beep(659, 0.09), 90); setTimeout(() => beep(784, 0.16), 180); },
     error() { beep(140, 0.18, 'sawtooth', 0.1); }
@@ -37,7 +42,6 @@ const SoundFX = (() => {
 
 const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
 
-// Rig Tiers: Require BOTH minimum Tool Level AND an explicit Rig Unlock Purchase + Define Cargo Capacities
 const RIG_TIERS = [
   { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', reqLvl: 1, req: 'Starting Rig', cashCost: 0, partCost: 0, tokenCost: 0, mult: 1.00, capPlugs: 6, capStd: 3, capHd: 1, perk: 'Standard highway response rig (1.00x Payouts).' },
   { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', reqLvl: 5, req: 'All Tools Lvl 5+', cashCost: 650, partCost: 2, tokenCost: 10, mult: 1.18, capPlugs: 9, capStd: 4, capHd: 2, perk: '1.18x Base Payouts & Twin Amber Strobes.' },
@@ -152,17 +156,30 @@ const AVATAR_PRESETS = ['🛞', '🚛', '🔧', '⚡', '🏆', '🔥', '🛡️'
 const MAX_DISPATCH_SCANS = 2;
 const SCAN_RECHARGE_MS = 2 * 60 * 60 * 1000;
 
+const MAX_SURGE_CHARGES = 3;
+const SURGE_RECHARGE_MS = 8 * 60 * 60 * 1000; // 8 hours per surge ad charge
+
+const MAX_TOKEN_DROPS = 3;
+const TOKEN_DROP_RECHARGE_MS = 6 * 60 * 60 * 1000; // 6 hours per free token ad drop
+
+const CLEAN_STREAK_GEAR_INTERVAL = 5; // +1 Gold Gear every 5 zero-penalty calls
+const TOKEN_TO_GEAR_COST = 15;
+
 let state = {
   bizName: 'DelWin Mobile Tire Rescue',
   avatarEmoji: '🛞',
   avatarImg: '',
   cash: 140,
   tokens: 8,
-  parts: 0,
+  parts: 0, // Represents Gold Gears (⚙️)
   rep: 0,
   unlockedRigTier: 1,
   dispatchScans: 2,
   lastScanRechargeAt: Date.now(),
+  surgeCharges: 3,
+  lastSurgeRechargeAt: Date.now(),
+  tokenDropCharges: 3,
+  lastTokenDropRechargeAt: Date.now(),
   streak: 0,
   jobsCompleted: 0,
   zoneId: 'z1',
@@ -199,6 +216,9 @@ let previewToolTiers = {};
 let bayTimerInterval = null;
 let dispatchCooldownInterval = null;
 let spinClearTimeout = null;
+let holdPsiInterval = null;
+let lastRenderedVehSrc = '';
+let lastRenderedTireSrc = '';
 
 function loadState() {
   try {
@@ -217,6 +237,10 @@ function loadState() {
     if (!state.unlockedRigTier) state.unlockedRigTier = 1;
     if (typeof state.dispatchScans !== 'number') state.dispatchScans = MAX_DISPATCH_SCANS;
     if (!state.lastScanRechargeAt) state.lastScanRechargeAt = Date.now();
+    if (typeof state.surgeCharges !== 'number') state.surgeCharges = MAX_SURGE_CHARGES;
+    if (!state.lastSurgeRechargeAt) state.lastSurgeRechargeAt = Date.now();
+    if (typeof state.tokenDropCharges !== 'number') state.tokenDropCharges = MAX_TOKEN_DROPS;
+    if (!state.lastTokenDropRechargeAt) state.lastTokenDropRechargeAt = Date.now();
   } catch (e) {}
 }
 
@@ -224,25 +248,37 @@ function saveState() {
   try { localStorage.setItem('delwin_v4_save', JSON.stringify(state)); } catch (e) {}
 }
 
-function syncDispatchScanRecharge() {
-  if (state.dispatchScans >= MAX_DISPATCH_SCANS) {
-    state.dispatchScans = MAX_DISPATCH_SCANS;
-    state.lastScanRechargeAt = Date.now();
+function syncPoolRecharge(countKey, tsKey, maxVal, intervalMs) {
+  if (state[countKey] >= maxVal) {
+    state[countKey] = maxVal;
+    state[tsKey] = Date.now();
     return 0;
   }
   const now = Date.now();
-  const elapsed = now - state.lastScanRechargeAt;
-  if (elapsed >= SCAN_RECHARGE_MS) {
-    const gained = Math.floor(elapsed / SCAN_RECHARGE_MS);
-    state.dispatchScans = Math.min(MAX_DISPATCH_SCANS, state.dispatchScans + gained);
-    if (state.dispatchScans >= MAX_DISPATCH_SCANS) {
-      state.lastScanRechargeAt = now;
+  const elapsed = now - state[tsKey];
+  if (elapsed >= intervalMs) {
+    const gained = Math.floor(elapsed / intervalMs);
+    state[countKey] = Math.min(maxVal, state[countKey] + gained);
+    if (state[countKey] >= maxVal) {
+      state[tsKey] = now;
       return 0;
     } else {
-      state.lastScanRechargeAt += gained * SCAN_RECHARGE_MS;
+      state[tsKey] += gained * intervalMs;
     }
   }
-  return Math.max(0, SCAN_RECHARGE_MS - (Date.now() - state.lastScanRechargeAt));
+  return Math.max(0, intervalMs - (Date.now() - state[tsKey]));
+}
+
+function syncDispatchScanRecharge() {
+  return syncPoolRecharge('dispatchScans', 'lastScanRechargeAt', MAX_DISPATCH_SCANS, SCAN_RECHARGE_MS);
+}
+
+function syncSurgeRecharge() {
+  return syncPoolRecharge('surgeCharges', 'lastSurgeRechargeAt', MAX_SURGE_CHARGES, SURGE_RECHARGE_MS);
+}
+
+function syncTokenDropRecharge() {
+  return syncPoolRecharge('tokenDropCharges', 'lastTokenDropRechargeAt', MAX_TOKEN_DROPS, TOKEN_DROP_RECHARGE_MS);
 }
 
 function formatMs(ms) {
@@ -271,6 +307,13 @@ function getZone() {
   return ZONES.find((z) => z.id === state.zoneId) || ZONES[0];
 }
 
+function getFleetOverheadFee(job) {
+  const rig = getActiveRigObj();
+  const z = getZone();
+  const heavyFactor = job && job.veh && job.veh.heavy ? 1.25 : 1.0;
+  return Math.round(12 * rig.mult * z.mult * heavyFactor);
+}
+
 function getRatingAvg() {
   return state.ratings.reduce((a, b) => a + b, 0) / state.ratings.length;
 }
@@ -295,7 +338,7 @@ function getToolEffectSummary(key, level) {
   if (key === 'comp') {
     const psiStep = 4 + Math.floor((level - 1) / 3);
     const tol = 2 + Math.floor((level - 1) / 8);
-    return `+${psiStep} PSI/tap · ±${tol} PSI green tolerance band`;
+    return `+${psiStep} PSI/tick (Hold) · ±${tol} PSI green band`;
   }
   if (key === 'radar') {
     const extraSec = (level - 1) * 2;
@@ -386,7 +429,9 @@ function injectCustomStyles() {
       background: #0f172a; border: 1px solid #334155;
       padding: 4px 7px; border-radius: 8px;
       font-size: 11px; font-weight: 800; white-space: nowrap;
+      cursor: pointer;
     }
+    .hud-pill-compact:hover { border-color: var(--amber); }
 
     .profile-pill {
       display: flex; align-items: center; gap: 8px;
@@ -403,12 +448,12 @@ function injectCustomStyles() {
   document.head.appendChild(st);
 }
 
-// --- TOP HEADER PLAYER COMMAND BAR + DRAWER BRANDING ---
+// --- TOP HEADER PLAYER COMMAND BAR (Currency pills open Dispatch Shop) ---
 function renderTopHeader() {
   const topBar = document.querySelector('.top-bar') || document.querySelector('header');
   if (!topBar) return;
   const avatarHtml = state.avatarImg
-    ? `<img src="${state.avatarImg}" alt="Logo" />`
+    ? `<img src="${state.avatarImg}" alt="" />`
     : `<span>${state.avatarEmoji}</span>`;
   const ratingAvg = getRatingAvg().toFixed(1);
 
@@ -425,10 +470,10 @@ function renderTopHeader() {
       </div>
     </div>
     <div class="hud-curr-row">
-      <div class="hud-pill-compact" style="color:var(--green);">$<span id="hud-cash">${state.cash.toLocaleString()}</span></div>
-      <div class="hud-pill-compact" style="color:var(--amber);"><span id="hud-parts">${state.parts}</span> ⚙️</div>
-      <div class="hud-pill-compact" style="color:#38bdf8;"><span id="hud-tokens">${state.tokens}</span> ⚡</div>
-      <button class="icon-btn" onclick="toggleDrawer(true)" style="padding:6px 9px;font-size:15px;">☰</button>
+      <button type="button" class="hud-pill-compact" style="color:var(--green);" onclick="goPage('shop')" title="Open Dispatch Supply Shop">$<span id="hud-cash">${state.cash.toLocaleString()}</span>+</button>
+      <button type="button" class="hud-pill-compact" style="color:var(--amber);" onclick="goPage('shop')" title="Open Dispatch Supply Shop"><span id="hud-parts">${state.parts}</span> ⚙️+</button>
+      <button type="button" class="hud-pill-compact" style="color:#38bdf8;" onclick="goPage('shop')" title="Open Dispatch Supply Shop"><span id="hud-tokens">${state.tokens}</span> ⚡+</button>
+      <button type="button" class="icon-btn" onclick="toggleDrawer(true)" style="padding:6px 9px;font-size:15px;">☰</button>
     </div>
   `;
 }
@@ -449,7 +494,7 @@ function renderProfileCard() {
     else drawer.prepend(card);
   }
   const avatarHtml = state.avatarImg
-    ? `<img src="${state.avatarImg}" alt="Logo" />`
+    ? `<img src="${state.avatarImg}" alt="" />`
     : `<span>${state.avatarEmoji}</span>`;
   card.innerHTML = `
     <div class="profile-pill">
@@ -551,7 +596,7 @@ function claimContract() {
     <div style="background:#090c12;padding:12px;border-radius:10px;font-size:13px;display:flex;flex-direction:column;gap:6px;">
       <div style="display:flex;justify-content:space-between;"><span>Contract Cash Bonus:</span><strong style="color:var(--green);">+$${cashWon}</strong></div>
       <div style="display:flex;justify-content:space-between;"><span>Dispatch Tokens:</span><strong style="color:var(--amber);">+${c.rewardTokens} ⚡</strong></div>
-      ${c.rewardPart ? `<div style="display:flex;justify-content:space-between;"><span>Gold Tool Part:</span><strong style="color:var(--amber);">+${c.rewardPart} ⚙️</strong></div>` : ''}
+      ${c.rewardPart ? `<div style="display:flex;justify-content:space-between;"><span>Gold Gear:</span><strong style="color:var(--amber);">+${c.rewardPart} ⚙️</strong></div>` : ''}
       <div style="display:flex;justify-content:space-between;"><span>Corridor Reputation:</span><strong style="color:var(--blue);">+${repWon} REP</strong></div>
     </div>
     <button class="primary-btn" onclick="closeModal()">NEXT CONTRACT ASSIGNED</button>
@@ -594,7 +639,7 @@ function renderContractBanner() {
   `;
 }
 
-// --- HIGH-DETAIL VECTOR GRAPHICS (Guaranteed Render in Garage & Bay) ---
+// --- HIGH-DETAIL VECTOR GRAPHICS (Fallback when PNGs aren't uploaded yet) ---
 function renderRigSVG(tierObj) {
   const t = tierObj.tier;
   const isBox = t >= 5;
@@ -798,7 +843,7 @@ function triggerDispatchScan(mode) {
   }
   if (mode === 'token') {
     if (state.tokens < 2) {
-      showAlert('INSUFFICIENT TOKENS', 'Instant Radar Scan requires 2 ⚡ Dispatch Tokens, or watch a quick sponsor ad.');
+      showAlert('INSUFFICIENT TOKENS', 'Instant Radar Scan requires 2 ⚡ Dispatch Tokens, or watch a sponsor ad.');
       goPage('shop');
       return;
     }
@@ -814,11 +859,49 @@ function triggerDispatchScan(mode) {
   }
 }
 
+function triggerSurgeAction() {
+  const remMs = syncSurgeRecharge();
+  const hasAdCharge = state.surgeCharges > 0;
+  openModal(`
+    <span class="badge">2X SURGE DISPATCH MULTIPLIER</span>
+    <h3>Boost Next Call Payout (2x)</h3>
+    <p style="font-size:12px;color:var(--muted);">
+      Active Stacked Surges: <strong style="color:var(--amber);">${state.surgeJobs}</strong> · Ad Charges: <strong style="color:var(--green);">${state.surgeCharges}/${MAX_SURGE_CHARGES}</strong>
+      ${state.surgeCharges < MAX_SURGE_CHARGES ? `<br>Next ad charge recharges in <strong>${formatMs(remMs)}</strong> (8h per charge).` : ''}
+    </p>
+    <button class="secondary-btn" ${!hasAdCharge ? 'disabled' : ''} onclick="closeModal(); watchRewardedAd('surge');">
+      ${hasAdCharge ? `📺 WATCH AD FOR +1 SURGE (${state.surgeCharges}/${MAX_SURGE_CHARGES} LEFT)` : `⏳ SURGE AD RECHARGING (${formatMs(remMs)})`}
+    </button>
+    <button class="primary-btn" onclick="closeModal(); activateInstantSurgeToken();">
+      ⚡ INSTANT +1 SURGE (3 ⚡ TOKENS)
+    </button>
+    <button class="ghost-btn" onclick="closeModal()">CLOSE</button>
+  `);
+}
+
+function activateInstantSurgeToken() {
+  if (state.tokens < 3) {
+    showAlert('INSUFFICIENT TOKENS', 'Instant 2X Surge requires 3 ⚡ Dispatch Tokens.');
+    goPage('shop');
+    return;
+  }
+  state.tokens -= 3;
+  state.surgeJobs += 1;
+  SoundFX.success();
+  saveState();
+  updateHUD();
+  renderJobs();
+}
+
 function startDispatchCooldownTicker() {
   if (dispatchCooldownInterval) clearInterval(dispatchCooldownInterval);
   dispatchCooldownInterval = setInterval(() => {
     if (document.getElementById('page-dispatch').classList.contains('active')) {
       renderDispatchScanControl();
+      updateHUD();
+    }
+    if (document.getElementById('page-shop').classList.contains('active')) {
+      renderShop();
     }
   }, 1000);
 }
@@ -836,13 +919,16 @@ function renderRatingPerkBanner() {
   }
   const avg = getRatingAvg().toFixed(2);
   const info = getRatingTierInfo();
+  const nextGearIn = CLEAN_STREAK_GEAR_INTERVAL - ((state.streak || 0) % CLEAN_STREAK_GEAR_INTERVAL);
   pill.innerHTML = `
-    <span>Customer Rating: <strong style="color:${info.color};">${avg} ★ (${info.label})</strong></span>
-    <span style="color:${info.color};font-weight:800;">Pay ${info.bonusPct} · VIP ${Math.round(info.vipChance * 100)}%</span>
+    <span>Rating: <strong style="color:${info.color};">${avg} ★</strong> · Clean Streak: <strong style="color:var(--amber);">${state.streak || 0}</strong> (${nextGearIn} to ⚙️)</span>
+    <span style="color:${info.color};font-weight:800;">Pay ${info.bonusPct}</span>
   `;
 }
 
 function updateHUD() {
+  syncSurgeRecharge();
+  syncTokenDropRecharge();
   renderTopHeader();
   const drawerParts = document.getElementById('drawer-parts');
   if (drawerParts) drawerParts.textContent = `${state.parts} ⚙️`;
@@ -857,7 +943,9 @@ function updateHUD() {
   if (zoneLbl) zoneLbl.textContent = `${z.name.toUpperCase()} (${z.mult}x)`;
   const boostLbl = document.getElementById('dispatch-boost-label');
   if (boostLbl) {
-    boostLbl.textContent = state.surgeJobs > 0 ? `2X SURGE ACTIVE (${state.surgeJobs} LEFT)` : 'ACTIVATE 2X SURGE';
+    boostLbl.textContent = state.surgeJobs > 0
+      ? `2X SURGE: ${state.surgeJobs} ACTIVE (${state.surgeCharges}/${MAX_SURGE_CHARGES} AD)`
+      : `2X SURGE (${state.surgeCharges}/${MAX_SURGE_CHARGES} AD)`;
   }
   renderContractBanner();
   renderStockBar();
@@ -867,6 +955,7 @@ function updateHUD() {
 }
 
 function goPage(pageId) {
+  stopHoldPsi();
   document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
   document.getElementById(`page-${pageId}`).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach((b) => b.classList.remove('active'));
@@ -885,6 +974,7 @@ function goPage(pageId) {
   if (pageId === 'league') renderLeague();
   if (pageId === 'zones') renderZones();
   if (pageId === 'bay') renderBay();
+  if (pageId === 'shop') renderShop();
 }
 
 function toggleDrawer(open) {
@@ -898,7 +988,7 @@ function toggleSound() {
   document.getElementById('sound-toggle-btn').textContent = `🔊 Mechanical Audio: ${on ? 'ON' : 'OFF'}`;
 }
 
-// --- DISPATCH & JOB GENERATION (With Weather, Rusted Lugs & Security Wheel Locks) ---
+// --- DISPATCH & JOB GENERATION ---
 function generateJob(vip = false) {
   const z = getZone();
   const pool = z.id === 'z1' ? VEHICLES.slice(0, 3) : VEHICLES;
@@ -1128,7 +1218,7 @@ function getTutorialCoaching(job) {
     return { stepLabel: 'TRAINING 5/8', text: 'Center-tread nail detected! Tap PLUG PUNCTURE (never swap a center nail).' };
   }
   if (job.step === 4) {
-    return { stepLabel: 'TRAINING 6/8', text: 'Inflate air into the green 33–37 PSI target band, then tap LOCK PRESSURE.' };
+    return { stepLabel: 'TRAINING 6/8', text: 'Press & HOLD INFLATE into the green 33–37 PSI target band, then tap LOCK PRESSURE.' };
   }
   if (job.step === 5 && job.torqueIdx < 5) {
     return { stepLabel: 'TRAINING 7/8', text: `Tap Lug #${STAR_ORDER[job.torqueIdx]} directly on the wheel hub (Star Order: 1→3→5→2→4).` };
@@ -1179,12 +1269,39 @@ function applyWheelLockKey() {
   renderBay();
 }
 
-// --- 5-STEP REPAIR BAY (With Weather, Security Wheel Locks & Lower Jack Finish) ---
+// --- SAFE SPRITE SYNC (Prevents broken-image text flash on click) ---
+function syncSpriteSrc(imgEl, fbEl, newSrc, svgHtml) {
+  if (!imgEl || !fbEl) return;
+  if (!fbEl.dataset.initialized || fbEl.dataset.svgKey !== svgHtml) {
+    fbEl.innerHTML = svgHtml;
+    fbEl.dataset.initialized = '1';
+    fbEl.dataset.svgKey = svgHtml;
+  }
+  if (imgEl.dataset.currentSrc !== newSrc) {
+    imgEl.dataset.currentSrc = newSrc;
+    imgEl.style.display = 'none';
+    fbEl.style.display = 'block';
+    imgEl.onload = () => {
+      imgEl.style.display = 'block';
+      fbEl.style.display = 'none';
+    };
+    imgEl.onerror = () => {
+      imgEl.style.display = 'none';
+      fbEl.style.display = 'block';
+    };
+    imgEl.src = newSrc;
+  }
+}
+
+// --- 5-STEP REPAIR BAY ---
 function renderBay() {
   const job = state.activeJob;
   document.getElementById('bay-empty').classList.toggle('hidden', !!job);
   document.getElementById('bay-active').classList.toggle('hidden', !job);
-  if (!job) return;
+  if (!job) {
+    stopHoldPsi();
+    return;
+  }
 
   if (typeof job.timeLeft !== 'number' || isNaN(job.timeLeft)) {
     job.timeLimit = job.timeLimit || job.veh.timeSec || 85;
@@ -1272,17 +1389,11 @@ function renderBay() {
 
   const vehImg = document.getElementById('stage-veh-img');
   const vehFb = document.getElementById('stage-veh-fallback');
-  vehImg.style.display = 'block';
-  vehFb.style.display = 'none';
-  vehFb.innerHTML = renderVehicleSVG(job.veh);
-  vehImg.src = job.veh.img;
+  syncSpriteSrc(vehImg, vehFb, job.veh.img, renderVehicleSVG(job.veh));
 
   const tireImg = document.getElementById('stage-tire-img');
   const tireFb = document.getElementById('stage-tire-fallback');
-  tireImg.style.display = 'block';
-  tireFb.style.display = 'none';
-  tireFb.innerHTML = renderTireSVG(job, 132);
-  tireImg.src = getTireSpritePath(job);
+  syncSpriteSrc(tireImg, tireFb, getTireSpritePath(job), renderTireSVG(job, 132));
 
   const effectiveLift = job.jackLowered ? 0 : job.liftPct;
   const liftPx = Math.round((effectiveLift / 100) * 26);
@@ -1313,7 +1424,7 @@ function renderBay() {
     );
     const lockClass = isSecLock ? (job.lockKeyApplied ? 'lock-unlocked' : 'security-lock') : '';
     const iconTxt = isSecLock && !job.lockKeyApplied ? '🔑' : isSeized ? '🔩' : l.id;
-    return `<button class="lug-btn ${isRemoved ? 'removed' : ''} ${isTorqued ? 'torqued' : ''} ${isSpinning ? 'spinning' : ''} ${isSeized ? 'rusted' : ''} ${lockClass} ${pulseLug ? 'tut-pulse' : ''}"
+    return `<button type="button" class="lug-btn ${isRemoved ? 'removed' : ''} ${isTorqued ? 'torqued' : ''} ${isSpinning ? 'spinning' : ''} ${isSeized ? 'rusted' : ''} ${lockClass} ${pulseLug ? 'tut-pulse' : ''}"
       style="left:${l.x}%;top:${l.y}%;"
       onclick="tapLug(${l.id})">${iconTxt}</button>`;
   }).join('');
@@ -1339,20 +1450,20 @@ function renderBay() {
       <strong>Step 1: Perimeter & Hydraulic Lift (${job.liftPct}%)${weightNote}</strong>
       ${nightWarn}
       <div class="ctrl-grid-3">
-        <button class="secondary-btn ${job.isTutorial && !job.conesSet ? 'tut-pulse' : ''}" onclick="setCones()" style="font-size:11px;padding:9px 4px;">
+        <button type="button" class="secondary-btn ${job.isTutorial && !job.conesSet ? 'tut-pulse' : ''}" onclick="setCones()" style="font-size:11px;padding:9px 4px;">
           ${job.conesSet ? '✓ CONES SET' : '1. SET CONES'}
         </button>
-        <button class="secondary-btn ${job.isTutorial && job.conesSet && !job.chocked ? 'tut-pulse' : ''}" onclick="setChocks()" style="font-size:11px;padding:9px 4px;">
+        <button type="button" class="secondary-btn ${job.isTutorial && job.conesSet && !job.chocked ? 'tut-pulse' : ''}" onclick="setChocks()" style="font-size:11px;padding:9px 4px;">
           ${job.chocked ? '✓ CHOCKED' : '2. CHOCKS'}
         </button>
-        <button class="primary-btn ${job.isTutorial && job.conesSet && job.chocked ? 'tut-pulse' : ''}" onclick="pumpJack()" style="font-size:11px;padding:9px 4px;">
+        <button type="button" class="primary-btn ${job.isTutorial && job.conesSet && job.chocked ? 'tut-pulse' : ''}" onclick="pumpJack()" style="font-size:11px;padding:9px 4px;">
           3. PUMP JACK
         </button>
       </div>`;
   } else if (job.step === 2) {
     const breakPower = 1 + Math.floor((state.tools.impact.level - 1) / 4);
     const lockUi = job.hasWheelLock && !job.lockKeyApplied
-      ? `<button class="primary-btn tut-pulse" onclick="applyWheelLockKey()" style="margin-top:4px;">🔑 SEAT WHEEL LOCK KEY ON LUG #${job.lockLugId}</button>`
+      ? `<button type="button" class="primary-btn tut-pulse" onclick="applyWheelLockKey()" style="margin-top:4px;">🔑 SEAT WHEEL LOCK KEY ON LUG #${job.lockLugId}</button>`
       : job.hasWheelLock
         ? `<div style="font-size:11px;color:var(--blue);font-weight:800;">✓ Security Lock Key Adapter Seated on Lug #${job.lockLugId}</div>`
         : '';
@@ -1367,7 +1478,7 @@ function renderBay() {
       ctrl.innerHTML = `
         <strong>Step 3: Diagnostic Tire Inspection</strong>
         <p style="font-size:12px;color:var(--muted);">Run diagnostic laser scan to verify puncture vs. structural casing failure.</p>
-        <button class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="runScan()">SCAN TIRE TREAD & SIDEWALL</button>`;
+        <button type="button" class="primary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="runScan()">SCAN TIRE TREAD & SIDEWALL</button>`;
     } else {
       const tireSprite = getTireSpritePath(job);
       const swapLabel = job.veh.heavy
@@ -1376,8 +1487,8 @@ function renderBay() {
       ctrl.innerHTML = `
         <div class="diag-scan-card">
           <div class="diag-tire-preview">
-            <img src="${tireSprite}" alt="${job.dmg.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
-            <div style="display:none;">${renderTireSVG(job, 72)}</div>
+            <img src="${tireSprite}" alt="" style="display:none;" onload="this.style.display='block';if(this.nextElementSibling)this.nextElementSibling.style.display='none';" onerror="this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='block';" />
+            <div>${renderTireSVG(job, 72)}</div>
           </div>
           <div>
             <span class="badge">${job.dmg.verdict}</span>
@@ -1386,33 +1497,13 @@ function renderBay() {
           </div>
         </div>
         <div class="ctrl-grid-2">
-          <button class="secondary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="performRepair('plug')">PLUG PUNCTURE (${state.plugs})</button>
-          <button class="primary-btn" onclick="performRepair('swap')">${swapLabel}</button>
+          <button type="button" class="secondary-btn ${job.isTutorial ? 'tut-pulse' : ''}" onclick="performRepair('plug')">PLUG PUNCTURE (${state.plugs})</button>
+          <button type="button" class="primary-btn" onclick="performRepair('swap')">${swapLabel}</button>
         </div>
-        <button class="ghost-btn" onclick="droneDrop()">🚁 Drone ${job.veh.heavy ? 'HD' : 'Std'} Tire Drop (${job.veh.heavy ? 5 : 3} ⚡)</button>`;
+        <button type="button" class="ghost-btn" onclick="droneDrop()">🚁 Drone ${job.veh.heavy ? 'HD' : 'Std'} Tire Drop (${job.veh.heavy ? 5 : 3} ⚡)</button>`;
     }
   } else if (job.step === 4) {
-    const t = job.veh.targetPsi;
-    const tol = 2 + Math.floor((state.tools.comp.level - 1) / 8);
-    const inSpec = Math.abs(job.psi - t) <= tol;
-    const fillPct = Math.min(100, Math.round((job.psi / (t + 20)) * 100));
-    const bandLeft = Math.round(((t - tol) / (t + 20)) * 100);
-    const bandWidth = Math.max(8, Math.round(((tol * 2) / (t + 20)) * 100));
-    const psiStep = 4 + Math.floor((state.tools.comp.level - 1) / 3);
-    ctrl.innerHTML = `
-      <strong>Step 4: Calibrate Pressure (Target: ${t - tol}–${t + tol} PSI)</strong>
-      <div class="psi-meter">
-        <div class="psi-val">${job.psi} PSI</div>
-        <div class="psi-bar-track">
-          <div class="psi-target-band" style="left:${bandLeft}%;width:${bandWidth}%;"></div>
-          <div class="psi-fill" style="width:${fillPct}%;"></div>
-        </div>
-      </div>
-      <div class="ctrl-grid-2">
-        <button class="secondary-btn" onclick="adjustPsi(-3)">BLEED AIR (-3)</button>
-        <button class="primary-btn ${job.isTutorial && !inSpec ? 'tut-pulse' : ''}" onclick="adjustPsi(${psiStep})">INFLATE (+${psiStep} PSI)</button>
-      </div>
-      <button class="primary-btn ${job.isTutorial && inSpec ? 'tut-pulse' : ''}" onclick="lockPsi()">LOCK PRESSURE & CONTINUE</button>`;
+    renderPsiStepControls(ctrl, job);
   } else if (job.step === 5) {
     if (job.torqueIdx < 5) {
       ctrl.innerHTML = `
@@ -1422,8 +1513,101 @@ function renderBay() {
       ctrl.innerHTML = `
         <strong>Step 5 Complete: All 5 Lugs Torqued to Spec!</strong>
         <p style="font-size:12px;color:var(--green);">Lower the hydraulic floor jack and stow traffic cones to release the vehicle.</p>
-        <button class="primary-btn tut-pulse" style="background:var(--green);" onclick="lowerJackAndFinish()">⬇️ LOWER JACK & STOW CONES</button>`;
+        <button type="button" class="primary-btn tut-pulse" style="background:var(--green);" onclick="lowerJackAndFinish()">⬇️ LOWER JACK & STOW CONES</button>`;
     }
+  }
+}
+
+// --- PRESS & HOLD AIR INFLATION / BLEEDING ---
+function renderPsiStepControls(ctrl, job) {
+  const t = job.veh.targetPsi;
+  const tol = 2 + Math.floor((state.tools.comp.level - 1) / 8);
+  const inSpec = Math.abs(job.psi - t) <= tol;
+  const fillPct = Math.min(100, Math.round((job.psi / (t + 20)) * 100));
+  const bandLeft = Math.round(((t - tol) / (t + 20)) * 100);
+  const bandWidth = Math.max(8, Math.round(((tol * 2) / (t + 20)) * 100));
+  const psiStep = 4 + Math.floor((state.tools.comp.level - 1) / 3);
+
+  ctrl.innerHTML = `
+    <strong>Step 4: Hold to Calibrate Pressure (Target: ${t - tol}–${t + tol} PSI)</strong>
+    <div class="psi-meter">
+      <div id="psi-live-val" class="psi-val ${inSpec ? 'in-spec' : ''}">${job.psi} PSI ${inSpec ? '· IN SPEC' : ''}</div>
+      <div class="psi-bar-track">
+        <div class="psi-target-band" style="left:${bandLeft}%;width:${bandWidth}%;"></div>
+        <div id="psi-live-fill" class="psi-fill" style="width:${fillPct}%;background:${inSpec ? 'var(--green)' : 'var(--blue)'};"></div>
+      </div>
+    </div>
+    <div class="ctrl-grid-2">
+      <button type="button" class="secondary-btn hold-btn"
+        onpointerdown="startHoldPsi(-2)"
+        onpointerup="stopHoldPsi()"
+        onpointerleave="stopHoldPsi()"
+        onpointercancel="stopHoldPsi()">
+        🔽 HOLD BLEED (-2)
+      </button>
+      <button type="button" class="primary-btn hold-btn ${job.isTutorial && !inSpec ? 'tut-pulse' : ''}"
+        onpointerdown="startHoldPsi(${psiStep})"
+        onpointerup="stopHoldPsi()"
+        onpointerleave="stopHoldPsi()"
+        onpointercancel="stopHoldPsi()">
+        🔼 HOLD INFLATE (+${psiStep})
+      </button>
+    </div>
+    <button type="button" class="primary-btn ${job.isTutorial && inSpec ? 'tut-pulse' : ''}" onclick="stopHoldPsi(); lockPsi();">
+      LOCK PRESSURE & CONTINUE
+    </button>`;
+}
+
+function updateLivePsiMeter(job) {
+  const t = job.veh.targetPsi;
+  const tol = 2 + Math.floor((state.tools.comp.level - 1) / 8);
+  const inSpec = Math.abs(job.psi - t) <= tol;
+  const fillPct = Math.min(100, Math.round((job.psi / (t + 20)) * 100));
+  const valEl = document.getElementById('psi-live-val');
+  const fillEl = document.getElementById('psi-live-fill');
+  if (valEl) {
+    valEl.textContent = `${job.psi} PSI ${inSpec ? '· IN SPEC' : ''}`;
+    valEl.className = `psi-val ${inSpec ? 'in-spec' : ''}`;
+  }
+  if (fillEl) {
+    fillEl.style.width = `${fillPct}%`;
+    fillEl.style.background = inSpec ? 'var(--green)' : 'var(--blue)';
+  }
+}
+
+function startHoldPsi(deltaPerTick) {
+  stopHoldPsi();
+  applyPsiTick(deltaPerTick);
+  holdPsiInterval = setInterval(() => {
+    applyPsiTick(deltaPerTick);
+  }, 115);
+}
+
+function stopHoldPsi() {
+  if (holdPsiInterval) {
+    clearInterval(holdPsiInterval);
+    holdPsiInterval = null;
+  }
+}
+
+function applyPsiTick(delta) {
+  const job = state.activeJob;
+  if (!job || job.step !== 4) {
+    stopHoldPsi();
+    return;
+  }
+  const prevPsi = job.psi;
+  const nextPsi = Math.max(0, Math.min(130, job.psi + delta));
+  if (nextPsi === prevPsi) return;
+  job.psi = nextPsi;
+  SoundFX.air();
+  updateLivePsiMeter(job);
+
+  if (job.psi > job.veh.targetPsi + 10) {
+    stopHoldPsi();
+    addBayPenalty(job, 15, 'Over-Inflation Hazard: Exceeded safe PSI threshold', 8);
+    showAlert('OVER-INFLATION HAZARD (-$15 / -8 REP)', `Pressure spiked above ${job.veh.targetPsi + 10} PSI! Hold BLEED to drop pressure safely.`);
+    renderBay();
   }
 }
 
@@ -1596,7 +1780,7 @@ function performRepair(choice) {
 
   if (choice === 'plug') {
     if (!job.isTutorial && state.plugs <= 0) {
-      showAlert('OUT OF PLUGS', 'Restock vulcanized tire plugs from Dispatch or watch a 30s Supply Drop Ad.');
+      showAlert('OUT OF PLUGS', 'Restock vulcanized tire plugs from Dispatch or watch a Supply Drop Ad in the Shop.');
       return;
     }
     if (!job.isTutorial) state.plugs--;
@@ -1645,19 +1829,6 @@ function droneDrop() {
   renderBay();
 }
 
-function adjustPsi(delta) {
-  const job = state.activeJob;
-  if (!job) return;
-  job.lastSpunLug = null;
-  SoundFX.air();
-  job.psi = Math.max(0, Math.min(130, job.psi + delta));
-  if (job.psi > job.veh.targetPsi + 10) {
-    addBayPenalty(job, 15, 'Over-Inflation Hazard: Exceeded safe PSI threshold', 8);
-    showAlert('OVER-INFLATION HAZARD (-$15 / -8 REP)', `Pressure spiked above ${job.veh.targetPsi + 10} PSI! Bleed air immediately.`);
-  }
-  renderBay();
-}
-
 function lockPsi() {
   const job = state.activeJob;
   if (!job) return;
@@ -1677,6 +1848,7 @@ function lockPsi() {
 }
 
 function completeJob() {
+  stopHoldPsi();
   const job = state.activeJob;
   SoundFX.success();
 
@@ -1691,12 +1863,12 @@ function completeJob() {
       <span class="badge">TRAINING COMPLETE</span>
       <h3>Certified DelWin Technician!</h3>
       <p style="font-size:13px;color:var(--muted);">
-        You mastered traffic cones, wheel chocks, lug removal, center-nail plug diagnostics, PSI calibration, star-pattern torquing, and jack stowage.
+        You mastered traffic cones, wheel chocks, lug removal, center-nail plug diagnostics, hold-to-inflate PSI calibration, star-pattern torquing, and jack stowage.
       </p>
       <div style="background:#090c12;padding:12px;border-radius:10px;text-align:center;color:var(--amber);font-weight:900;">
         ${firstTime ? '+12 DISPATCH TOKENS (⚡) CREDITED!' : 'TRAINING PRACTICE COMPLETE'}
       </div>
-      <button class="primary-btn" onclick="closeModal(); goPage('dispatch');">ENTER LIVE DISPATCH</button>
+      <button type="button" class="primary-btn" onclick="closeModal(); goPage('dispatch');">ENTER LIVE DISPATCH</button>
     `);
     return;
   }
@@ -1706,32 +1878,35 @@ function completeJob() {
   const gross = job.pay * mult;
   const isFast = job.timeLeft >= Math.round(job.timeLimit * 0.45);
   const speedBonus = isFast ? Math.round(job.pay * 0.2) : 0;
-  const totalDeductions = job.penalties;
-  const net = Math.max(25, gross + speedBonus - totalDeductions);
+  const overheadFee = getFleetOverheadFee(job);
+  const totalDeductions = job.penalties + overheadFee;
+  const net = Math.max(15, gross + speedBonus - totalDeductions);
 
   const baseRep = Math.round((30 + (isFast ? 12 : 0)) * getZone().mult);
   const repDeductions = job.repPenalties || 0;
   const netRep = baseRep - repDeductions;
   state.rep = Math.max(0, state.rep + netRep);
 
-  const gotPart = totalDeductions === 0 && Math.random() < 0.25;
-
+  const isCleanJob = job.penalties === 0;
   state.cash += net;
   state.jobsCompleted = (state.jobsCompleted || 0) + 1;
-  if (totalDeductions === 0) state.streak = (state.streak || 0) + 1;
+  if (isCleanJob) state.streak = (state.streak || 0) + 1;
   else state.streak = 0;
-  if (gotPart) state.parts += 1;
+
+  // Deterministic Gold Gear drop on every 5-job zero-penalty streak
+  const earnedStreakGear = isCleanJob && (state.streak % CLEAN_STREAK_GEAR_INTERVAL === 0);
+  if (earnedStreakGear) state.parts += 1;
 
   if (state.contract && state.contract.progress < state.contract.target) {
     const ct = state.contract.type;
-    if (ct === 'clean_streak' && totalDeductions === 0) state.contract.progress += 1;
+    if (ct === 'clean_streak' && isCleanJob) state.contract.progress += 1;
     if (ct === 'plugs' && job.dmg.action === 'plug') state.contract.progress += 1;
     if (ct === 'swaps' && job.dmg.action === 'swap') state.contract.progress += 1;
     if (ct === 'fast' && isFast) state.contract.progress += 1;
     if (ct === 'heavy' && job.veh.heavy) state.contract.progress += 1;
   }
 
-  const jobRating = totalDeductions === 0 ? 5.0 : Math.max(2.0, 4.7 - totalDeductions * 0.04);
+  const jobRating = isCleanJob ? 5.0 : Math.max(2.0, 4.7 - job.penalties * 0.04);
   state.ratings.push(jobRating);
   if (state.ratings.length > 15) state.ratings.shift();
   state.activeJob = null;
@@ -1750,13 +1925,14 @@ function completeJob() {
     <div style="background:#090c12;padding:12px;border-radius:10px;font-size:13px;display:flex;flex-direction:column;gap:6px;">
       <div style="display:flex;justify-content:space-between;"><span>Base + Weather Payout:</span><strong style="color:var(--green);">+$${gross}</strong></div>
       <div style="display:flex;justify-content:space-between;"><span>Fast-Response Bonus:</span><strong style="color:var(--blue);">+$${speedBonus}</strong></div>
-      <div style="display:flex;justify-content:space-between;"><span>Bay & SLA Deductions:</span><strong style="color:var(--red);">-$${totalDeductions}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Fleet Fuel & Dispatch Overhead:</span><strong style="color:var(--muted);">-$${overheadFee}</strong></div>
+      ${job.penalties > 0 ? `<div style="display:flex;justify-content:space-between;"><span>Bay & SLA Penalties:</span><strong style="color:var(--red);">-$${job.penalties}</strong></div>` : ''}
       ${logHtml}
       <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;"><span>Net Collected:</span><strong style="color:var(--green);">$${net}</strong></div>
       <div style="display:flex;justify-content:space-between;"><span>Corridor REP (${baseRep} - ${repDeductions} pen):</span><strong style="color:${netRep >= 0 ? 'var(--amber)' : 'var(--red)'};">${netRep >= 0 ? '+' : ''}${netRep} REP</strong></div>
-      ${gotPart ? `<div style="color:var(--amber);font-weight:800;">+1 Gold Tool Part Found (⚙️)</div>` : ''}
+      ${earnedStreakGear ? `<div style="color:var(--amber);font-weight:800;">+1 Gold Gear (⚙️) · ${CLEAN_STREAK_GEAR_INTERVAL}-Job Clean Streak Milestone!</div>` : ''}
     </div>
-    <button class="primary-btn" onclick="closeModal(); goPage('dispatch');">RETURN TO DISPATCH</button>
+    <button type="button" class="primary-btn" onclick="closeModal(); goPage('dispatch');">RETURN TO DISPATCH</button>
   `);
 }
 
@@ -1806,7 +1982,7 @@ function buyStock(type) {
   updateHUD();
 }
 
-// --- GARAGE: GUARANTEED VECTOR + SPRITE RENDERING & TOOL IMPACT DISPLAY ---
+// --- GARAGE ---
 function stepRigPreview(delta) {
   const current = previewRigTier || getRigTier();
   previewRigTier = Math.max(1, Math.min(6, current + delta));
@@ -1838,7 +2014,7 @@ function purchaseRigTier(tierNum) {
   if (state.cash < rig.cashCost || state.parts < rig.partCost || state.tokens < rig.tokenCost) {
     showAlert(
       'INSUFFICIENT RIG COMMISSION RESOURCES',
-      `${rig.name} requires $${rig.cashCost.toLocaleString()} Cash, ${rig.partCost} ⚙️ Gold Parts, and ${rig.tokenCost} ⚡ Dispatch Tokens.`
+      `${rig.name} requires $${rig.cashCost.toLocaleString()} Cash, ${rig.partCost} ⚙️ Gold Gears, and ${rig.tokenCost} ⚡ Dispatch Tokens.`
     );
     return;
   }
@@ -1854,7 +2030,7 @@ function purchaseRigTier(tierNum) {
     <span class="badge">NEW SERVICE RIG COMMISSIONED</span>
     <h3>${rig.name}</h3>
     <p style="font-size:13px;color:var(--muted);">${rig.perk} Cargo Cap: ${rig.capStd} Std / ${rig.capHd} HD / ${rig.capPlugs} Plugs.</p>
-    <button class="primary-btn" onclick="closeModal()">ROLL OUT NEW RIG</button>
+    <button type="button" class="primary-btn" onclick="closeModal()">ROLL OUT NEW RIG</button>
   `);
 }
 
@@ -1881,20 +2057,20 @@ function renderGarage() {
         <h3 style="font-size:15px;margin-top:4px;">${rig.name}</h3>
       </div>
       <div class="carousel-nav">
-        <button class="arrow-btn" ${previewRigTier <= 1 ? 'disabled' : ''} onclick="stepRigPreview(-1)">◀</button>
+        <button type="button" class="arrow-btn" ${previewRigTier <= 1 ? 'disabled' : ''} onclick="stepRigPreview(-1)">◀</button>
         <span class="tier-pill">T${previewRigTier}/6</span>
-        <button class="arrow-btn" ${previewRigTier >= 6 ? 'disabled' : ''} onclick="stepRigPreview(1)">▶</button>
+        <button type="button" class="arrow-btn" ${previewRigTier >= 6 ? 'disabled' : ''} onclick="stepRigPreview(1)">▶</button>
       </div>
     </div>
     <div class="rig-visual-box">
       ${renderRigSVG(rig)}
-      <img src="${rig.img}" alt="${rig.name}" onerror="this.remove();" />
+      <img src="${rig.img}" alt="" style="display:none;" onload="this.style.display='block';" onerror="this.style.display='none';" />
     </div>
     <p id="rig-perk" style="font-size:12px;color:var(--muted);">${rig.perk} (${rig.req})</p>
     <div style="font-size:11px;color:var(--amber);font-weight:800;">
       Cargo Rack: ${rig.capStd} Std Tires · ${rig.capHd} HD Tires · ${rig.capPlugs} Plug Kits
     </div>
-    <button id="rig-commission-btn" class="primary-btn" style="margin-top:6px;"
+    <button type="button" id="rig-commission-btn" class="primary-btn" style="margin-top:6px;"
       ${isUnlocked || !meetsTools || previewRigTier !== (state.unlockedRigTier + 1) ? 'disabled' : ''}
       onclick="purchaseRigTier(${previewRigTier})">
       ${isUnlocked
@@ -1922,7 +2098,7 @@ function renderGarage() {
         <div class="tool-row" style="display:flex;align-items:center;gap:10px;">
           <div class="tool-thumb-hybrid">
             ${renderToolSVG(key, viewTier)}
-            <img src="${imgPath}" alt="${tool.name}" onerror="this.remove();" />
+            <img src="${imgPath}" alt="" style="display:none;" onload="this.style.display='block';" onerror="this.style.display='none';" />
           </div>
           <div style="flex:1;min-width:0;">
             <span class="badge">
@@ -1932,11 +2108,11 @@ function renderGarage() {
             <div style="font-size:11px;color:var(--amber);margin-top:2px;">${effectDesc}</div>
           </div>
           <div class="carousel-nav">
-            <button class="arrow-btn" ${viewTier <= 1 ? 'disabled' : ''} onclick="stepToolPreview('${key}', -1)">◀</button>
-            <button class="arrow-btn" ${viewTier >= 6 ? 'disabled' : ''} onclick="stepToolPreview('${key}', 1)">▶</button>
+            <button type="button" class="arrow-btn" ${viewTier <= 1 ? 'disabled' : ''} onclick="stepToolPreview('${key}', -1)">◀</button>
+            <button type="button" class="arrow-btn" ${viewTier >= 6 ? 'disabled' : ''} onclick="stepToolPreview('${key}', 1)">▶</button>
           </div>
         </div>
-        <button class="primary-btn" ${isMax ? 'disabled' : ''} onclick="upgradeTool('${key}')" style="margin-top:8px;">
+        <button type="button" class="primary-btn" ${isMax ? 'disabled' : ''} onclick="upgradeTool('${key}')" style="margin-top:8px;">
           ${isMax ? 'MAXED OUT (LVL 24)' : `UPGRADE TO LVL ${tool.level + 1} ($${cost}${needsPart ? ' + 1 ⚙️' : ''})`}
         </button>
       </div>`;
@@ -1953,7 +2129,7 @@ function upgradeTool(key) {
     return;
   }
   if (needsPart && state.parts < 1) {
-    showAlert('GOLD TOOL PART REQUIRED', 'Tier breakthrough upgrades (Lvl 4→5, 8→9, etc.) require 1 ⚙️ Gold Tool Part from clean jobs, Elite Contracts, or the Shop.');
+    showAlert('GOLD GEAR REQUIRED', 'Tier breakthrough upgrades (Lvl 4→5, 8→9, etc.) require 1 ⚙️ Gold Gear from 5-job clean streaks, Elite Contracts, or the Shop.');
     return;
   }
   state.cash -= cost;
@@ -1967,7 +2143,7 @@ function upgradeTool(key) {
   renderGarage();
 }
 
-// --- TUNED LEADERBOARD MATH ---
+// --- LEADERBOARD ---
 function renderLeague() {
   document.getElementById('league-rep').textContent = state.rep.toLocaleString();
 
@@ -2003,12 +2179,12 @@ function renderLeague() {
   const headerBanner = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
       <span class="badge">${divisionNames[divisionIndex]}</span>
-      <button class="ghost-btn" style="padding:4px 8px;font-size:11px;" onclick="openProfileEditor()">Edit Name/Logo</button>
+      <button type="button" class="ghost-btn" style="padding:4px 8px;font-size:11px;" onclick="openProfileEditor()">Edit Name/Logo</button>
     </div>`;
 
   document.getElementById('leaderboard-list').innerHTML = headerBanner + rivals.map((r, idx) => {
     const iconHtml = r.avatarImg
-      ? `<img src="${r.avatarImg}" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;" />`
+      ? `<img src="${r.avatarImg}" alt="" style="width:22px;height:22px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;" />`
       : `<span style="margin-right:6px;">${r.avatar}</span>`;
     return `
       <div class="item-card" style="${r.isYou ? 'border-color:var(--amber);background:#172033;' : ''}">
@@ -2043,7 +2219,7 @@ function renderZones() {
           </strong>
         </div>
         <p style="font-size:12px;color:var(--muted);">${z.desc}</p>
-        <button class="primary-btn" ${!unlocked || active ? 'disabled' : ''} onclick="selectZone('${z.id}')">
+        <button type="button" class="primary-btn" ${!unlocked || active ? 'disabled' : ''} onclick="selectZone('${z.id}')">
           ${active ? 'DEPLOYED HERE' : unlocked ? 'DEPLOY TO ZONE' : `UNLOCKS AT ${z.unlockRep.toLocaleString()} REP (YOU: ${state.rep.toLocaleString()})`}
         </button>
       </div>`;
@@ -2060,12 +2236,99 @@ function selectZone(id) {
   goPage('dispatch');
 }
 
-// --- REWARDED ADS & DUAL-CURRENCY SHOP ---
+// --- SHOP, COOLDOWN AD DROPS & TOKEN-TO-GEAR EXCHANGE ---
+function renderShop() {
+  const root = document.getElementById('shop-dynamic-root');
+  if (!root) return;
+
+  const surgeRemMs = syncSurgeRecharge();
+  const tokRemMs = syncTokenDropRecharge();
+  const surgeCdTxt = state.surgeCharges < MAX_SURGE_CHARGES
+    ? `Next charge: ${formatMs(surgeRemMs)}`
+    : 'Max Charges';
+  const tokCdTxt = state.tokenDropCharges < MAX_TOKEN_DROPS
+    ? `Next charge: ${formatMs(tokRemMs)}`
+    : 'Max Charges';
+
+  root.innerHTML = `
+    <div class="item-card">
+      <span class="badge">SPONSORED AD DROPS (COOLDOWN GATED)</span>
+      <h3>Free Supply & Surge Transmissions</h3>
+      <div class="ctrl-grid-2" style="margin-top:6px;">
+        <button type="button" class="secondary-btn" ${state.surgeCharges <= 0 ? 'disabled' : ''} onclick="watchRewardedAd('surge')" style="font-size:11px;padding:9px 6px;">
+          📺 +1 Surge (${state.surgeCharges}/${MAX_SURGE_CHARGES})<br><span style="font-size:10px;color:var(--amber);">${surgeCdTxt}</span>
+        </button>
+        <button type="button" class="secondary-btn" ${state.tokenDropCharges <= 0 ? 'disabled' : ''} onclick="watchRewardedAd('tokens')" style="font-size:11px;padding:9px 6px;">
+          📺 +3 ⚡ Tokens (${state.tokenDropCharges}/${MAX_TOKEN_DROPS})<br><span style="font-size:10px;color:var(--amber);">${tokCdTxt}</span>
+        </button>
+      </div>
+      <button type="button" class="secondary-btn" onclick="watchRewardedAd('restock')" style="margin-top:4px;font-size:11px;">
+        📺 Free Cargo Restock Drop (Plugs + Std/HD Tires)
+      </button>
+    </div>
+
+    <div class="item-card" style="border-color:var(--amber);">
+      <span class="badge">FOUNDRY EXCHANGE</span>
+      <h3>Convert Dispatch Tokens → Gold Gear</h3>
+      <p style="font-size:12px;color:var(--muted);">
+        Earn Gold Gears on every ${CLEAN_STREAK_GEAR_INTERVAL}-job zero-penalty streak, Elite Contracts, or forge 1 ⚙️ Gear for ${TOKEN_TO_GEAR_COST} ⚡ Tokens.
+      </p>
+      <button type="button" class="primary-btn" ${state.tokens < TOKEN_TO_GEAR_COST ? 'disabled' : ''} onclick="exchangeTokensForGear()">
+        FORGE 1 ⚙️ GOLD GEAR (${TOKEN_TO_GEAR_COST} ⚡ · YOU HAVE ${state.tokens} ⚡)
+      </button>
+    </div>
+
+    <div class="item-card">
+      <span class="badge">FLEET CREDIT & GEAR PACKS</span>
+      <h3>Instant Dispatch Packs</h3>
+      <div class="stack-list" style="margin-top:8px;">
+        <button type="button" class="primary-btn" onclick="buyPack('starter')">
+          Starter Roadside Kit — 25 ⚡ + 1 ⚙️ + $500 ($1.99)
+        </button>
+        <button type="button" class="primary-btn" onclick="buyPack('pro')">
+          Pro Fleet Bundle — 70 ⚡ + 3 ⚙️ + $1,800 ($4.99)
+        </button>
+        <button type="button" class="primary-btn" onclick="buyPack('yard')">
+          Commercial Yard Crate — 160 ⚡ + 8 ⚙️ + $5,000 ($9.99)
+        </button>
+        <button type="button" class="primary-btn" onclick="buyPack('apex')">
+          Apex Syndicate Vault — 380 ⚡ + 20 ⚙️ + $15,000 ($19.99)
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function exchangeTokensForGear() {
+  if (state.tokens < TOKEN_TO_GEAR_COST) {
+    showAlert('INSUFFICIENT TOKENS', `Forging 1 ⚙️ Gold Gear requires ${TOKEN_TO_GEAR_COST} ⚡ Dispatch Tokens.`);
+    return;
+  }
+  state.tokens -= TOKEN_TO_GEAR_COST;
+  state.parts += 1;
+  SoundFX.success();
+  saveState();
+  updateHUD();
+  renderShop();
+}
+
 function watchRewardedAd(type) {
+  syncSurgeRecharge();
+  syncTokenDropRecharge();
+
+  if (type === 'surge' && state.surgeCharges <= 0) {
+    showAlert('SURGE AD ON COOLDOWN', `Next 2X Surge ad charge available in ${formatMs(syncSurgeRecharge())}.`);
+    return;
+  }
+  if (type === 'tokens' && state.tokenDropCharges <= 0) {
+    showAlert('TOKEN AD ON COOLDOWN', `Next free ⚡ Token ad charge available in ${formatMs(syncTokenDropRecharge())}.`);
+    return;
+  }
+
   openModal(`
     <span class="badge">SPONSORED TRANSMISSION</span>
     <h3>30s Roadside Partner Ad</h3>
-    <p style="font-size:13px;color:var(--muted);">Simulating 30-second rewarded sponsor video...</p>
+    <p style="font-size:13px;color:var(--muted);">Simulating rewarded sponsor video...</p>
     <div id="ad-timer" style="font-size:28px;font-weight:900;color:var(--amber);text-align:center;">3</div>
   `);
   let sec = 3;
@@ -2076,8 +2339,16 @@ function watchRewardedAd(type) {
     if (sec <= 0) {
       clearInterval(iv);
       const rig = getActiveRigObj();
-      if (type === 'surge') state.surgeJobs += 3;
-      if (type === 'tokens') state.tokens += 5;
+      if (type === 'surge') {
+        if (state.surgeCharges === MAX_SURGE_CHARGES) state.lastSurgeRechargeAt = Date.now();
+        state.surgeCharges = Math.max(0, state.surgeCharges - 1);
+        state.surgeJobs += 1;
+      }
+      if (type === 'tokens') {
+        if (state.tokenDropCharges === MAX_TOKEN_DROPS) state.lastTokenDropRechargeAt = Date.now();
+        state.tokenDropCharges = Math.max(0, state.tokenDropCharges - 1);
+        state.tokens += 3;
+      }
       if (type === 'restock') {
         state.plugs = Math.min(rig.capPlugs, state.plugs + 4);
         state.stdTires = Math.min(rig.capStd, state.stdTires + 2);
@@ -2089,23 +2360,38 @@ function watchRewardedAd(type) {
       SoundFX.success();
       saveState();
       updateHUD();
+      if (document.getElementById('page-shop').classList.contains('active')) renderShop();
       closeModal();
-      goPage('dispatch');
+      if (type !== 'tokens' && type !== 'restock') goPage('dispatch');
     }
   }, 800);
 }
 
-function buyTokenPack(amount, price, parts = 0) {
-  state.tokens += amount;
-  state.parts += parts;
+function buyPack(packKey) {
+  const packs = {
+    starter: { label: 'Starter Roadside Kit ($1.99)', tokens: 25, gears: 1, cash: 500 },
+    pro: { label: 'Pro Fleet Bundle ($4.99)', tokens: 70, gears: 3, cash: 1800 },
+    yard: { label: 'Commercial Yard Crate ($9.99)', tokens: 160, gears: 8, cash: 5000 },
+    apex: { label: 'Apex Syndicate Vault ($19.99)', tokens: 380, gears: 20, cash: 15000 }
+  };
+  const p = packs[packKey];
+  if (!p) return;
+  state.tokens += p.tokens;
+  state.parts += p.gears;
+  state.cash += p.cash;
   SoundFX.success();
   saveState();
   updateHUD();
+  if (document.getElementById('page-shop').classList.contains('active')) renderShop();
   openModal(`
     <span class="badge">DISPATCH CREDIT APPLIED</span>
-    <h3>+${amount} Dispatch Tokens (⚡)${parts > 0 ? ` & +${parts} Gold Part (⚙️)` : ''}</h3>
-    <p style="font-size:13px;color:var(--muted);">Demo pack (${price}) credited to ${state.bizName}.</p>
-    <button class="primary-btn" onclick="closeModal()">CONTINUE</button>
+    <h3>${p.label}</h3>
+    <div style="background:#090c12;padding:12px;border-radius:10px;font-size:13px;display:flex;flex-direction:column;gap:6px;">
+      <div style="display:flex;justify-content:space-between;"><span>Dispatch Tokens:</span><strong style="color:#38bdf8;">+${p.tokens} ⚡</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Gold Gears:</span><strong style="color:var(--amber);">+${p.gears} ⚙️</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>Fleet Cash:</span><strong style="color:var(--green);">+$${p.cash.toLocaleString()}</strong></div>
+    </div>
+    <button type="button" class="primary-btn" onclick="closeModal()">CONTINUE</button>
   `);
 }
 
