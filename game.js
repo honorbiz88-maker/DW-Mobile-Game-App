@@ -243,13 +243,30 @@ function loadState() {
     const raw = localStorage.getItem('delwin_v4_save');
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (typeof parsed.tires === 'number' && typeof parsed.stdTires !== 'number') {
-        parsed.stdTires = parsed.tires;
+      if (parsed && typeof parsed === 'object') {
+        if (typeof parsed.tires === 'number' && typeof parsed.stdTires !== 'number') {
+          parsed.stdTires = parsed.tires;
+        }
+        const savedTools = parsed.tools && typeof parsed.tools === 'object' ? parsed.tools : null;
+        delete parsed.tools;
+        Object.assign(state, parsed);
+        if (savedTools) {
+          Object.keys(state.tools).forEach((k) => {
+            if (savedTools[k] && typeof savedTools[k].level === 'number') {
+              state.tools[k].level = Math.max(1, Math.min(24, Math.floor(savedTools[k].level)));
+            }
+          });
+        }
       }
-      Object.assign(state, parsed);
+    }
+    if (!Array.isArray(state.ratings) || state.ratings.length === 0) state.ratings = [5.0];
+    if (!Array.isArray(state.jobs)) state.jobs = [];
+    state.jobs = state.jobs.filter((j) => j && j.veh && typeof j.veh === 'object' && j.dmg && typeof j.dmg === 'object');
+    if (state.activeJob && (!state.activeJob.veh || typeof state.activeJob.veh !== 'object' || !state.activeJob.dmg || typeof state.activeJob.dmg !== 'object')) {
+      state.activeJob = null;
     }
     if (!ZONES.some((z) => z.id === state.zoneId)) state.zoneId = 'z1';
-    if (!state.contract) rollNewContract();
+    if (!state.contract || typeof state.contract !== 'object') rollNewContract();
     if (!state.bizName) state.bizName = 'DelWin Mobile Tire Rescue';
     if (!state.avatarEmoji) state.avatarEmoji = '🛞';
     if (!state.unlockedRigTier) state.unlockedRigTier = 1;
@@ -259,7 +276,10 @@ function loadState() {
     if (!state.lastSurgeRechargeAt) state.lastSurgeRechargeAt = Date.now();
     if (typeof state.tokenDropCharges !== 'number') state.tokenDropCharges = MAX_TOKEN_DROPS;
     if (!state.lastTokenDropRechargeAt) state.lastTokenDropRechargeAt = Date.now();
-  } catch (e) {}
+  } catch (e) {
+    state.jobs = [];
+    state.activeJob = null;
+  }
 }
 
 function saveState() {
@@ -529,8 +549,57 @@ function injectCustomStyles() {
 }
 
 // --- TOP HEADER PLAYER COMMAND BAR (Currency pills open Dispatch Shop) ---
+function ensureTopBarElement() {
+  let topBar = document.querySelector('.top-bar, header, #top-bar, .hud-bar, .app-header, #hud-header');
+  if (!topBar && document.body) {
+    topBar = document.createElement('header');
+    topBar.className = 'top-bar';
+    topBar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:#0b1120;border-bottom:1px solid #1e293b;position:sticky;top:0;z-index:40;';
+    const appRoot = document.querySelector('.app, #app, main') || document.body;
+    appRoot.insertBefore(topBar, appRoot.firstChild);
+  }
+  return topBar;
+}
+
+function ensureMenuDrawerElements() {
+  if (!document.body) return;
+  let backdrop = document.getElementById('drawer-backdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'drawer-backdrop';
+    backdrop.className = 'drawer-backdrop hidden';
+    backdrop.onclick = () => toggleDrawer(false);
+    document.body.appendChild(backdrop);
+  }
+  let drawer = document.getElementById('menu-drawer');
+  if (!drawer) {
+    drawer = document.createElement('aside');
+    drawer.id = 'menu-drawer';
+    drawer.className = 'menu-drawer hidden';
+    drawer.innerHTML = `
+      <div class="drawer-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <strong>DELWIN MOBILE</strong>
+        <button type="button" class="icon-btn" onclick="toggleDrawer(false)">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;">
+        <div class="item-card" style="padding:8px 10px;">
+          <div>Gold Gears: <strong id="drawer-parts" style="color:var(--amber);">0 ⚙️</strong></div>
+          <div>Fleet Rating: <strong id="drawer-rating" style="color:var(--green);">5.0 ★</strong></div>
+          <div>Corridor: <strong id="drawer-zone">I-285 North Perimeter</strong></div>
+        </div>
+        <button type="button" class="secondary-btn" onclick="toggleDrawer(false); goPage('zones');">🗺️ Highway Corridors & Hubs</button>
+        <button type="button" class="secondary-btn" onclick="toggleDrawer(false); goPage('shop');">🛒 Dispatch Supply Shop</button>
+        <button type="button" class="secondary-btn" id="sound-toggle-btn" onclick="toggleSound()">🔊 Mechanical Audio: ON</button>
+        <button type="button" class="ghost-btn" style="color:#f87171;border-color:#7f1d1d;" onclick="if(confirm('Reset all DelWin Mobile progress?')) resetSave();">⚠️ Reset Save Data</button>
+      </div>
+    `;
+    document.body.appendChild(drawer);
+  }
+}
+
 function renderTopHeader() {
-  const topBar = document.querySelector('.top-bar') || document.querySelector('header');
+  ensureMenuDrawerElements();
+  const topBar = ensureTopBarElement();
   if (!topBar) return;
   const avatarHtml = state.avatarImg
     ? `<img src="${state.avatarImg}" alt="" />`
@@ -1061,9 +1130,12 @@ function goPage(pageId) {
 }
 
 function toggleDrawer(open) {
+  ensureMenuDrawerElements();
   renderProfileCard();
-  document.getElementById('drawer-backdrop').classList.toggle('hidden', !open);
-  document.getElementById('menu-drawer').classList.toggle('hidden', !open);
+  const backdrop = document.getElementById('drawer-backdrop');
+  const drawer = document.getElementById('menu-drawer');
+  if (backdrop) backdrop.classList.toggle('hidden', !open);
+  if (drawer) drawer.classList.toggle('hidden', !open);
 }
 
 function toggleSound() {
@@ -1362,25 +1434,36 @@ function applyWheelLockKey() {
 
 // --- SAFE SPRITE SYNC (Prevents broken-image text flash on click) ---
 function syncSpriteSrc(imgEl, fbEl, newSrc, svgHtml) {
-  if (!imgEl || !fbEl) return;
-  if (!fbEl.dataset.initialized || fbEl.dataset.svgKey !== svgHtml) {
+  if (!imgEl && !fbEl) return;
+  if (imgEl && !fbEl && imgEl.parentNode) {
+    fbEl = document.createElement('div');
+    fbEl.id = imgEl.id ? `${imgEl.id}-fallback` : '';
+    fbEl.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;';
+    imgEl.parentNode.insertBefore(fbEl, imgEl.nextSibling);
+  }
+  if (fbEl && (!fbEl.dataset.initialized || fbEl.dataset.svgKey !== svgHtml)) {
     fbEl.innerHTML = svgHtml;
     fbEl.dataset.initialized = '1';
     fbEl.dataset.svgKey = svgHtml;
   }
-  if (imgEl.dataset.currentSrc !== newSrc) {
+  if (imgEl && imgEl.dataset.currentSrc !== newSrc) {
     imgEl.dataset.currentSrc = newSrc;
+    imgEl.alt = '';
     imgEl.style.display = 'none';
-    fbEl.style.display = 'block';
+    if (fbEl) fbEl.style.display = 'block';
     imgEl.onload = () => {
       imgEl.style.display = 'block';
-      fbEl.style.display = 'none';
+      if (fbEl) fbEl.style.display = 'none';
     };
     imgEl.onerror = () => {
       imgEl.style.display = 'none';
-      fbEl.style.display = 'block';
+      if (fbEl) fbEl.style.display = 'block';
     };
     imgEl.src = newSrc;
+    if (imgEl.complete && imgEl.naturalWidth > 0) {
+      imgEl.style.display = 'block';
+      if (fbEl) fbEl.style.display = 'none';
+    }
   }
 }
 
@@ -2516,11 +2599,26 @@ function resetSave() {
   location.reload();
 }
 
-injectCustomStyles();
-loadState();
-if (!state.jobs || state.jobs.length === 0) refreshJobs();
-else renderJobs();
-updateHUD();
-startDispatchCooldownTicker();
-if (state.activeJob && !state.activeJob.isTutorial) startBayTimer();
-if (!state.tutorialDone) startTutorial();
+function bootDelWinMobile() {
+  try { injectCustomStyles(); } catch (e) {}
+  try { loadState(); } catch (e) {}
+  try { updateHUD(); } catch (e) {}
+  try {
+    if (!state.jobs || state.jobs.length === 0) refreshJobs();
+    else renderJobs();
+  } catch (e) {
+    try { refreshJobs(); } catch (e2) {}
+  }
+  try { updateHUD(); } catch (e) {}
+  try { startDispatchCooldownTicker(); } catch (e) {}
+  try {
+    if (state.activeJob && !state.activeJob.isTutorial) startBayTimer();
+    if (!state.tutorialDone) startTutorial();
+  } catch (e) {}
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootDelWinMobile);
+} else {
+  bootDelWinMobile();
+}
