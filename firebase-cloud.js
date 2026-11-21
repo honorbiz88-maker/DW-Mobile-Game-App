@@ -246,7 +246,7 @@ function queueSave(payload) {
     }
   }, 1400);
 }
-window.DelWinCloud = { queueSave, keepLocal, keepCloud, pendingConflict: null };
+window.DelWinCloud = { queueSave, keepLocal, keepCloud, signOut: () => signOut(auth), hasAccount: () => !!currentUser, pendingConflict: null };
 window.addEventListener("online", () => {
   if (currentUser) reconcile(currentUser);
 });
