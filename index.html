@@ -20,7 +20,7 @@
       </div>
 
       <div class="drawer-stats">
-        <div class="stat-row"><span>Gold Tool Parts:</span><strong id="drawer-parts">0 ⚙️</strong></div>
+        <div class="stat-row"><span>Gold Gears:</span><strong id="drawer-parts">0 ⚙️</strong></div>
         <div class="stat-row"><span>Customer Rating:</span><strong id="drawer-rating">5.0 ★ (+15%)</strong></div>
         <div class="stat-row"><span>Active Corridor:</span><strong id="drawer-zone">I-285 North Perimeter</strong></div>
       </div>
@@ -45,14 +45,10 @@
           <span class="badge">ACTIVE CORRIDOR</span>
           <div id="dispatch-zone-label" style="font-size:13px;font-weight:900;margin-top:3px;">I-285 NORTH PERIMETER (1x)</div>
         </div>
-        <button class="surge-btn" onclick="watchRewardedAd('surge')">
-          <span id="dispatch-boost-label">ACTIVATE 2X SURGE</span>
+        <button class="surge-btn" onclick="triggerSurgeAction()">
+          <span id="dispatch-boost-label">2X SURGE (0/3)</span>
         </button>
       </div>
-
-      <!-- Inventory Bar (Injected by game.js) -->
-      <!-- Contract Card (Injected by game.js) -->
-      <!-- Dispatch Scan Controls (Injected by game.js) -->
 
       <div id="job-list" class="stack-list"></div>
     </main>
@@ -67,7 +63,6 @@
       </div>
 
       <div id="bay-active" class="hidden">
-        <!-- Tutorial Coaching Box injected here when in tutorial -->
         <div class="bay-top-card">
           <div>
             <span id="bay-veh-tag" class="badge">COMMUTER SEDAN</span>
@@ -90,7 +85,6 @@
           <div id="weather-layer" class="weather-layer"></div>
           <div id="night-shade" class="night-shade hidden"></div>
 
-          <!-- Condition & Floodlight HUD Strip inside Stage -->
           <div class="stage-hud-strip">
             <span id="stage-cond-pill" class="cond-pill clear">☀️ CLEAR DAY</span>
             <button id="stage-flood-btn" class="flood-btn" onclick="toggleBayFloodlights()">🔦 FLOODLIGHTS: OFF</button>
@@ -100,13 +94,13 @@
 
           <!-- Vehicle Chassis -->
           <div id="stage-chassis" class="stage-chassis">
-            <img id="stage-veh-img" src="" alt="Vehicle" onerror="this.style.display='none';document.getElementById('stage-veh-fallback').style.display='block';" />
+            <img id="stage-veh-img" src="" alt="" style="display:none;" />
             <div id="stage-veh-fallback"></div>
           </div>
 
           <!-- Wheel & Lug Hub -->
           <div id="stage-wheel-wrap" class="stage-wheel-wrap">
-            <img id="stage-tire-img" src="" alt="Tire" onerror="this.style.display='none';document.getElementById('stage-tire-fallback').style.display='block';" />
+            <img id="stage-tire-img" src="" alt="" style="display:none;" />
             <div id="stage-tire-fallback"></div>
             <svg id="star-lines-svg" viewBox="0 0 120 120" class="star-lines-svg"></svg>
             <div id="lug-ring" class="lug-ring"></div>
@@ -162,29 +156,12 @@
       <div id="leaderboard-list" class="stack-list"></div>
     </main>
 
-    <!-- PAGE 6: SUPPLY & TOKEN SHOP -->
+    <!-- PAGE 6: SUPPLY & TOKEN SHOP (Populated dynamically by game.js) -->
     <main id="page-shop" class="page">
-      <div class="item-card">
-        <span class="badge">FREE SPONSORED SUPPLY DROPS</span>
-        <h3>Watch Partner Transmission</h3>
-        <div class="ctrl-grid-2" style="margin-top:6px;">
-          <button class="secondary-btn" onclick="watchRewardedAd('restock')">📺 Free Tire & Plug Drop</button>
-          <button class="secondary-btn" onclick="watchRewardedAd('tokens')">📺 +5 Dispatch Tokens (⚡)</button>
-        </div>
-      </div>
-
-      <div class="item-card">
-        <span class="badge">DISPATCH CREDIT PACKS</span>
-        <h3>Instant Fleet Credits & Gold Parts</h3>
-        <div class="stack-list" style="margin-top:8px;">
-          <button class="primary-btn" onclick="buyTokenPack(15, '$1.99', 0)">15 ⚡ Dispatch Tokens ($1.99)</button>
-          <button class="primary-btn" onclick="buyTokenPack(40, '$4.99', 1)">40 ⚡ Tokens + 1 ⚙️ Gold Part ($4.99)</button>
-          <button class="primary-btn" onclick="buyTokenPack(100, '$9.99', 3)">100 ⚡ Tokens + 3 ⚙️ Gold Parts ($9.99)</button>
-        </div>
-      </div>
+      <div id="shop-dynamic-root" class="stack-list"></div>
     </main>
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation (Clean 5-Tab Bar) -->
     <nav class="bottom-nav">
       <button id="nav-dispatch" class="nav-btn active" onclick="goPage('dispatch')">🚨<span>Dispatch</span></button>
       <button id="nav-bay" class="nav-btn" onclick="goPage('bay')">🔧<span>Repair Bay</span></button>
