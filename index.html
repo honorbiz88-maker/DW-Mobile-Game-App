@@ -7,145 +7,195 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="app">
-    <!-- Top HUD -->
-    <header class="top-hud">
-      <div class="brand-badge">
-        <span class="brand-title">DELWIN MOBILE</span>
-        <span class="brand-sub">ROADSIDE TIRE RESCUE</span>
-      </div>
-      <div class="hud-stats">
-        <div class="stat-pill cash"><span class="icon">💵</span><span id="hud-cash">$350</span></div>
-        <div class="stat-pill rep"><span class="icon">⭐</span><span id="hud-rep">100</span></div>
-        <div class="stat-pill streak"><span class="icon">🔥</span><span id="hud-streak">0</span></div>
-      </div>
-    </header>
+  <div class="app-shell">
+    <!-- Top Player Command Bar (Populated dynamically by game.js) -->
+    <header class="top-bar"></header>
 
-    <!-- Navigation Tabs -->
-    <nav class="nav-tabs">
-      <button class="nav-btn active" data-tab="dispatch">🚨 Dispatch</button>
-      <button class="nav-btn" data-tab="garage">🚛 Rig & Cargo</button>
-      <button class="nav-btn" data-tab="depot">🏪 Supply Depot</button>
+    <!-- Slide-Out Menu Drawer -->
+    <div id="drawer-backdrop" class="drawer-backdrop hidden" onclick="toggleDrawer(false)"></div>
+    <aside id="menu-drawer" class="menu-drawer hidden">
+      <div class="drawer-header">
+        <strong>DELWIN MOBILE<br><span style="font-size:10px;color:var(--amber);font-weight:700;">ROADSIDE TIRE RESCUE</span></strong>
+        <button class="icon-btn" onclick="toggleDrawer(false)">✕</button>
+      </div>
+
+      <div class="drawer-stats">
+        <div class="stat-row"><span>Gold Tool Parts:</span><strong id="drawer-parts">0 ⚙️</strong></div>
+        <div class="stat-row"><span>Customer Rating:</span><strong id="drawer-rating">5.0 ★ (+15%)</strong></div>
+        <div class="stat-row"><span>Active Corridor:</span><strong id="drawer-zone">I-285 North Perimeter</strong></div>
+      </div>
+
+      <nav class="drawer-nav">
+        <button onclick="toggleDrawer(false); goPage('dispatch');">🚨 Live Dispatch Board</button>
+        <button onclick="toggleDrawer(false); goPage('bay');">🔧 Active Repair Bay</button>
+        <button onclick="toggleDrawer(false); goPage('garage');">🚛 Fleet Rig & Tools</button>
+        <button onclick="toggleDrawer(false); goPage('zones');">🗺️ 24 Corridor Zones</button>
+        <button onclick="toggleDrawer(false); goPage('league');">🏆 Division Leaderboard</button>
+        <button onclick="toggleDrawer(false); goPage('shop');">⚡ Dispatch Supply Shop</button>
+        <button onclick="toggleDrawer(false); startTutorial();">🎓 Replay Training Call</button>
+        <button id="sound-toggle-btn" onclick="toggleSound()">🔊 Mechanical Audio: ON</button>
+        <button class="danger-btn" onclick="resetSave()">🗑️ Reset Career Save</button>
+      </nav>
+    </aside>
+
+    <!-- PAGE 1: LIVE DISPATCH -->
+    <main id="page-dispatch" class="page active">
+      <div class="zone-banner">
+        <div>
+          <span class="badge">ACTIVE CORRIDOR</span>
+          <div id="dispatch-zone-label" style="font-size:13px;font-weight:900;margin-top:3px;">I-285 NORTH PERIMETER (1x)</div>
+        </div>
+        <button class="surge-btn" onclick="watchRewardedAd('surge')">
+          <span id="dispatch-boost-label">ACTIVATE 2X SURGE</span>
+        </button>
+      </div>
+
+      <!-- Inventory Bar (Injected by game.js) -->
+      <!-- Contract Card (Injected by game.js) -->
+      <!-- Dispatch Scan Controls (Injected by game.js) -->
+
+      <div id="job-list" class="stack-list"></div>
+    </main>
+
+    <!-- PAGE 2: REPAIR BAY -->
+    <main id="page-bay" class="page">
+      <div id="bay-empty" class="item-card" style="text-align:center;padding:28px 16px;">
+        <span class="badge">BAY STANDBY</span>
+        <h3 style="margin:8px 0;">No Active Roadside Call</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Accept a stranded motorist or commercial freight call from the Dispatch Board.</p>
+        <button class="primary-btn" onclick="goPage('dispatch')">OPEN DISPATCH BOARD</button>
+      </div>
+
+      <div id="bay-active" class="hidden">
+        <!-- Tutorial Coaching Box injected here when in tutorial -->
+        <div class="bay-top-card">
+          <div>
+            <span id="bay-veh-tag" class="badge">COMMUTER SEDAN</span>
+            <h3 id="bay-job-title" style="font-size:14px;margin-top:4px;">I-285 Mile 14</h3>
+          </div>
+          <div id="bay-payout" class="bay-pay-col">$75</div>
+        </div>
+
+        <!-- 5-Step Progress Bar -->
+        <div class="step-pills">
+          <div id="sp-1" class="sp">1. LIFT</div>
+          <div id="sp-2" class="sp">2. LUGS</div>
+          <div id="sp-3" class="sp">3. TIRE</div>
+          <div id="sp-4" class="sp">4. PSI</div>
+          <div id="sp-5" class="sp">5. TORQUE</div>
+        </div>
+
+        <!-- Interactive Highway Stage -->
+        <div id="bay-stage" class="bay-stage">
+          <div id="weather-layer" class="weather-layer"></div>
+          <div id="night-shade" class="night-shade hidden"></div>
+
+          <!-- Condition & Floodlight HUD Strip inside Stage -->
+          <div class="stage-hud-strip">
+            <span id="stage-cond-pill" class="cond-pill clear">☀️ CLEAR DAY</span>
+            <button id="stage-flood-btn" class="flood-btn" onclick="toggleBayFloodlights()">🔦 FLOODLIGHTS: OFF</button>
+          </div>
+
+          <div id="scan-beam" class="scan-beam hidden"></div>
+
+          <!-- Vehicle Chassis -->
+          <div id="stage-chassis" class="stage-chassis">
+            <img id="stage-veh-img" src="" alt="Vehicle" onerror="this.style.display='none';document.getElementById('stage-veh-fallback').style.display='block';" />
+            <div id="stage-veh-fallback"></div>
+          </div>
+
+          <!-- Wheel & Lug Hub -->
+          <div id="stage-wheel-wrap" class="stage-wheel-wrap">
+            <img id="stage-tire-img" src="" alt="Tire" onerror="this.style.display='none';document.getElementById('stage-tire-fallback').style.display='block';" />
+            <div id="stage-tire-fallback"></div>
+            <svg id="star-lines-svg" viewBox="0 0 120 120" class="star-lines-svg"></svg>
+            <div id="lug-ring" class="lug-ring"></div>
+          </div>
+
+          <!-- Hydraulic Floor Jack -->
+          <div id="stage-jack" class="stage-jack">
+            <div id="jack-arm" class="jack-arm"></div>
+            <div class="jack-base"></div>
+          </div>
+
+          <!-- Rubber Wheel Chock -->
+          <div id="stage-chock" class="stage-chock"></div>
+          <div class="road-shoulder"></div>
+        </div>
+
+        <!-- Diagnostic / Safety Alert Banner -->
+        <div id="diag-alert" class="diag-alert hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong id="diag-alert-title">ALERT</strong>
+            <button class="ghost-btn" style="padding:2px 7px;font-size:11px;" onclick="dismissAlert()">✕</button>
+          </div>
+          <p id="diag-alert-msg"></p>
+        </div>
+
+        <!-- Step Controls Container -->
+        <div id="bay-controls" class="item-card bay-controls"></div>
+      </div>
+    </main>
+
+    <!-- PAGE 3: GARAGE -->
+    <main id="page-garage" class="page">
+      <div id="tool-list" class="stack-list"></div>
+    </main>
+
+    <!-- PAGE 4: 24 ZONES -->
+    <main id="page-zones" class="page">
+      <div id="zone-list" class="stack-list"></div>
+    </main>
+
+    <!-- PAGE 5: DIVISION LEADERBOARD -->
+    <main id="page-league" class="page">
+      <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <span class="badge">CORRIDOR STANDINGS</span>
+          <div style="font-size:18px;font-weight:900;margin-top:4px;"><span id="league-rep">0</span> REP</div>
+        </div>
+        <div style="text-align:right;">
+          <span class="badge">DIVISION RANK</span>
+          <div id="league-rank" style="font-size:22px;font-weight:900;color:var(--amber);margin-top:2px;">#6</div>
+        </div>
+      </div>
+      <div id="leaderboard-list" class="stack-list"></div>
+    </main>
+
+    <!-- PAGE 6: SUPPLY & TOKEN SHOP -->
+    <main id="page-shop" class="page">
+      <div class="item-card">
+        <span class="badge">FREE SPONSORED SUPPLY DROPS</span>
+        <h3>Watch Partner Transmission</h3>
+        <div class="ctrl-grid-2" style="margin-top:6px;">
+          <button class="secondary-btn" onclick="watchRewardedAd('restock')">📺 Free Tire & Plug Drop</button>
+          <button class="secondary-btn" onclick="watchRewardedAd('tokens')">📺 +5 Dispatch Tokens (⚡)</button>
+        </div>
+      </div>
+
+      <div class="item-card">
+        <span class="badge">DISPATCH CREDIT PACKS</span>
+        <h3>Instant Fleet Credits & Gold Parts</h3>
+        <div class="stack-list" style="margin-top:8px;">
+          <button class="primary-btn" onclick="buyTokenPack(15, '$1.99', 0)">15 ⚡ Dispatch Tokens ($1.99)</button>
+          <button class="primary-btn" onclick="buyTokenPack(40, '$4.99', 1)">40 ⚡ Tokens + 1 ⚙️ Gold Part ($4.99)</button>
+          <button class="primary-btn" onclick="buyTokenPack(100, '$9.99', 3)">100 ⚡ Tokens + 3 ⚙️ Gold Parts ($9.99)</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button id="nav-dispatch" class="nav-btn active" onclick="goPage('dispatch')">🚨<span>Dispatch</span></button>
+      <button id="nav-bay" class="nav-btn" onclick="goPage('bay')">🔧<span>Repair Bay</span></button>
+      <button id="nav-garage" class="nav-btn" onclick="goPage('garage')">🚛<span>Garage</span></button>
+      <button id="nav-zones" class="nav-btn" onclick="goPage('zones')">🗺️<span>Zones</span></button>
+      <button id="nav-league" class="nav-btn" onclick="goPage('league')">🏆<span>League</span></button>
     </nav>
 
-    <!-- TAB 1: DISPATCH BOARD -->
-    <main id="tab-dispatch" class="tab-view active">
-      <div class="section-header">
-        <h2>Live Highway Dispatch</h2>
-        <button id="btn-refresh-board" class="btn-small">↻ Refresh Calls</button>
-      </div>
-
-      <!-- Cargo Quick Bar -->
-      <div class="cargo-strip" id="dispatch-cargo-strip"></div>
-
-      <!-- Active Call List -->
-      <div id="job-list" class="job-list"></div>
-
-      <!-- ACTIVE REPAIR BAY OVERLAY -->
-      <section id="repair-bay" class="repair-bay hidden">
-        <div class="bay-header">
-          <div>
-            <span id="bay-condition-badge" class="cond-badge clear">☀️ CLEAR DAY</span>
-            <h3 id="bay-vehicle-title">2023 Sedan — I-285 Perimeter</h3>
-            <p id="bay-issue-desc" class="muted">Diagnosis needed</p>
-          </div>
-          <div class="bay-timer-box">
-            <span class="timer-label">RESPONSE</span>
-            <span id="bay-timer" class="timer-val">00:45</span>
-          </div>
-        </div>
-
-        <!-- Road Scene Visual + Night Lighting / Rain Effects -->
-        <div id="road-stage" class="road-stage">
-          <div id="weather-overlay" class="weather-overlay"></div>
-          <div id="darkness-overlay" class="darkness-overlay hidden"></div>
-
-          <!-- Top Scene Controls -->
-          <div class="scene-controls">
-            <button id="btn-floodlights" class="ctrl-chip">🔦 LED Floodlights: OFF</button>
-            <button id="btn-cones" class="ctrl-chip">⚠️ Place Cones</button>
-            <button id="btn-emergency-drop" class="ctrl-chip danger">🚁 Emergency Tire Drop ($95)</button>
-          </div>
-
-          <!-- Vehicle & Wheel Hub -->
-          <div class="vehicle-arena">
-            <div id="vehicle-visual" class="vehicle-visual"></div>
-            <div class="wheel-hub-wrapper">
-              <div id="wheel-hub" class="wheel-hub">
-                <div id="tire-ring" class="tire-ring damaged">
-                  <div id="rim-center" class="rim-center">
-                    <!-- 5 Lugs positioned radially -->
-                    <button class="lug-node" data-lug="0" style="top: 10%; left: 50%;">1</button>
-                    <button class="lug-node" data-lug="1" style="top: 38%; left: 88%;">2</button>
-                    <button class="lug-node" data-lug="2" style="top: 84%; left: 74%;">3</button>
-                    <button class="lug-node" data-lug="3" style="top: 84%; left: 26%;">4</button>
-                    <button class="lug-node" data-lug="4" style="top: 38%; left: 12%;">5</button>
-                    <div class="hub-cap">DW</div>
-                  </div>
-                </div>
-              </div>
-              <div id="floating-feedback" class="floating-feedback"></div>
-            </div>
-          </div>
-
-          <!-- Step Checklist & PSI Gauge -->
-          <div class="status-readout">
-            <div class="step-tracker" id="step-tracker"></div>
-            <div class="psi-bar-wrap">
-              <span>PSI: <strong id="psi-current">12</strong> / <strong id="psi-target">35</strong></span>
-              <div class="psi-track"><div id="psi-fill" class="psi-fill" style="width: 34%;"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tool Tray -->
-        <div class="tool-tray" id="tool-tray">
-          <button class="tool-btn" data-tool="jack">🏗️ Hydraulic Jack</button>
-          <button class="tool-btn" data-tool="lockkey">🔑 Lock Key Socket</button>
-          <button class="tool-btn" data-tool="impact">🔫 Impact Wrench</button>
-          <button class="tool-btn" data-tool="plug">🩹 Plug Kit</button>
-          <button class="tool-btn" data-tool="newtire">🛞 Mount Spare</button>
-          <button class="tool-btn" data-tool="inflator">💨 Air Inflator</button>
-          <button class="tool-btn" data-tool="torque">🔧 Torque Wrench</button>
-          <button class="tool-btn" data-tool="tpms">📡 TPMS Reset</button>
-        </div>
-
-        <!-- Final Jack Drop Action -->
-        <div class="bay-footer">
-          <button id="btn-abort-job" class="btn-secondary">Abort Call</button>
-          <button id="btn-lower-jack" class="btn-finish hidden">⬇️ LOWER JACK & STOW CONES</button>
-        </div>
-      </section>
-    </main>
-
-    <!-- TAB 2: GARAGE & RIG UPGRADES -->
-    <main id="tab-garage" class="tab-view">
-      <div class="section-header">
-        <h2>Fleet Rig & Cargo Capacity</h2>
-      </div>
-      <div id="rig-showcase" class="card"></div>
-      <div class="section-header" style="margin-top: 14px;">
-        <h2>Service Tool Tiers</h2>
-      </div>
-      <div id="tool-upgrades" class="grid-list"></div>
-    </main>
-
-    <!-- TAB 3: SUPPLY DEPOT -->
-    <main id="tab-depot" class="tab-view">
-      <div class="section-header">
-        <h2>DelWin Supply Depot</h2>
-        <span id="depot-cap-badge" class="badge">Cargo: 0/0</span>
-      </div>
-      <div id="depot-items" class="grid-list"></div>
-    </main>
-
-    <!-- Job Summary Modal -->
-    <div id="summary-modal" class="modal hidden">
-      <div class="modal-card">
-        <h2 id="sum-title">Rescue Complete!</h2>
-        <div id="sum-breakdown" class="sum-breakdown"></div>
-        <button id="btn-close-summary" class="btn-primary">Back to Dispatch</button>
-      </div>
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+      <div id="modal-card" class="modal-card"></div>
     </div>
   </div>
 
