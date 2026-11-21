@@ -2599,7 +2599,17 @@ function closeModal() {
   document.getElementById('modal-overlay').classList.add('hidden');
 }
 
-function resetSave() {
+async function resetSave() {
+  if (window.DelWinCloud && window.DelWinCloud.hasAccount && window.DelWinCloud.hasAccount()) {
+    const confirmed = confirm('You are signed in. Reset this device only? This will sign you out first. Your cloud career will remain safely stored in your account and can be restored if you sign in again.');
+    if (!confirmed) return;
+    try {
+      await window.DelWinCloud.signOut();
+    } catch (e) {
+      alert('Could not sign out, so the save was not reset. Please try again.');
+      return;
+    }
+  }
   localStorage.removeItem('delwin_v4_save');
   location.reload();
 }
