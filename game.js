@@ -161,7 +161,7 @@ function dismissAlert() {
 }
 
 function renderAlertBanner() {
-  const bayActive = document.getElementById('bay-active');
+  const bayActive = document.getElementById('bay-active') || document.getElementById('active-bay-card');
   if (!bayActive) return;
   let box = document.getElementById('bay-alert-box');
   if (!uiAlert) {
@@ -303,7 +303,7 @@ function addBayPenalty(job, cashAmt, reason, repAmt = 4) {
    HAZARD #1: SHOULDER TRAFFIC PASS-BY ALERTS
    ========================================================================== */
 function ensureTrafficAlertUI() {
-  const bayActive = document.getElementById('bay-active');
+  const bayActive = document.getElementById('bay-active') || document.getElementById('active-bay-card');
   if (!bayActive) return null;
   let banner = document.getElementById('shoulder-traffic-banner');
   if (!banner) {
@@ -866,9 +866,18 @@ function claimRewardedAdSupply() {
    VIEW NAVIGATION & RENDERING
    ========================================================================== */
 function switchView(viewName) {
-  document.querySelectorAll('[data-view]').forEach(sec => {
-    sec.style.display = (sec.getAttribute('data-view') === viewName) ? 'block' : 'none';
-  });
+  const byAttr = document.querySelectorAll('[data-view]');
+  if (byAttr.length > 0) {
+    byAttr.forEach(sec => {
+      sec.style.display = (sec.getAttribute('data-view') === viewName) ? 'block' : 'none';
+    });
+  } else {
+    document.querySelectorAll('[id^="view-"]').forEach(sec => {
+      const idView = sec.id.replace(/^view-/, '');
+      sec.classList.toggle('active', idView === viewName);
+      sec.style.display = (idView === viewName) ? 'block' : 'none';
+    });
+  }
   document.querySelectorAll('[data-nav]').forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-nav') === viewName);
   });
@@ -889,7 +898,7 @@ function renderTopHud() {
 }
 
 function renderDispatch() {
-  const list = document.getElementById('dispatch-list');
+  const list = document.getElementById('dispatch-list') || document.getElementById('jobs-list') || document.querySelector('#view-dispatch .dispatch-jobs, #view-dispatch');
   if (!list) return;
   refreshDispatchBoard(false);
 
@@ -931,8 +940,8 @@ function renderDispatch() {
 
 function renderBay() {
   const job = state.activeJob;
-  const emptyEl = document.getElementById('bay-empty');
-  const activeEl = document.getElementById('bay-active');
+  const emptyEl = document.getElementById('bay-empty') || document.getElementById('no-active-job');
+  const activeEl = document.getElementById('bay-active') || document.getElementById('active-bay-card');
   if (!emptyEl || !activeEl) return;
 
   if (!job) {
@@ -954,7 +963,7 @@ function renderBay() {
     headerEl.textContent = `${job.veh.name} • ${condTag} • ${job.veh.targetPsi} PSI`;
   }
 
-  const ctrl = document.getElementById('bay-controls');
+  const ctrl = document.getElementById('bay-controls') || document.getElementById('bay-actions');
   if (!ctrl) return;
 
   // STEP 1: Cones -> Chocks -> Hydraulic Jack
@@ -1118,7 +1127,7 @@ function renderBay() {
 }
 
 function renderGarage() {
-  const el = document.getElementById('garage-panel');
+  const el = document.getElementById('garage-panel') || document.getElementById('garage-content') || document.getElementById('view-garage');
   if (!el) return;
   const rig = getRig();
   const nextRig = RIG_TIERS[state.rigLevel] || null;
