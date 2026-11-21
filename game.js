@@ -1,13 +1,7 @@
 /* ==========================================================================
    DELWIN MOBILE: ROADSIDE TIRE RESCUE — GAME ENGINE (game.js)
-   Exact DOM Alignment with index.html (#page-dispatch, #page-bay, #page-garage,
-   #page-zones, #page-league, #job-list, #bay-stage, #lug-ring, #tool-list, etc.)
-   Includes:
-   - Shoulder Traffic Pass-By Alerts & Windblast Hazards
-   - Seized / Swollen Lug Oil Soak
-   - Stubborn Tire Bead Seater
-   - Full 5-Step Repair Bay + Security Wheel Locks + Lower Jack Stowage
-   - 6-Tier Rig Progression, 24 Georgia Zones, Weekly League & Clean-Streak Gear
+   Rock-solid startup, Safari-safe cloning, instant delegated tab/button wiring,
+   and full 5-step repair bay + hazards + progression.
    ========================================================================== */
 
 'use strict';
@@ -15,12 +9,12 @@
 const STORAGE_KEY = 'delwin_mobile_tire_rescue_v2026_11';
 
 const RIG_TIERS = [
-  { level: 1, name: 'Service Sedan',      badge: 'TIER 1', cargoMax: 2,  cost: 0,     perk: 'Base dispatch speed • 2 tire capacity',     img: 'assets/rig_t1.png', icon: '🚗' },
-  { level: 2, name: 'Roadside SUV',       badge: 'TIER 2', cargoMax: 4,  cost: 450,   perk: '+12% payout speed • 4 tire capacity',       img: 'assets/rig_t2.png', icon: '🚙' },
-  { level: 3, name: 'Utility Pickup',     badge: 'TIER 3', cargoMax: 6,  cost: 1200,  perk: 'Fast penetrating oil • 6 tire capacity',    img: 'assets/rig_t3.png', icon: '🛻' },
-  { level: 4, name: 'Sprinter Tire Van',  badge: 'TIER 4', cargoMax: 10, cost: 2800,  perk: 'Commercial van access • 10 tire capacity',  img: 'assets/rig_t4.png', icon: '🚐' },
-  { level: 5, name: 'Dually Flatbed',     badge: 'TIER 5', cargoMax: 14, cost: 6000,  perk: 'Heavy truck service • 14 tire capacity',    img: 'assets/rig_t5.png', icon: '🚚' },
-  { level: 6, name: 'Heavy Fleet Rig',    badge: 'TIER 6', cargoMax: 20, cost: 12500, perk: 'Max fleet multiplier • 20 tire capacity',   img: 'assets/rig_t6.png', icon: '🚛' }
+  { level: 1, name: 'Service Sedan',     badge: 'TIER 1', cargoMax: 2,  cost: 0,     perk: 'Base dispatch speed • 2 tire capacity',    img: 'assets/rig_t1.png', icon: '🚗' },
+  { level: 2, name: 'Roadside SUV',      badge: 'TIER 2', cargoMax: 4,  cost: 450,   perk: '+12% payout speed • 4 tire capacity',      img: 'assets/rig_t2.png', icon: '🚙' },
+  { level: 3, name: 'Utility Pickup',    badge: 'TIER 3', cargoMax: 6,  cost: 1200,  perk: 'Fast penetrating oil • 6 tire capacity',   img: 'assets/rig_t3.png', icon: '🛻' },
+  { level: 4, name: 'Sprinter Tire Van', badge: 'TIER 4', cargoMax: 10, cost: 2800,  perk: 'Commercial van access • 10 tire capacity', img: 'assets/rig_t4.png', icon: '🚐' },
+  { level: 5, name: 'Dually Flatbed',    badge: 'TIER 5', cargoMax: 14, cost: 6000,  perk: 'Heavy truck service • 14 tire capacity',   img: 'assets/rig_t5.png', icon: '🚚' },
+  { level: 6, name: 'Heavy Fleet Rig',   badge: 'TIER 6', cargoMax: 20, cost: 12500, perk: 'Max fleet multiplier • 20 tire capacity',  img: 'assets/rig_t6.png', icon: '🚛' }
 ];
 
 const ZONES = [
@@ -93,36 +87,44 @@ const DEFAULT_STATE = {
   activeJob: null
 };
 
-let state = loadState();
-let bayTimerInterval = null;
-let psiHoldInterval = null;
+function cloneDefault() {
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
 
 function loadState() {
+  const base = cloneDefault();
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return structuredClone(DEFAULT_STATE);
+    const raw = window.localStorage ? window.localStorage.getItem(STORAGE_KEY) : null;
+    if (!raw) return base;
     const parsed = JSON.parse(raw);
     return {
-      ...structuredClone(DEFAULT_STATE),
-      ...parsed,
+      ...base,
+      ...(parsed && typeof parsed === 'object' ? parsed : {}),
       tools: {
-        ...structuredClone(DEFAULT_STATE.tools),
-        ...(parsed.tools || {})
+        ...base.tools,
+        ...((parsed && parsed.tools && typeof parsed.tools === 'object') ? parsed.tools : {})
       }
     };
   } catch (e) {
-    return structuredClone(DEFAULT_STATE);
+    return base;
   }
 }
 
 function saveState() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (window.localStorage) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
   } catch (e) {}
 }
 
+let state = loadState();
+let currentView = 'dispatch';
+let bayTimerInterval = null;
+let psiHoldInterval = null;
+
 function getRig() {
-  return RIG_TIERS[Math.min(RIG_TIERS.length - 1, Math.max(0, state.rigLevel - 1))];
+  return RIG_TIERS[Math.min(RIG_TIERS.length - 1, Math.max(0, (state.rigLevel || 1) - 1))];
 }
 
 function getZone() {
@@ -136,11 +138,11 @@ function setTxt(id, val) {
 
 function showToast(msg) {
   let el = document.getElementById('game-toast');
-  if (!el) {
+  if (!el && document.body) {
     el = document.createElement('div');
     el.id = 'game-toast';
     el.style.cssText = [
-      'position:fixed;bottom:84px;left:50%;transform:translateX(-50%);',
+      'position:fixed;bottom:86px;left:50%;transform:translateX(-50%);',
       'background:#0f172a;color:#f8fafc;border:1px solid #38bdf8;',
       'padding:8px 14px;border-radius:999px;font-size:12px;font-weight:700;',
       'z-index:9999;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.5);',
@@ -148,6 +150,7 @@ function showToast(msg) {
     ].join('');
     document.body.appendChild(el);
   }
+  if (!el) return;
   el.textContent = msg;
   el.style.display = 'block';
   clearTimeout(el._t);
@@ -180,10 +183,11 @@ function hideDiagAlert() {
 function createJob(options = {}) {
   const z = getZone();
   const isTutorial = !!options.isTutorial;
-  const availableVehicles = VEHICLES.filter(v => v.minRig <= state.rigLevel);
+  const availableVehicles = VEHICLES.filter(v => v.minRig <= (state.rigLevel || 1));
+  const pool = availableVehicles.length ? availableVehicles : [VEHICLES[0]];
   const veh = isTutorial
     ? VEHICLES[0]
-    : availableVehicles[Math.floor(Math.random() * availableVehicles.length)];
+    : pool[Math.floor(Math.random() * pool.length)];
 
   const dmg = isTutorial
     ? DAMAGE_TYPES[0]
@@ -202,7 +206,6 @@ function createJob(options = {}) {
 
   const hasLock = !isTutorial && (isVip || z.id >= 3) && Math.random() < 0.42;
 
-  // Hazard #2: Seized / Swollen Lug Nuts (0 to 2 lugs)
   const seizedLugs = [];
   if (!isTutorial) {
     const baseSeizedChance = 0.28 + (z.mult >= 1.4 ? 0.14 : 0) + (cond === 'rain' ? 0.15 : 0);
@@ -230,16 +233,12 @@ function createJob(options = {}) {
     penalties: [],
     penaltyCash: 0,
     penaltyRep: 0,
-
-    // Step 1: Cones -> Chocks -> Jack
     step: 1,
     conesSet: false,
     chocksSet: false,
     jackPumps: 0,
     jackPumpsNeeded: 4,
     jackRaised: false,
-
-    // Step 2: Wheel Lock + Seized Oil Soak + 5 Lugs
     hasLock,
     lockKeyApplied: !hasLock,
     seizedLugs,
@@ -247,21 +246,13 @@ function createJob(options = {}) {
     oilSoakingUntil: 0,
     lugsOff: [false, false, false, false, false],
     wheelOff: false,
-
-    // Step 3: Scan & Repair
     inspected: false,
     repaired: false,
-
-    // Step 4: PSI & Stubborn Bead
     psi: 12,
     unseatedBead: false,
-
-    // Step 5: Star Torque & Lower Jack
     lugsTorqued: [false, false, false, false, false],
     torquedCount: 0,
     jackLowered: false,
-
-    // Hazard #1: Shoulder Traffic Pass-By
     trafficAlertText: '',
     trafficAlertUntil: 0
   };
@@ -623,7 +614,6 @@ function performRepair(choice) {
     }
     state.tiresInCargo -= 1;
 
-    // Hazard #3: Stubborn Tire Bead on Swapped Tires
     const compLvl = (state.tools && state.tools.comp) ? state.tools.comp.level : 1;
     const beadChance = job.veh.heavy ? 0.55 : (job.veh.id === 'pickup' || job.veh.id === 'suv' ? 0.40 : 0.25);
     const autoSeatedByProComp = !job.veh.heavy && compLvl >= 9;
@@ -657,7 +647,7 @@ function applyPsiTick(delta) {
     return;
   }
 
-  const speedBonus = Math.ceil(state.tools.comp.level / 4);
+  const speedBonus = Math.ceil((state.tools.comp.level || 1) / 4);
   job.psi = Math.max(5, Math.min(job.veh.targetPsi + 15, job.psi + delta * speedBonus));
   updateLivePsiMeter(job);
 }
@@ -856,25 +846,33 @@ function claimRewardedAdSupply() {
 }
 
 /* ==========================================================================
-   VIEW NAVIGATION (EXACT #page-* + .hidden / .active ALIGNMENT)
+   VIEW NAVIGATION (SUPPORTS #page-*, [data-page], [data-view], #view-*)
    ========================================================================== */
 function switchView(viewName) {
-  const pages = document.querySelectorAll('.page, [id^="page-"]');
-  pages.forEach(p => {
-    const isMatch = p.id === `page-${viewName}`;
-    p.classList.toggle('active', isMatch);
-    p.classList.toggle('hidden', !isMatch);
-    p.style.display = isMatch ? '' : 'none';
-  });
+  if (!viewName) return;
+  currentView = viewName;
 
-  document.querySelectorAll('.nav-btn, [data-nav]').forEach(btn => {
-    const target = btn.getAttribute('data-nav');
+  const pageEls = document.querySelectorAll('.page, [id^="page-"], [id^="view-"], [data-page], [data-view]');
+  if (pageEls.length > 0) {
+    pageEls.forEach(p => {
+      const idMatch = p.id === `page-${viewName}` || p.id === `view-${viewName}`;
+      const attrMatch = p.getAttribute('data-page') === viewName || p.getAttribute('data-view') === viewName;
+      const isMatch = idMatch || attrMatch;
+      p.classList.toggle('active', isMatch);
+      p.classList.toggle('hidden', !isMatch);
+      p.style.display = isMatch ? 'block' : 'none';
+    });
+  }
+
+  document.querySelectorAll('.nav-btn, [data-nav], [data-tab]').forEach(btn => {
+    const target = btn.getAttribute('data-nav') || btn.getAttribute('data-tab');
     if (target) btn.classList.toggle('active', target === viewName);
   });
 
   const drawer = document.getElementById('menu-drawer');
   if (drawer) drawer.classList.add('hidden');
 
+  if (viewName === 'dispatch') renderDispatch();
   if (viewName === 'bay') renderBay();
   if (viewName === 'garage') renderGarage();
   if (viewName === 'zones') renderZones();
@@ -882,26 +880,32 @@ function switchView(viewName) {
 }
 
 /* ==========================================================================
-   RENDER FUNCTIONS BOUND TO EXACT index.html ELEMENT IDS
+   RENDER FUNCTIONS
    ========================================================================== */
 function renderTopHud() {
   const z = getZone();
-  setTxt('hud-cash', `$${state.cash.toLocaleString()}`);
-  setTxt('hud-gears', `${state.goldGears}`);
-  setTxt('hud-tokens', `${state.tokens}`);
-  setTxt('hud-rep', `${state.rep}`);
+  setTxt('hud-cash', `$${(state.cash || 0).toLocaleString()}`);
+  setTxt('hud-gears', `${state.goldGears || 0}`);
+  setTxt('hud-tokens', `${state.tokens || 0}`);
+  setTxt('hud-rep', `${state.rep || 0}`);
   setTxt('dispatch-zone-label', `${z.name} (${z.mult}x)`);
-  setTxt('stock-plugs', `${state.plugsInCargo}`);
-  setTxt('stock-tires', `${state.tiresInCargo}`);
+  setTxt('stock-plugs', `${state.plugsInCargo || 0}`);
+  setTxt('stock-tires', `${state.tiresInCargo || 0}`);
 
   const surgeEl = document.getElementById('surge-pill') || document.querySelector('.surge-badge, .surge-pill');
   if (surgeEl) {
-    surgeEl.textContent = state.surgeCount >= 3 ? '2X SURGE ACTIVE!' : `2X SURGE (${state.surgeCount}/3)`;
+    surgeEl.textContent = (state.surgeCount || 0) >= 3 ? '2X SURGE ACTIVE!' : `2X SURGE (${state.surgeCount || 0}/3)`;
   }
 }
 
+function getDispatchContainer() {
+  return document.getElementById('job-list') ||
+         document.getElementById('dispatch-list') ||
+         document.querySelector('#page-dispatch .job-list, #page-dispatch');
+}
+
 function renderDispatch() {
-  const list = document.getElementById('job-list');
+  const list = getDispatchContainer();
   if (!list) return;
   refreshDispatchBoard(false);
 
@@ -913,16 +917,16 @@ function renderDispatch() {
        </div>`
     : '';
 
-  const cards = state.boardJobs.map(j => {
+  const cards = (state.boardJobs || []).map(j => {
     const condBadge = j.cond === 'rain' ? '🌧️ RAIN +25%' : (j.cond === 'night' ? '🌙 NIGHT +18%' : '☀️ CLEAR');
     const vipBadge = j.isVip ? '<span style="color:#facc15;font-weight:800;">★ VIP FLEET</span> • ' : '';
     const hazardHints = [
       j.hasLock ? '🔑 Wheel Lock' : '',
-      j.seizedLugs.length ? `🛢️ ${j.seizedLugs.length} Seized Lug${j.seizedLugs.length > 1 ? 's' : ''}` : ''
+      (j.seizedLugs && j.seizedLugs.length) ? `🛢️ ${j.seizedLugs.length} Seized Lug${j.seizedLugs.length > 1 ? 's' : ''}` : ''
     ].filter(Boolean).join(' • ');
 
     return `
-      <div class="job-card" style="border:1px solid #1e293b;border-radius:12px;padding:12px;margin-bottom:10px;background:#0f172a;">
+      <div class="job-card" style="border:1px solid #1e293b;border-radius:12px;padding:12px;margin-bottom:10px;background:#0f172a;color:#f8fafc;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <strong>${vipBadge}${j.veh.icon} ${j.veh.name}</strong>
           <span style="color:#34d399;font-weight:900;">+$${j.payout}</span>
@@ -938,7 +942,18 @@ function renderDispatch() {
     `;
   }).join('');
 
-  list.innerHTML = tutBanner + cards;
+  if (list.id === 'job-list' || list.id === 'dispatch-list') {
+    list.innerHTML = tutBanner + cards;
+  } else {
+    let mount = document.getElementById('job-list-mount');
+    if (!mount) {
+      mount = document.createElement('div');
+      mount.id = 'job-list-mount';
+      mount.style.padding = '12px';
+      list.appendChild(mount);
+    }
+    mount.innerHTML = tutBanner + cards;
+  }
 }
 
 function renderBayStageVisuals(job) {
@@ -982,7 +997,7 @@ function renderBay() {
 
   if (!job) {
     emptyEl.classList.remove('hidden');
-    emptyEl.style.display = '';
+    emptyEl.style.display = 'block';
     activeEl.classList.add('hidden');
     activeEl.style.display = 'none';
     return;
@@ -991,7 +1006,7 @@ function renderBay() {
   emptyEl.classList.add('hidden');
   emptyEl.style.display = 'none';
   activeEl.classList.remove('hidden');
-  activeEl.style.display = '';
+  activeEl.style.display = 'block';
 
   const condTag = job.cond === 'rain' ? '🌧️ RAIN' : (job.cond === 'night' ? '🌙 NIGHT' : '☀️ DAY');
   setTxt('bay-veh-tag', `${condTag} • ${job.zoneName}`);
@@ -1005,7 +1020,6 @@ function renderBay() {
   const ctrl = document.getElementById('bay-controls');
   if (!ctrl) return;
 
-  // STEP 1: Cones -> Chocks -> Hydraulic Jack
   if (job.step === 1) {
     ctrl.innerHTML = `
       <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">
@@ -1026,7 +1040,6 @@ function renderBay() {
     return;
   }
 
-  // STEP 2: Security Wheel Lock + Penetrating Oil Soak + 5-Lug Removal
   if (job.step === 2) {
     const seizedCount = hasSeizedLugs(job) ? job.seizedLugs.length : 0;
     const isSoaking = job.oilSoakingUntil && Date.now() < job.oilSoakingUntil;
@@ -1076,7 +1089,6 @@ function renderBay() {
     return;
   }
 
-  // STEP 3: Damage Inspection & Plug vs. Tire Swap
   if (job.step === 3) {
     const diagInfo = job.inspected
       ? `<div style="background:#1e293b;padding:10px;border-radius:10px;margin-bottom:8px;font-size:12px;">
@@ -1104,7 +1116,6 @@ function renderBay() {
     return;
   }
 
-  // STEP 4: Stubborn Tire Bead Seater + PSI Inflation
   if (job.step === 4) {
     const beadBlastHtml = job.unseatedBead
       ? `<button type="button" class="primary-btn" data-action="blast-bead"
@@ -1132,7 +1143,6 @@ function renderBay() {
     return;
   }
 
-  // STEP 5: Star-Pattern Torquing + Lower Jack Stowage
   if (job.step === 5) {
     const nextStarLug = STAR_ORDER[job.torquedCount];
     const allTorqued = job.torquedCount >= 5;
@@ -1263,65 +1273,90 @@ function renderLeague() {
 }
 
 function renderAll() {
-  renderTopHud();
-  renderDispatch();
-  renderBay();
-  renderGarage();
-  renderZones();
-  renderLeague();
+  try {
+    renderTopHud();
+    renderDispatch();
+    renderBay();
+    renderGarage();
+    renderZones();
+    renderLeague();
+  } catch (err) {
+    console.error('DelWin render error:', err);
+  }
 }
 
 /* ==========================================================================
-   DELEGATED MOBILE-FIRST INPUT HANDLERS (TABS, DRAWER & ALL BUTTONS)
+   ATTACH DELEGATED LISTENERS IMMEDIATELY SO TABS & BUTTONS ALWAYS WORK
    ========================================================================== */
+function inferTabFromText(el) {
+  if (!el) return null;
+  const txt = (el.textContent || '').trim().toLowerCase();
+  if (txt.includes('dispatch')) return 'dispatch';
+  if (txt.includes('repair bay') || txt === 'bay') return 'bay';
+  if (txt.includes('garage')) return 'garage';
+  if (txt.includes('zones') || txt === 'zone') return 'zones';
+  if (txt.includes('league')) return 'league';
+  return null;
+}
+
 document.addEventListener('click', (e) => {
-  const navBtn = e.target.closest('[data-nav]');
-  if (navBtn) {
-    e.preventDefault();
-    switchView(navBtn.getAttribute('data-nav'));
-    return;
-  }
+  try {
+    const target = e.target;
+    if (!target) return;
 
-  const menuToggle = e.target.closest('#menu-btn, [data-action="toggle-menu"]');
-  if (menuToggle) {
-    const drawer = document.getElementById('menu-drawer');
-    if (drawer) drawer.classList.toggle('hidden');
-    return;
-  }
+    const navBtn = target.closest('[data-nav], [data-tab], .nav-btn');
+    if (navBtn) {
+      const view = navBtn.getAttribute('data-nav') || navBtn.getAttribute('data-tab') || inferTabFromText(navBtn);
+      if (view) {
+        e.preventDefault();
+        switchView(view);
+        return;
+      }
+    }
 
-  const actBtn = e.target.closest('[data-action]');
-  if (!actBtn) return;
+    const menuToggle = target.closest('#menu-btn, [data-action="toggle-menu"]');
+    if (menuToggle) {
+      const drawer = document.getElementById('menu-drawer');
+      if (drawer) drawer.classList.toggle('hidden');
+      return;
+    }
 
-  const action = actBtn.getAttribute('data-action');
-  switch (action) {
-    case 'dismiss-alert':   hideDiagAlert(); break;
-    case 'start-tutorial':  startTutorialJob(); break;
-    case 'accept-job':      acceptJob(actBtn.getAttribute('data-job-id')); break;
-    case 'set-cones':       handleSetCones(); break;
-    case 'set-chocks':      handleSetChocks(); break;
-    case 'pump-jack':       handlePumpJack(); break;
-    case 'apply-lock-key':  handleApplyLockKey(); break;
-    case 'spray-oil':       sprayPenetratingOil(); break;
-    case 'remove-lug':      handleRemoveLug(Number(actBtn.getAttribute('data-idx'))); break;
-    case 'inspect-tire':    handleInspectTire(); break;
-    case 'repair-plug':     performRepair('plug'); break;
-    case 'repair-swap':     performRepair('swap'); break;
-    case 'blast-bead':      blastTireBead(); break;
-    case 'lock-psi':        handleLockPsi(); break;
-    case 'torque-lug':      handleTorqueLug(Number(actBtn.getAttribute('data-idx'))); break;
-    case 'lower-jack':      handleLowerJackAndComplete(); break;
-    case 'restock-tire':    restockCargo('tire'); break;
-    case 'restock-plug':    restockCargo('plug'); break;
-    case 'upgrade-rig':     upgradeRig(); break;
-    case 'upgrade-tool':    upgradeTool(actBtn.getAttribute('data-tool')); break;
-    case 'watch-ad':        claimRewardedAdSupply(); break;
-    case 'select-zone':     selectZone(Number(actBtn.getAttribute('data-zone-id'))); break;
-    case 'refresh-board':   refreshDispatchBoard(true); renderDispatch(); break;
+    const actBtn = target.closest('[data-action]');
+    if (!actBtn) return;
+
+    const action = actBtn.getAttribute('data-action');
+    switch (action) {
+      case 'dismiss-alert':   hideDiagAlert(); break;
+      case 'start-tutorial':  startTutorialJob(); break;
+      case 'accept-job':      acceptJob(actBtn.getAttribute('data-job-id')); break;
+      case 'set-cones':       handleSetCones(); break;
+      case 'set-chocks':      handleSetChocks(); break;
+      case 'pump-jack':       handlePumpJack(); break;
+      case 'apply-lock-key':  handleApplyLockKey(); break;
+      case 'spray-oil':       sprayPenetratingOil(); break;
+      case 'remove-lug':      handleRemoveLug(Number(actBtn.getAttribute('data-idx'))); break;
+      case 'inspect-tire':    handleInspectTire(); break;
+      case 'repair-plug':     performRepair('plug'); break;
+      case 'repair-swap':     performRepair('swap'); break;
+      case 'blast-bead':      blastTireBead(); break;
+      case 'lock-psi':        handleLockPsi(); break;
+      case 'torque-lug':      handleTorqueLug(Number(actBtn.getAttribute('data-idx'))); break;
+      case 'lower-jack':      handleLowerJackAndComplete(); break;
+      case 'restock-tire':    restockCargo('tire'); break;
+      case 'restock-plug':    restockCargo('plug'); break;
+      case 'upgrade-rig':     upgradeRig(); break;
+      case 'upgrade-tool':    upgradeTool(actBtn.getAttribute('data-tool')); break;
+      case 'watch-ad':        claimRewardedAdSupply(); break;
+      case 'select-zone':     selectZone(Number(actBtn.getAttribute('data-zone-id'))); break;
+      case 'refresh-board':   refreshDispatchBoard(true); renderDispatch(); break;
+    }
+  } catch (err) {
+    console.error('DelWin click error:', err);
   }
 });
 
 document.addEventListener('pointerdown', (e) => {
-  const holdBtn = e.target.closest('[data-hold-psi]');
+  const holdBtn = e.target && e.target.closest ? e.target.closest('[data-hold-psi]') : null;
   if (holdBtn) {
     startHoldPsi(Number(holdBtn.getAttribute('data-hold-psi')));
   }
@@ -1331,9 +1366,19 @@ document.addEventListener('pointerdown', (e) => {
   document.addEventListener(evt, stopHoldPsi);
 });
 
-window.addEventListener('DOMContentLoaded', () => {
-  refreshDispatchBoard(false);
-  if (state.activeJob) startBayTimer();
-  switchView('dispatch');
-  renderAll();
-});
+function bootGame() {
+  try {
+    refreshDispatchBoard(false);
+    if (state.activeJob) startBayTimer();
+    switchView(currentView || 'dispatch');
+    renderAll();
+  } catch (err) {
+    console.error('DelWin boot error:', err);
+  }
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', bootGame);
+} else {
+  bootGame();
+}
