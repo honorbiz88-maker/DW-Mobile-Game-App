@@ -1,11 +1,13 @@
 // DelWin Mobile: Roadside Tire Rescue
 // Full Build with:
+// - Hub-aligned Tool Tiers (Hubs 1-6 map directly to Tool Tiers 1-6 across 24 zones)
+// - Calibrated Gradual Milestone Curve: Early Hook (4-5 calls) -> Early-Mid (8-10) -> Mid (20-25) -> Upper-Mid (50-60) -> Late (150-200) -> Endgame (300-350)
+// - Tightened 3-call clean-streak Gold Gear interval + streak milestone bonuses (9 -> +2, 15 -> +3)
 // - Zero broken-image text flash (empty alt + cached src swap)
 // - Press-and-Hold smooth PSI inflation & bleeding (eliminates mobile double-tap zoom)
 // - Top currency pills ($ Cash, ⚙️ Gold Gears, ⚡ Tokens) linked directly to Dispatch Shop
 // - 2X Surge Ad Charges (3 max, 1 ad = +1 charge, 8h recharge per charge, or 3 ⚡ instant surge)
 // - Token Ad Drop (3 max, 1 ad = +3 ⚡, 6h recharge per charge)
-// - Gold Gear (⚙️) drop on every 5-job clean streak + Elite Contracts + Shop / Exchange (15 ⚡ -> 1 ⚙️)
 // - Per-call Fleet Operating Overhead based on Rig Tier & Zone Multiplier
 // - Preserves all exact asset filenames: rig-t1..t6, tool-impact/jack/comp/radar-t1..t6, veh-*, bay-tire-*, bay-hd-tire-*
 
@@ -42,40 +44,55 @@ const SoundFX = (() => {
 
 const TIER_NAMES = ['Novice', 'Intermediate', 'Pro', 'Commercial', 'Heavy-Duty', 'Master'];
 
+const HUB_TIERS = [
+  { hubNum: 1, key: 'HUB 1 · ATLANTA METRO', name: 'Atlanta Metro', toolTier: 1, levels: 'Lvl 1–4', entryRep: 0 },
+  { hubNum: 2, key: 'HUB 2 · GEORGIA FREIGHT', name: 'Georgia Freight', toolTier: 2, levels: 'Lvl 5–8', entryRep: 1800 },
+  { hubNum: 3, key: 'HUB 3 · COASTAL PORTS', name: 'Coastal Ports', toolTier: 3, levels: 'Lvl 9–12', entryRep: 7500 },
+  { hubNum: 4, key: 'HUB 4 · SOUTHEAST EXPRESS', name: 'Southeast Express', toolTier: 4, levels: 'Lvl 13–16', entryRep: 21000 },
+  { hubNum: 5, key: 'HUB 5 · GULF CORRIDOR', name: 'Gulf Corridor', toolTier: 5, levels: 'Lvl 17–20', entryRep: 45000 },
+  { hubNum: 6, key: 'HUB 6 · APEX SYNDICATE', name: 'Apex Syndicate', toolTier: 6, levels: 'Lvl 21–24', entryRep: 80000 }
+];
+
 const RIG_TIERS = [
   { tier: 1, name: 'Tier 1: Novice Roadside Van', img: 'assets/rig-t1.png', color: '#cbd5e1', reqLvl: 1, req: 'Starting Rig', cashCost: 0, partCost: 0, tokenCost: 0, mult: 1.00, capPlugs: 6, capStd: 3, capHd: 1, perk: 'Standard highway response rig (1.00x Payouts).' },
-  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', reqLvl: 5, req: 'All Tools Lvl 5+', cashCost: 650, partCost: 2, tokenCost: 10, mult: 1.18, capPlugs: 9, capStd: 4, capHd: 2, perk: '1.18x Base Payouts & Twin Amber Strobes.' },
-  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', color: '#f59e0b', reqLvl: 9, req: 'All Tools Lvl 9+', cashCost: 1650, partCost: 4, tokenCost: 20, mult: 1.38, capPlugs: 12, capStd: 6, capHd: 3, perk: '1.38x Base Payouts & Exterior Spare Tire Rack.' },
-  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', color: '#a855f7', reqLvl: 13, req: 'All Tools Lvl 13+', cashCost: 3800, partCost: 7, tokenCost: 35, mult: 1.60, capPlugs: 16, capStd: 8, capHd: 4, perk: '1.60x Base Payouts & Dual-Wheel Hydraulic Lift.' },
-  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', color: '#ef4444', reqLvl: 17, req: 'All Tools Lvl 17+', cashCost: 8200, partCost: 11, tokenCost: 55, mult: 1.85, capPlugs: 22, capStd: 10, capHd: 6, perk: '1.85x Base Payouts & Commercial Fleet Priority.' },
-  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', reqLvl: 21, req: 'All Tools Lvl 21+', cashCost: 16500, partCost: 16, tokenCost: 80, mult: 2.15, capPlugs: 30, capStd: 14, capHd: 8, perk: '2.15x Base Payouts & Maximum Corridor Prestige.' }
+  { tier: 2, name: 'Tier 2: Intermediate Utility Pickup', img: 'assets/rig-t2.png', color: '#38bdf8', reqLvl: 5, req: 'All Tools Lvl 5+', cashCost: 2200, partCost: 2, tokenCost: 12, mult: 1.12, capPlugs: 9, capStd: 4, capHd: 2, perk: '1.12x Base Payouts & Twin Amber Strobes.' },
+  { tier: 3, name: 'Tier 3: Pro Extended Tire Truck', img: 'assets/rig-t3.png', color: '#f59e0b', reqLvl: 9, req: 'All Tools Lvl 9+', cashCost: 9500, partCost: 4, tokenCost: 25, mult: 1.25, capPlugs: 12, capStd: 6, capHd: 3, perk: '1.25x Base Payouts & Exterior Spare Tire Rack.' },
+  { tier: 4, name: 'Tier 4: Commercial Dually Rig', img: 'assets/rig-t4.png', color: '#a855f7', reqLvl: 13, req: 'All Tools Lvl 13+', cashCost: 36000, partCost: 8, tokenCost: 45, mult: 1.40, capPlugs: 16, capStd: 8, capHd: 4, perk: '1.40x Base Payouts & Dual-Wheel Hydraulic Lift.' },
+  { tier: 5, name: 'Tier 5: Heavy-Duty Fleet Rescue Box', img: 'assets/rig-t5.png', color: '#ef4444', reqLvl: 17, req: 'All Tools Lvl 17+', cashCost: 135000, partCost: 14, tokenCost: 75, mult: 1.56, capPlugs: 22, capStd: 10, capHd: 6, perk: '1.56x Base Payouts & Commercial Fleet Priority.' },
+  { tier: 6, name: 'Tier 6: Master Apex Syndicate Flagship', img: 'assets/rig-t6.png', color: '#fde047', reqLvl: 21, req: 'All Tools Lvl 21+', cashCost: 450000, partCost: 22, tokenCost: 110, mult: 1.74, capPlugs: 30, capStd: 14, capHd: 8, perk: '1.74x Base Payouts & Maximum Corridor Prestige.' }
 ];
 
 const ZONES = [
-  { id: 'z1', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 North Perimeter', mult: 1.00, unlockRep: 0, rustChance: 0.15, desc: 'Steady commuter flats and shoulder punctures.' },
-  { id: 'z2', hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.12, unlockRep: 350, rustChance: 0.20, desc: 'High-density commuter & SUV roadside calls.' },
-  { id: 'z3', hub: 'HUB 1 · ATLANTA METRO', name: 'GA-400 Buckhead Express', mult: 1.24, unlockRep: 850, rustChance: 0.22, desc: 'Luxury sedans and evening rush-hour flats.' },
-  { id: 'z4', hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 Airport South Loop', mult: 1.36, unlockRep: 1500, rustChance: 0.28, desc: 'Shuttle vans, pickups, and cargo sprinters.' },
-  { id: 'z5', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-20 West Freight Corridor', mult: 1.50, unlockRep: 2300, rustChance: 0.35, desc: 'Commercial box trucks and highway blowouts.' },
-  { id: 'z6', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-85 Gwinnett Logistics', mult: 1.64, unlockRep: 3250, rustChance: 0.38, desc: 'Distribution hub semi-trailers & duals.' },
-  { id: 'z7', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-75 Macon Bypass', mult: 1.78, unlockRep: 4350, rustChance: 0.40, desc: 'Long-haul freight and heavy pickup rescues.' },
-  { id: 'z8', hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-16 Central Freightway', mult: 1.92, unlockRep: 5600, rustChance: 0.44, desc: 'High-speed interstate retread delaminations.' },
-  { id: 'z9', hub: 'HUB 3 · COASTAL PORTS', name: 'Savannah Port Gate 1', mult: 2.08, unlockRep: 7000, rustChance: 0.55, desc: 'Salt-air 18-wheeler port containers & seized lugs.' },
-  { id: 'z10', hub: 'HUB 3 · COASTAL PORTS', name: 'Talmadge Bridge Approach', mult: 2.24, unlockRep: 8550, rustChance: 0.58, desc: 'Heavy container tractor-trailers.' },
-  { id: 'z11', hub: 'HUB 3 · COASTAL PORTS', name: 'Brunswick Auto Terminal', mult: 2.40, unlockRep: 10250, rustChance: 0.60, desc: 'Fleet carriers and multi-axle haulers.' },
-  { id: 'z12', hub: 'HUB 3 · COASTAL PORTS', name: 'Pooler Logistics Park', mult: 2.58, unlockRep: 12100, rustChance: 0.62, desc: '24/7 commercial warehouse dispatch grid.' },
-  { id: 'z13', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-95 Coastal Freightway', mult: 2.76, unlockRep: 14100, rustChance: 0.65, desc: 'Interstate night-shift emergency fleet calls.' },
-  { id: 'z14', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-26 Charleston Spur', mult: 2.94, unlockRep: 16250, rustChance: 0.65, desc: 'Port-to-inland heavy commercial rigs.' },
-  { id: 'z15', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-77 Charlotte Corridor', mult: 3.12, unlockRep: 18550, rustChance: 0.68, desc: 'High-speed regional freight & VIP calls.' },
-  { id: 'z16', hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-40 Piedmont Ridge', mult: 3.30, unlockRep: 21000, rustChance: 0.70, desc: 'Steep-grade heavy truck tire blowouts.' },
-  { id: 'z17', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Jacksonville Interchange', mult: 3.50, unlockRep: 23650, rustChance: 0.72, desc: 'Cross-country 18-wheeler hub.' },
-  { id: 'z18', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-65 Mobile Bayway', mult: 3.70, unlockRep: 26500, rustChance: 0.75, desc: 'Coastal bridge heavy-duty rescue.' },
-  { id: 'z19', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Baton Rouge Refinery', mult: 3.90, unlockRep: 29550, rustChance: 0.76, desc: 'Industrial tanker & commercial fleet calls.' },
-  { id: 'z20', hub: 'HUB 5 · GULF CORRIDOR', name: 'I-45 Houston Ship Channel', mult: 4.12, unlockRep: 32800, rustChance: 0.78, desc: 'Maximum-volume freight tire emergencies.' },
-  { id: 'z21', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Night-Shift Sector A', mult: 4.35, unlockRep: 36300, rustChance: 0.80, desc: 'Executive fleet & high-priority contracts.' },
-  { id: 'z22', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Heavy Convoy Lane', mult: 4.60, unlockRep: 40000, rustChance: 0.82, desc: 'Multi-rig commercial rescue operations.' },
-  { id: 'z23', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Interstate Command', mult: 4.85, unlockRep: 44000, rustChance: 0.85, desc: 'Elite zero-margin-for-error dispatches.' },
-  { id: 'z24', hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Pinnacle Terminal', mult: 5.15, unlockRep: 48500, rustChance: 0.88, desc: 'Top-tier syndicate payouts across all classes.' }
+  // Hub 1 (Atlanta Metro · Tool Tier 1 · Lvl 1-4)
+  { id: 'z1', hubNum: 1, hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 North Perimeter', mult: 1.00, unlockRep: 0, rustChance: 0.15, desc: 'Steady commuter flats and shoulder punctures.' },
+  { id: 'z2', hubNum: 1, hub: 'HUB 1 · ATLANTA METRO', name: 'I-75 Downtown Connector', mult: 1.07, unlockRep: 450, rustChance: 0.20, desc: 'High-density commuter & SUV roadside calls.' },
+  { id: 'z3', hubNum: 1, hub: 'HUB 1 · ATLANTA METRO', name: 'GA-400 Buckhead Express', mult: 1.14, unlockRep: 900, rustChance: 0.22, desc: 'Luxury sedans and evening rush-hour flats.' },
+  { id: 'z4', hubNum: 1, hub: 'HUB 1 · ATLANTA METRO', name: 'I-285 Airport South Loop', mult: 1.22, unlockRep: 1350, rustChance: 0.28, desc: 'Shuttle vans, pickups, and cargo sprinters.' },
+  // Hub 2 (Georgia Freight · Tool Tier 2 · Lvl 5-8)
+  { id: 'z5', hubNum: 2, hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-20 West Freight Corridor', mult: 1.30, unlockRep: 1800, rustChance: 0.35, desc: 'Commercial box trucks and highway blowouts.' },
+  { id: 'z6', hubNum: 2, hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-85 Gwinnett Logistics', mult: 1.38, unlockRep: 3200, rustChance: 0.38, desc: 'Distribution hub semi-trailers & duals.' },
+  { id: 'z7', hubNum: 2, hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-75 Macon Bypass', mult: 1.47, unlockRep: 4650, rustChance: 0.40, desc: 'Long-haul freight and heavy pickup rescues.' },
+  { id: 'z8', hubNum: 2, hub: 'HUB 2 · GEORGIA FREIGHT', name: 'I-16 Central Freightway', mult: 1.56, unlockRep: 6100, rustChance: 0.44, desc: 'High-speed interstate retread delaminations.' },
+  // Hub 3 (Coastal Ports · Tool Tier 3 · Lvl 9-12)
+  { id: 'z9', hubNum: 3, hub: 'HUB 3 · COASTAL PORTS', name: 'Savannah Port Gate 1', mult: 1.65, unlockRep: 7500, rustChance: 0.55, desc: 'Salt-air 18-wheeler port containers & seized lugs.' },
+  { id: 'z10', hubNum: 3, hub: 'HUB 3 · COASTAL PORTS', name: 'Talmadge Bridge Approach', mult: 1.75, unlockRep: 10900, rustChance: 0.58, desc: 'Heavy container tractor-trailers.' },
+  { id: 'z11', hubNum: 3, hub: 'HUB 3 · COASTAL PORTS', name: 'Brunswick Auto Terminal', mult: 1.85, unlockRep: 14250, rustChance: 0.60, desc: 'Fleet carriers and multi-axle haulers.' },
+  { id: 'z12', hubNum: 3, hub: 'HUB 3 · COASTAL PORTS', name: 'Pooler Logistics Park', mult: 1.95, unlockRep: 17600, rustChance: 0.62, desc: '24/7 commercial warehouse dispatch grid.' },
+  // Hub 4 (Southeast Express · Tool Tier 4 · Lvl 13-16)
+  { id: 'z13', hubNum: 4, hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-95 Coastal Freightway', mult: 2.06, unlockRep: 21000, rustChance: 0.65, desc: 'Interstate night-shift emergency fleet calls.' },
+  { id: 'z14', hubNum: 4, hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-26 Charleston Spur', mult: 2.17, unlockRep: 27000, rustChance: 0.65, desc: 'Port-to-inland heavy commercial rigs.' },
+  { id: 'z15', hubNum: 4, hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-77 Charlotte Corridor', mult: 2.28, unlockRep: 33000, rustChance: 0.68, desc: 'High-speed regional freight & VIP calls.' },
+  { id: 'z16', hubNum: 4, hub: 'HUB 4 · SOUTHEAST EXPRESS', name: 'I-40 Piedmont Ridge', mult: 2.39, unlockRep: 39000, rustChance: 0.70, desc: 'Steep-grade heavy truck tire blowouts.' },
+  // Hub 5 (Gulf Corridor · Tool Tier 5 · Lvl 17-20)
+  { id: 'z17', hubNum: 5, hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Jacksonville Interchange', mult: 2.51, unlockRep: 45000, rustChance: 0.72, desc: 'Cross-country 18-wheeler hub.' },
+  { id: 'z18', hubNum: 5, hub: 'HUB 5 · GULF CORRIDOR', name: 'I-65 Mobile Bayway', mult: 2.63, unlockRep: 53750, rustChance: 0.75, desc: 'Coastal bridge heavy-duty rescue.' },
+  { id: 'z19', hubNum: 5, hub: 'HUB 5 · GULF CORRIDOR', name: 'I-10 Baton Rouge Refinery', mult: 2.75, unlockRep: 62500, rustChance: 0.76, desc: 'Industrial tanker & commercial fleet calls.' },
+  { id: 'z20', hubNum: 5, hub: 'HUB 5 · GULF CORRIDOR', name: 'I-45 Houston Ship Channel', mult: 2.87, unlockRep: 71250, rustChance: 0.78, desc: 'Maximum-volume freight tire emergencies.' },
+  // Hub 6 (Apex Syndicate · Tool Tier 6 · Lvl 21-24)
+  { id: 'z21', hubNum: 6, hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Night-Shift Sector A', mult: 2.99, unlockRep: 80000, rustChance: 0.80, desc: 'Executive fleet & high-priority contracts.' },
+  { id: 'z22', hubNum: 6, hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Heavy Convoy Lane', mult: 3.12, unlockRep: 87000, rustChance: 0.82, desc: 'Multi-rig commercial rescue operations.' },
+  { id: 'z23', hubNum: 6, hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Interstate Command', mult: 3.25, unlockRep: 94000, rustChance: 0.85, desc: 'Elite zero-margin-for-error dispatches.' },
+  { id: 'z24', hubNum: 6, hub: 'HUB 6 · APEX SYNDICATE', name: 'Apex Pinnacle Terminal', mult: 3.40, unlockRep: 101000, rustChance: 0.88, desc: 'Top-tier syndicate payouts across all classes.' }
 ];
 
 const VEHICLES = [
@@ -157,12 +174,15 @@ const MAX_DISPATCH_SCANS = 2;
 const SCAN_RECHARGE_MS = 2 * 60 * 60 * 1000;
 
 const MAX_SURGE_CHARGES = 3;
-const SURGE_RECHARGE_MS = 8 * 60 * 60 * 1000; // 8 hours per surge ad charge
+const SURGE_RECHARGE_MS = 8 * 60 * 60 * 1000;
 
 const MAX_TOKEN_DROPS = 3;
-const TOKEN_DROP_RECHARGE_MS = 6 * 60 * 60 * 1000; // 6 hours per free token ad drop
+const TOKEN_DROP_RECHARGE_MS = 6 * 60 * 60 * 1000;
 
-const CLEAN_STREAK_GEAR_INTERVAL = 5; // +1 Gold Gear every 5 zero-penalty calls
+// Tightened 3-call clean-streak Gold Gear interval + streak milestone bonuses
+const CLEAN_STREAK_GEAR_INTERVAL = 3;
+const STREAK_GEAR_MILESTONES = { 9: 2, 15: 3 };
+const MAX_STREAK_ROLLOVER = 15;
 const TOKEN_TO_GEAR_COST = 15;
 
 let state = {
@@ -217,8 +237,6 @@ let bayTimerInterval = null;
 let dispatchCooldownInterval = null;
 let spinClearTimeout = null;
 let holdPsiInterval = null;
-let lastRenderedVehSrc = '';
-let lastRenderedTireSrc = '';
 
 function loadState() {
   try {
@@ -307,6 +325,23 @@ function getZone() {
   return ZONES.find((z) => z.id === state.zoneId) || ZONES[0];
 }
 
+function getCurrentHubTier() {
+  const z = getZone();
+  return HUB_TIERS.find((h) => h.hubNum === (z.hubNum || Math.floor((ZONES.indexOf(z)) / 4) + 1)) || HUB_TIERS[0];
+}
+
+function getStockPricing() {
+  const rig = getActiveRigObj();
+  const z = getZone();
+  const supplyScale = 1 + ((rig.mult * z.mult) - 1) * 0.55;
+  return {
+    plugPackCost: Math.round(20 * supplyScale),
+    plugPackQty: 3,
+    stdCost: Math.round(45 * supplyScale),
+    hdCost: Math.round(95 * supplyScale)
+  };
+}
+
 function getFleetOverheadFee(job) {
   const rig = getActiveRigObj();
   const z = getZone();
@@ -324,6 +359,51 @@ function getRatingTierInfo() {
   if (avg >= 4.4) return { label: 'TRUSTED PRO', mult: 1.08, bonusPct: '+8%', vipChance: 0.30, color: '#38bdf8' };
   if (avg >= 4.0) return { label: 'STANDARD', mult: 1.00, bonusPct: '0%', vipChance: 0.15, color: '#cbd5e1' };
   return { label: 'PROBATION', mult: 0.85, bonusPct: '-15%', vipChance: 0.0, color: '#ef4444' };
+}
+
+function getStreakGearReward(streakVal) {
+  if (!streakVal || streakVal <= 0 || streakVal % CLEAN_STREAK_GEAR_INTERVAL !== 0) return 0;
+  return STREAK_GEAR_MILESTONES[streakVal] || 1;
+}
+
+function getCallsUntilNextGear(streakVal) {
+  const s = streakVal || 0;
+  const rem = s % CLEAN_STREAK_GEAR_INTERVAL;
+  return rem === 0 ? CLEAN_STREAK_GEAR_INTERVAL : (CLEAN_STREAK_GEAR_INTERVAL - rem);
+}
+
+function getToolUpgradeSpec(key) {
+  const tool = state.tools[key];
+  if (!tool) return { cost: 0, gears: 0, isBreakthrough: false, tierIndex: 1 };
+  const lvl = tool.level;
+  const tierIndex = Math.min(6, Math.floor((lvl - 1) / 4) + 1);
+  const isBreakthrough = lvl < 24 && lvl % 4 === 0;
+  // Calibrated Gradual Milestone Curve:
+  // Early Hook (4-5 calls) -> Early-Mid (8-10) -> Mid (20-25) -> Upper-Mid (50-60) -> Late (150-200) -> Endgame (300-350)
+  const tierSteps = Math.floor((lvl - 1) / 4);
+  const upperMidBoost = lvl >= 13 ? 1.14 : 1.0;
+  const rawCost =
+    tool.baseCost *
+    3.68 *
+    Math.pow(1.250, lvl - 1) *
+    Math.pow(1.250, tierSteps) *
+    upperMidBoost *
+    (isBreakthrough ? 1.18 : 1.0);
+  const roundStep = rawCost >= 50000 ? 500 : rawCost >= 10000 ? 100 : rawCost >= 1000 ? 50 : 10;
+  const cost = Math.round(rawCost / roundStep) * roundStep;
+
+  // Gold Gear breakthrough costs scaled to the faster 3-call streak + 9/15 milestone earn rate:
+  // Lvl 4->5 (Tier 2): 2 ⚙️ | Lvl 8->9 (Tier 3): 4 ⚙️ | Lvl 12->13 (Tier 4): 8 ⚙️ | Lvl 16->17 (Tier 5): 12 ⚙️ | Lvl 20->21 (Tier 6): 16 ⚙️
+  let gears = 0;
+  if (isBreakthrough) {
+    if (lvl === 4) gears = 2;
+    else if (lvl === 8) gears = 4;
+    else if (lvl === 12) gears = 8;
+    else if (lvl === 16) gears = 12;
+    else if (lvl === 20) gears = 16;
+    else gears = Math.min(18, Math.floor(lvl / 2) + 2);
+  }
+  return { cost, gears, isBreakthrough, tierIndex };
 }
 
 function getToolEffectSummary(key, level) {
@@ -761,19 +841,20 @@ function renderStockBar() {
     dispatchPage.insertBefore(bar, targetAnchor);
   }
   const rig = getActiveRigObj();
+  const sp = getStockPricing();
   const plugFull = state.plugs >= rig.capPlugs;
   const stdFull = state.stdTires >= rig.capStd;
   const hdFull = state.hdTires >= rig.capHd;
 
   bar.innerHTML = `
     <button class="dw-stock-btn ${state.plugs === 0 ? 'low' : plugFull ? 'full' : ''}" onclick="buyStock('plug')">
-      Plugs: <strong>${state.plugs}/${rig.capPlugs}</strong><br><span style="color:var(--amber);">${plugFull ? 'CARGO FULL' : '+3 ($20)'}</span>
+      Plugs: <strong>${state.plugs}/${rig.capPlugs}</strong><br><span style="color:var(--amber);">${plugFull ? 'CARGO FULL' : `+${sp.plugPackQty} ($${sp.plugPackCost})`}</span>
     </button>
     <button class="dw-stock-btn ${state.stdTires === 0 ? 'low' : stdFull ? 'full' : ''}" onclick="buyStock('std')">
-      Std Tires: <strong>${state.stdTires}/${rig.capStd}</strong><br><span style="color:var(--amber);">${stdFull ? 'CARGO FULL' : '+1 ($45)'}</span>
+      Std Tires: <strong>${state.stdTires}/${rig.capStd}</strong><br><span style="color:var(--amber);">${stdFull ? 'CARGO FULL' : `+1 ($${sp.stdCost})`}</span>
     </button>
     <button class="dw-stock-btn ${state.hdTires === 0 ? 'low' : hdFull ? 'full' : ''}" onclick="buyStock('hd')">
-      HD Tires: <strong>${state.hdTires}/${rig.capHd}</strong><br><span style="color:var(--amber);">${hdFull ? 'CARGO FULL' : '+1 ($95)'}</span>
+      HD Tires: <strong>${state.hdTires}/${rig.capHd}</strong><br><span style="color:var(--amber);">${hdFull ? 'CARGO FULL' : `+1 ($${sp.hdCost})`}</span>
     </button>`;
 }
 
@@ -919,9 +1000,10 @@ function renderRatingPerkBanner() {
   }
   const avg = getRatingAvg().toFixed(2);
   const info = getRatingTierInfo();
-  const nextGearIn = CLEAN_STREAK_GEAR_INTERVAL - ((state.streak || 0) % CLEAN_STREAK_GEAR_INTERVAL);
+  const nextGearIn = getCallsUntilNextGear(state.streak || 0);
+  const hubObj = getCurrentHubTier();
   pill.innerHTML = `
-    <span>Rating: <strong style="color:${info.color};">${avg} ★</strong> · Clean Streak: <strong style="color:var(--amber);">${state.streak || 0}</strong> (${nextGearIn} to ⚙️)</span>
+    <span>Rating: <strong style="color:${info.color};">${avg} ★</strong> · Hub ${hubObj.hubNum} (T${hubObj.toolTier}) · Clean: <strong style="color:var(--amber);">${state.streak || 0}</strong> (${nextGearIn}→⚙️)</span>
     <span style="color:${info.color};font-weight:800;">Pay ${info.bonusPct}</span>
   `;
 }
@@ -937,10 +1019,11 @@ function updateHUD() {
   const drawerRating = document.getElementById('drawer-rating');
   if (drawerRating) drawerRating.textContent = `${avg} ★ (${rInfo.bonusPct})`;
   const z = getZone();
+  const hubObj = getCurrentHubTier();
   const drawerZone = document.getElementById('drawer-zone');
-  if (drawerZone) drawerZone.textContent = z.name;
+  if (drawerZone) drawerZone.textContent = `${z.name} · Hub ${hubObj.hubNum} (T${hubObj.toolTier})`;
   const zoneLbl = document.getElementById('dispatch-zone-label');
-  if (zoneLbl) zoneLbl.textContent = `${z.name.toUpperCase()} (${z.mult}x)`;
+  if (zoneLbl) zoneLbl.textContent = `${z.name.toUpperCase()} (${z.mult}x · H${hubObj.hubNum} T${hubObj.toolTier})`;
   const boostLbl = document.getElementById('dispatch-boost-label');
   if (boostLbl) {
     boostLbl.textContent = state.surgeJobs > 0
@@ -1885,7 +1968,7 @@ function completeJob() {
   if (state.surgeJobs > 0) state.surgeJobs--;
   const gross = job.pay * mult;
   const isFast = job.timeLeft >= Math.round(job.timeLimit * 0.45);
-  const speedBonus = isFast ? Math.round(job.pay * 0.2) : 0;
+  const speedBonus = isFast ? Math.round(job.pay * 0.08) : 0;
   const overheadFee = getFleetOverheadFee(job);
   const totalDeductions = job.penalties + overheadFee;
   const net = Math.max(15, gross + speedBonus - totalDeductions);
@@ -1905,9 +1988,14 @@ function completeJob() {
   if (isCleanJob) state.streak = (state.streak || 0) + 1;
   else state.streak = 0;
 
-  // Deterministic Gold Gear drop on every 5-job zero-penalty streak
-  const earnedStreakGear = isCleanJob && (state.streak % CLEAN_STREAK_GEAR_INTERVAL === 0);
-  if (earnedStreakGear) state.parts += 1;
+  // Tightened 3-call clean-streak Gold Gear drops + 9/15 streak milestones
+  const earnedStreakGear = isCleanJob ? getStreakGearReward(state.streak) : 0;
+  if (earnedStreakGear > 0) {
+    state.parts += earnedStreakGear;
+    if (state.streak >= MAX_STREAK_ROLLOVER) {
+      state.streak = 0;
+    }
+  }
 
   if (state.contract && state.contract.progress < state.contract.target) {
     const ct = state.contract.type;
@@ -1942,7 +2030,7 @@ function completeJob() {
       ${logHtml}
       <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;"><span>Net Collected:</span><strong style="color:var(--green);">$${net}</strong></div>
       <div style="display:flex;justify-content:space-between;"><span>Corridor REP (${baseRep} - ${repDeductions} pen):</span><strong style="color:${netRep >= 0 ? 'var(--amber)' : 'var(--red)'};">${netRep >= 0 ? '+' : ''}${netRep} REP</strong></div>
-      ${earnedStreakGear ? `<div style="color:var(--amber);font-weight:800;">+1 Gold Gear (⚙️) · ${CLEAN_STREAK_GEAR_INTERVAL}-Job Clean Streak Milestone!</div>` : ''}
+      ${earnedStreakGear > 0 ? `<div style="color:var(--amber);font-weight:800;">+${earnedStreakGear} Gold Gear${earnedStreakGear > 1 ? 's' : ''} (⚙️) · Clean Streak Milestone!</div>` : ''}
     </div>
     <button type="button" class="primary-btn" onclick="closeModal(); goPage('dispatch');">RETURN TO DISPATCH</button>
   `);
@@ -1950,17 +2038,18 @@ function completeJob() {
 
 function buyStock(type) {
   const rig = getActiveRigObj();
+  const sp = getStockPricing();
   if (type === 'plug') {
     if (state.plugs >= rig.capPlugs) {
       showAlert('CARGO CAPACITY FULL', `${rig.name} holds max ${rig.capPlugs} Plug Kits. Upgrade your Rig Tier in the Garage for more cargo space!`);
       return;
     }
-    if (state.cash >= 20) {
-      state.cash -= 20;
-      state.plugs = Math.min(rig.capPlugs, state.plugs + 3);
+    if (state.cash >= sp.plugPackCost) {
+      state.cash -= sp.plugPackCost;
+      state.plugs = Math.min(rig.capPlugs, state.plugs + sp.plugPackQty);
       SoundFX.torqueClick();
     } else {
-      showAlert('INSUFFICIENT CASH', 'Complete a dispatch call to earn cash for restocking supplies.');
+      showAlert('INSUFFICIENT CASH', `Need $${sp.plugPackCost} to restock +${sp.plugPackQty} Plug Kits.`);
       return;
     }
   } else if (type === 'std') {
@@ -1968,12 +2057,12 @@ function buyStock(type) {
       showAlert('CARGO CAPACITY FULL', `${rig.name} holds max ${rig.capStd} Standard Tires. Upgrade your Rig Tier in the Garage for more cargo space!`);
       return;
     }
-    if (state.cash >= 45) {
-      state.cash -= 45;
+    if (state.cash >= sp.stdCost) {
+      state.cash -= sp.stdCost;
       state.stdTires += 1;
       SoundFX.torqueClick();
     } else {
-      showAlert('INSUFFICIENT CASH', 'Complete a dispatch call to earn cash for restocking supplies.');
+      showAlert('INSUFFICIENT CASH', `Need $${sp.stdCost} to restock +1 Standard Tire.`);
       return;
     }
   } else if (type === 'hd') {
@@ -1981,12 +2070,12 @@ function buyStock(type) {
       showAlert('CARGO CAPACITY FULL', `${rig.name} holds max ${rig.capHd} Heavy-Duty Tires. Upgrade your Rig Tier in the Garage for more cargo space!`);
       return;
     }
-    if (state.cash >= 95) {
-      state.cash -= 95;
+    if (state.cash >= sp.hdCost) {
+      state.cash -= sp.hdCost;
       state.hdTires += 1;
       SoundFX.torqueClick();
     } else {
-      showAlert('INSUFFICIENT CASH', 'Complete a dispatch call to earn cash for restocking supplies.');
+      showAlert('INSUFFICIENT CASH', `Need $${sp.hdCost} to restock +1 Heavy-Duty Tire.`);
       return;
     }
   }
@@ -1994,7 +2083,7 @@ function buyStock(type) {
   updateHUD();
 }
 
-// --- GARAGE ---
+// --- GARAGE (Hub-Aligned Tool Tiers) ---
 function stepRigPreview(delta) {
   const current = previewRigTier || getRigTier();
   previewRigTier = Math.max(1, Math.min(6, current + delta));
@@ -2052,6 +2141,7 @@ function renderGarage() {
   const rig = RIG_TIERS[previewRigTier - 1];
   const isUnlocked = previewRigTier <= (state.unlockedRigTier || 1);
   const meetsTools = getMinToolLevel() >= rig.reqLvl;
+  const currentHub = getCurrentHubTier();
 
   const garagePage = document.getElementById('page-garage');
   let heroCard = garagePage.querySelector('.rig-hero');
@@ -2080,7 +2170,7 @@ function renderGarage() {
     </div>
     <p id="rig-perk" style="font-size:12px;color:var(--muted);">${rig.perk} (${rig.req})</p>
     <div style="font-size:11px;color:var(--amber);font-weight:800;">
-      Cargo Rack: ${rig.capStd} Std Tires · ${rig.capHd} HD Tires · ${rig.capPlugs} Plug Kits
+      Hub ${currentHub.hubNum} (${currentHub.name}) → Tool Tier ${currentHub.toolTier} (${currentHub.levels}) · Cargo: ${rig.capStd} Std / ${rig.capHd} HD / ${rig.capPlugs} Plugs
     </div>
     <button type="button" id="rig-commission-btn" class="primary-btn" style="margin-top:6px;"
       ${isUnlocked || !meetsTools || previewRigTier !== (state.unlockedRigTier + 1) ? 'disabled' : ''}
@@ -2098,9 +2188,11 @@ function renderGarage() {
     const ownedTier = Math.min(6, Math.floor((tool.level - 1) / 4) + 1);
     const viewTier = previewToolTiers[key] || ownedTier;
     const viewTierLabel = TIER_NAMES[viewTier - 1];
+    const hubForTier = HUB_TIERS[viewTier - 1] || HUB_TIERS[0];
     const isMax = tool.level >= 24;
-    const needsPart = !isMax && tool.level % 4 === 0;
-    const cost = Math.round(tool.baseCost * Math.pow(1.26, tool.level - 1));
+    const spec = getToolUpgradeSpec(key);
+    const needsPart = !isMax && spec.gears > 0;
+    const cost = spec.cost;
     const imgPath = `assets/${tool.prefix}-t${viewTier}.png`;
     const isPreviewingFuture = viewTier > ownedTier;
     const effectDesc = getToolEffectSummary(key, tool.level);
@@ -2114,7 +2206,7 @@ function renderGarage() {
           </div>
           <div style="flex:1;min-width:0;">
             <span class="badge">
-              ${isPreviewingFuture ? `PREVIEW T${viewTier}: ${viewTierLabel.toUpperCase()}` : `LVL ${tool.level}/24 · ${TIER_NAMES[ownedTier - 1].toUpperCase()}`}
+              ${isPreviewingFuture ? `PREVIEW T${viewTier}: ${viewTierLabel.toUpperCase()} · HUB ${hubForTier.hubNum}` : `LVL ${tool.level}/24 · T${ownedTier} (${TIER_NAMES[ownedTier - 1].toUpperCase()}) · HUB ${ownedTier}`}
             </span>
             <h3 style="font-size:14px;margin-top:4px;">${tool.name}</h3>
             <div style="font-size:11px;color:var(--amber);margin-top:2px;">${effectDesc}</div>
@@ -2125,7 +2217,7 @@ function renderGarage() {
           </div>
         </div>
         <button type="button" class="primary-btn" ${isMax ? 'disabled' : ''} onclick="upgradeTool('${key}')" style="margin-top:8px;">
-          ${isMax ? 'MAXED OUT (LVL 24)' : `UPGRADE TO LVL ${tool.level + 1} ($${cost}${needsPart ? ' + 1 ⚙️' : ''})`}
+          ${isMax ? 'MAXED OUT (LVL 24)' : `UPGRADE TO LVL ${tool.level + 1} ($${cost.toLocaleString()}${needsPart ? ` + ${spec.gears} ⚙️` : ''})`}
         </button>
       </div>`;
   }).join('');
@@ -2134,18 +2226,19 @@ function renderGarage() {
 function upgradeTool(key) {
   const tool = state.tools[key];
   if (!tool || tool.level >= 24) return;
-  const needsPart = tool.level % 4 === 0;
-  const cost = Math.round(tool.baseCost * Math.pow(1.26, tool.level - 1));
+  const spec = getToolUpgradeSpec(key);
+  const cost = spec.cost;
+  const reqGears = spec.gears;
   if (state.cash < cost) {
-    showAlert('INSUFFICIENT CASH', `Need $${cost} to upgrade ${tool.name}.`);
+    showAlert('INSUFFICIENT CASH', `Need $${cost.toLocaleString()} to upgrade ${tool.name}.`);
     return;
   }
-  if (needsPart && state.parts < 1) {
-    showAlert('GOLD GEAR REQUIRED', 'Tier breakthrough upgrades (Lvl 4→5, 8→9, etc.) require 1 ⚙️ Gold Gear from 5-job clean streaks, Elite Contracts, or the Shop.');
+  if (reqGears > 0 && state.parts < reqGears) {
+    showAlert('GOLD GEARS REQUIRED', `Hub Tier breakthrough upgrades (Lvl ${tool.level}→${tool.level + 1}) require ${reqGears} ⚙️ Gold Gear${reqGears > 1 ? 's' : ''} from 3-call clean streaks, 9/15 streak milestones, Contracts, or the Shop.`);
     return;
   }
   state.cash -= cost;
-  if (needsPart) state.parts -= 1;
+  if (reqGears > 0) state.parts -= reqGears;
   tool.level += 1;
   const newOwnedTier = Math.min(6, Math.floor((tool.level - 1) / 4) + 1);
   previewToolTiers[key] = newOwnedTier;
@@ -2208,13 +2301,15 @@ function renderLeague() {
   }).join('');
 }
 
-// --- 24 ZONES / 6 HUBS ---
+// --- 24 ZONES / 6 HUBS (Each Hub = Tool Tier) ---
 function renderZones() {
   let currentHub = '';
   let html = '';
   ZONES.forEach((z, idx) => {
-    if (z.hub !== currentHub) {
-      currentHub = z.hub;
+    const hubMeta = HUB_TIERS[Math.floor(idx / 4)] || HUB_TIERS[0];
+    const hubHeader = `${z.hub} · TOOL TIER ${hubMeta.toolTier} (${hubMeta.levels})`;
+    if (hubHeader !== currentHub) {
+      currentHub = hubHeader;
       html += `<div class="hub-group-title">${currentHub}</div>`;
     }
     const unlocked = state.rep >= z.unlockRep;
@@ -2223,7 +2318,7 @@ function renderZones() {
       <div class="item-card" style="${active ? 'border-color:var(--amber);' : !unlocked ? 'opacity:0.78;' : ''}">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div>
-            <span class="badge">ZONE ${idx + 1}/24 · ${z.mult.toFixed(2)}x PAYOUT</span>
+            <span class="badge">ZONE ${idx + 1}/24 · ${z.mult.toFixed(2)}x PAYOUT · T${hubMeta.toolTier}</span>
             <h3 style="font-size:15px;margin-top:4px;">${z.name}</h3>
           </div>
           <strong style="color:${unlocked ? 'var(--green)' : 'var(--muted)'};">
@@ -2283,7 +2378,7 @@ function renderShop() {
       <span class="badge">FOUNDRY EXCHANGE</span>
       <h3>Convert Dispatch Tokens → Gold Gear</h3>
       <p style="font-size:12px;color:var(--muted);">
-        Earn Gold Gears on every ${CLEAN_STREAK_GEAR_INTERVAL}-job zero-penalty streak, Elite Contracts, or forge 1 ⚙️ Gear for ${TOKEN_TO_GEAR_COST} ⚡ Tokens.
+        Earn Gold Gears every ${CLEAN_STREAK_GEAR_INTERVAL} clean calls (+2 at 9 streak, +3 at 15 streak), via Contracts, or forge 1 ⚙️ Gear for ${TOKEN_TO_GEAR_COST} ⚡ Tokens.
       </p>
       <button type="button" class="primary-btn" ${state.tokens < TOKEN_TO_GEAR_COST ? 'disabled' : ''} onclick="exchangeTokensForGear()">
         FORGE 1 ⚙️ GOLD GEAR (${TOKEN_TO_GEAR_COST} ⚡ · YOU HAVE ${state.tokens} ⚡)
