@@ -283,7 +283,12 @@ function loadState() {
 }
 
 function saveState() {
-  try { localStorage.setItem('delwin_v4_save', JSON.stringify(state)); } catch (e) {}
+  try {
+    localStorage.setItem('delwin_v4_save', JSON.stringify(state));
+    if (window.DelWinCloud && typeof window.DelWinCloud.queueSave === 'function') {
+      window.DelWinCloud.queueSave(state);
+    }
+  } catch (e) {}
 }
 
 function syncPoolRecharge(countKey, tsKey, maxVal, intervalMs) {
