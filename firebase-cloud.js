@@ -251,6 +251,7 @@ window.addEventListener("online", () => {
   if (currentUser) reconcile(currentUser);
 });
 document.addEventListener("DOMContentLoaded", () => {
+  window.ensureMenuDrawerElements?.();
   accountCard();
   onAuthStateChanged(auth, user => {
     currentUser = user;
