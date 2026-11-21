@@ -8,7 +8,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyATtykiRuuWd1bUOg80NYfqPCcgZqVZVCYs",
+  apiKey: "AIzaSyATtykiRuuWd1bUOg80NYfqPCcgZqVVCYs",
   authDomain: "delwin-mobile-game.firebaseapp.com",
   projectId: "delwin-mobile-game",
   storageBucket: "delwin-mobile-game.firebasestorage.app",
